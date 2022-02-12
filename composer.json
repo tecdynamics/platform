@@ -1,0 +1,79 @@
+{
+    "name": "Tec/platform",
+    "description": "The Tec Platform based on Laravel Framework.",
+    "keywords": [
+        "Tec",
+        "Tec cms",
+        "Tec platform"
+    ],
+    "homepage": "https://Tec.com",
+    "support": {
+        "issues": "https://Tec.ticksy.com",
+        "document": "https://docs.Tec.com"
+    },
+    "authors": [
+        {
+            "name": "Tec Technologies",
+            "email": "contact@Tec.com"
+        }
+    ],
+    "type": "project",
+    "require": {
+        "barryvdh/laravel-dompdf": "^0.9.0",
+        "Tec/assets": "^1.0",
+        "intervention/image": "^2.6",
+        "kris/laravel-form-builder": "1.16.x-dev",
+        "laravelcollective/html": "^6.2",
+        "xantios/mimey": "^2.2",
+        "tightenco/ziggy": "^1.4",
+        "yajra/laravel-datatables-buttons": "^4.13",
+        "yajra/laravel-datatables-oracle": "^9.18",
+        "guzzlehttp/guzzle": "^6.0|^7.0",
+        "mews/purifier": "^3.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tec\\Support\\": "support/src",
+            "Tec\\ACL\\": "acl/src",
+            "Tec\\Base\\": "base/src",
+            "Tec\\Dashboard\\": "dashboard/src",
+            "Tec\\Media\\": "media/src",
+            "Tec\\Setting\\": "setting/src",
+            "Tec\\Table\\": "table/src",
+            "Tec\\JsValidation\\": "js-validation/src",
+            "Tec\\Chart\\": "chart/src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tec\\Base\\Providers\\BaseServiceProvider",
+                "Tec\\Base\\Providers\\CommandServiceProvider",
+                "Tec\\Base\\Providers\\EventServiceProvider",
+                "Tec\\Base\\Providers\\BreadcrumbsServiceProvider",
+                "Tec\\Base\\Providers\\ComposerServiceProvider",
+                "Tec\\Base\\Providers\\MailConfigServiceProvider",
+                "Tec\\Base\\Providers\\FormServiceProvider",
+                "Tec\\Support\\Providers\\SupportServiceProvider",
+                "Tec\\Table\\Providers\\TableServiceProvider",
+                "Tec\\ACL\\Providers\\AclServiceProvider",
+                "Tec\\Dashboard\\Providers\\DashboardServiceProvider",
+                "Tec\\Media\\Providers\\MediaServiceProvider",
+                "Tec\\JsValidation\\Providers\\JsValidationServiceProvider",
+                "Tec\\Chart\\Providers\\ChartServiceProvider"
+            ],
+            "aliases": {
+                "Assets": "Tec\\Base\\Facades\\AssetsFacade",
+                "BaseHelper": "Tec\\Base\\Facades\\BaseHelperFacade",
+                "MetaBox": "Tec\\Base\\Facades\\MetaBoxFacade",
+                "Action": "Tec\\Base\\Facades\\ActionFacade",
+                "Filter": "Tec\\Base\\Facades\\FilterFacade",
+                "EmailHandler": "Tec\\Base\\Facades\\EmailHandlerFacade",
+                "Breadcrumbs": "Tec\\Base\\Facades\\BreadcrumbsFacade",
+                "JsValidator": "Tec\\JsValidation\\Facades\\JsValidatorFacade"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
