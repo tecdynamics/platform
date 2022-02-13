@@ -6,15 +6,11 @@
         "Tec cms",
         "Tec platform"
     ],
-    "homepage": "https://Tec.com",
-    "support": {
-        "issues": "https://Tec.ticksy.com",
-        "document": "https://docs.Tec.com"
-    },
+    "homepage": "https://tecdynamics.co.uk", 
     "authors": [
         {
-            "name": "Tec Technologies",
-            "email": "contact@Tec.com"
+            "name": "Tec-Dynamics LTD",
+            "email": "support@tecdynamics.co.uk"
         }
     ],
     "type": "project",
