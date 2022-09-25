@@ -15,6 +15,7 @@
     ],
     "type": "project",
     "require": {
+        "illuminate/support":"*",
         "tecdynamics/assets": "*@dev",
         "barryvdh/laravel-dompdf": "*", 
         "intervention/image": "^2.6",
