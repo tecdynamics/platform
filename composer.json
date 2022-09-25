@@ -16,7 +16,7 @@
     "type": "project",
     "require": {
         "tecdynamics/assets": "*@dev",
-        "barryvdh/laravel-dompdf": "^2.0", 
+        "barryvdh/laravel-dompdf": "*", 
         "intervention/image": "^2.6",
         "kris/laravel-form-builder": "1.16.x-dev",
         "laravelcollective/html": "^6.2",
