@@ -45,23 +45,39 @@ class ChunkStorage
      */
     public function __construct()
     {
-        $this->config = RvMedia::getConfig('chunk');
+          $this->config = RvMedia::getConfig('chunk');
 
         // Cache the storage path
         $this->disk = Storage::disk($this->config['storage']['disk']);
 
         $driver = $this->driver();
-
-        // Try to get the adapter
-        if (!method_exists($driver, 'getAdapter')) {
-            throw new RuntimeException('FileSystem driver must have an adapter implemented');
+        if (!method_exists($driver, 'adapter') && !method_exists($driver, 'getAdapter')) {
+              $this->isLocalDisk = 'Local';
         }
+        else {
+            // Try to get the adapter
+            if (!method_exists($driver, 'getAdapter')) {
+               throw new RuntimeException('FileSystem driver must have an adapter implemented2');
+            }
 
-        // Get the disk adapter
+            // Get the disk adapter
+            $this->diskAdapter = $driver->getAdapter();
+
+            // Check if its local adapter
+            $this->isLocalDisk = $this->diskAdapter instanceof Local;
+            // dd(get_class_methods($driver));
+            // Try to get the adapter
+             if (!method_exists($driver, 'adapter')) {
+        if (!method_exists($driver, 'getAdapter')) {
+                    throw new RuntimeException('FileSystem driver must have an adapter implemented1');
+                 }
+             }
+
+            // Get the disk adapter
         $this->diskAdapter = $driver->getAdapter();
 
-        // Check if its local adapter
-        $this->isLocalDisk = $this->diskAdapter instanceof Local;
+            // Check if its local adapter
+        }
     }
 
     /**
