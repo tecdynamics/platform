@@ -19,7 +19,7 @@
         "tecdynamics/assets": "*@dev",
         "barryvdh/laravel-dompdf": "*", 
         "intervention/image": "^2.6",
-        "kris/laravel-form-builder": "1.16.x-dev",
+        "kris/laravel-form-builder": "^1.52.0",
         "laravelcollective/html": "^6.2",
         "xantios/mimey": "^2.2",
         "tightenco/ziggy": "^1.4",
