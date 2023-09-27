@@ -3,6 +3,20 @@
 namespace Tec\Base\Providers;
 
 use App\Http\Middleware\VerifyCsrfToken;
+use Tec\Base\Forms\Form;
+use Tec\Base\Forms\FormBuilder;
+use Tec\Base\Forms\FormHelper;
+use Tec\Base\Supports\Action;
+use Tec\Base\Supports\Filter;
+use Tec\Base\Supports\GoogleFonts;
+use Tec\Base\Widgets\AdminWidget;
+use Tec\Base\Widgets\Contracts\AdminWidget as AdminWidgetContract;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Support\Facades\Schema;
+use Tec\Base\Facades\BaseHelper;
+use Tec\Base\Facades\DashboardMenu;
+use Tec\Base\Facades\PageTitle;
 use Tec\Base\Exceptions\Handler;
 use Tec\Base\Facades\MacroableModelsFacade;
 use Tec\Base\Http\Middleware\CoreMiddleware;
@@ -50,7 +64,7 @@ class BaseServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind(ResourceRegistrar::class, function ($app) {
+         $this->app->bind(ResourceRegistrar::class, function ($app) {
             return new CustomResourceRegistrar($app['router']);
         });
 
@@ -67,7 +81,73 @@ class BaseServiceProvider extends ServiceProvider
         $this->app->bind(MetaBoxInterface::class, function () {
             return new MetaBoxCacheDecorator(new MetaBoxRepository(new MetaBoxModel));
         });
+        $aliasLoader = AliasLoader::getInstance();
+        if (!class_exists('BaseHelper')) {
+            $aliasLoader->alias('BaseHelper', BaseHelper::class);
+            $aliasLoader->alias('DashboardMenu', DashboardMenu::class);
+            $aliasLoader->alias('PageTitle', PageTitle::class);
+            $aliasLoader->alias('MacroableModels', MacroableModelsFacade::class);
+       }
 
+        $this->app['config']->set([
+            'session.cookie' => 'botble_session',
+            'ziggy.except' => ['debugbar.*'],
+            'app.debug_blacklist' => [
+                '_ENV' => [
+                    'APP_KEY',
+                    'ADMIN_DIR',
+                    'DB_DATABASE',
+                    'DB_USERNAME',
+                    'DB_PASSWORD',
+                    'REDIS_PASSWORD',
+                    'MAIL_PASSWORD',
+                    'PUSHER_APP_KEY',
+                    'PUSHER_APP_SECRET',
+                ],
+                '_SERVER' => [
+                    'APP_KEY',
+                    'ADMIN_DIR',
+                    'DB_DATABASE',
+                    'DB_USERNAME',
+                    'DB_PASSWORD',
+                    'REDIS_PASSWORD',
+                    'MAIL_PASSWORD',
+                    'PUSHER_APP_KEY',
+                    'PUSHER_APP_SECRET',
+                ],
+                '_POST' => [
+                    'password',
+                ],
+            ],
+            'datatables-buttons.pdf_generator' => 'excel',
+            'excel.exports.csv.use_bom' => true,
+            'dompdf.public_path' => public_path(),
+            'debugbar.enabled' => $this->app->hasDebugModeEnabled() &&
+                ! $this->app->runningInConsole() &&
+                ! $this->app->environment(['testing', 'production']),
+            'laravel-form-builder.plain_form_class' => Form::class,
+            'laravel-form-builder.form_builder_class' => FormBuilder::class,
+            'laravel-form-builder.form_helper_class' => FormHelper::class,
+        ]);
+
+        $this->app->singleton('core:action', function () {
+            return new Action();
+        });
+
+        $this->app->singleton('core:filter', function () {
+            return new Filter();
+        });
+
+        $this->app->singleton(AdminWidgetContract::class, AdminWidget::class);
+
+        $this->app->singleton('core:google-fonts', function (Application $app) {
+            return new GoogleFonts(
+                filesystem: $app->make(FilesystemManager::class)->disk('public'),
+                path: 'fonts',
+                inline: true,
+                userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15',
+            );
+        });
         $this->app->make('config')->set([
             'session.cookie'                   => 'Tec_session',
             'ziggy.except'                     => ['debugbar.*'],
