@@ -45,7 +45,7 @@ class ChunkStorage
      */
     public function __construct()
     {
-          $this->config = RvMedia::getConfig('chunk');
+        $this->config = RvMedia::getConfig('chunk');
 
         // Cache the storage path
         $this->disk = Storage::disk($this->config['storage']['disk']);

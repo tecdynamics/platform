@@ -41,6 +41,7 @@ class MediaFileController extends Controller
      */
     public function postUpload(Request $request)
     {
+
         if (!RvMedia::isChunkUploadEnabled()) {
             $result = RvMedia::handleUpload(Arr::first($request->file('file')), $request->input('folder_id', 0));
 
