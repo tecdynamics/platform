@@ -54,10 +54,11 @@ if (!function_exists('get_setting_email_template_content')) {
      * @return bool|mixed|null
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    function get_setting_email_template_content($type, $module, $templateKey)
+    function get_setting_email_template_content($type, $module, $templateKey, $template_lang = '')
     {
+        if ($template_lang == null) $template_lang = \Language::getCurrentLocale();
         $defaultPath = platform_path($type . '/' . $module . '/resources/email-templates/' . $templateKey . '.tpl');
-        $storagePath = get_setting_email_template_path($module, $templateKey);
+        $storagePath = get_setting_email_template_path($module, $templateKey, $template_lang);
 
         if ($storagePath != null && File::exists($storagePath)) {
             return get_file_data($storagePath, false);
@@ -74,9 +75,10 @@ if (!function_exists('get_setting_email_template_path')) {
      * @param string $templateKey key is config in config.email.templates.$key
      * @return string
      */
-    function get_setting_email_template_path($module, $templateKey)
+    function get_setting_email_template_path($module, $templateKey, $template_lang = '')
     {
-        return storage_path('app/email-templates/' . $module . '/' . $templateKey . '.tpl');
+        if ($template_lang == null) $template_lang = \Language::getCurrentLocale();
+        return storage_path('app/email-templates/' . $module . '/' . $template_lang  . $templateKey . '.tpl');
     }
 }
 
@@ -87,9 +89,10 @@ if (!function_exists('get_setting_email_subject_key')) {
      * @param string $templateKey
      * @return string
      */
-    function get_setting_email_subject_key($type, $module, $templateKey)
+    function get_setting_email_subject_key($type, $module, $templateKey, $template_lang = '')
     {
-        return $type . '_' . $module . '_' . $templateKey . '_subject';
+        if ($template_lang == null) $template_lang = \Language::getCurrentLocale();
+        return $type . '_' . $module . '_' . $template_lang.$templateKey . '_subject';
     }
 }
 
@@ -101,12 +104,12 @@ if (!function_exists('get_setting_email_subject')) {
      * @param string $templateKey : define in config/email/templates
      * @return array|\Tec\Setting\Supports\SettingStore|null|string
      */
-    function get_setting_email_subject($type, $module, $templateKey)
+    function get_setting_email_subject($type, $module, $templateKey,$template_lang='')
     {
-        $subject = setting(get_setting_email_subject_key($type, $module, $templateKey),
-            trans(config($type . '.' . $module . '.email.templates.' . $templateKey . '.subject',
-                '')));
-
+        if ($template_lang == null) $template_lang = \Language::getCurrentLocale();
+         $subject = setting(get_setting_email_subject_key($type, $module, $templateKey,$template_lang),
+            trans(config($type . '.' . $module . '.email.templates.' . $template_lang .$templateKey . '.subject',
+                config($type . '.' . $module . '.email.templates.' .  $templateKey . '.subject',''))));
         return $subject;
     }
 }
@@ -119,9 +122,10 @@ if (!function_exists('get_setting_email_status_key')) {
      * @param string $templateKey
      * @return string
      */
-    function get_setting_email_status_key($type, $module, $templateKey)
+    function get_setting_email_status_key($type, $module, $templateKey, $template_lang = '')
     {
-        return $type . '_' . $module . '_' . $templateKey . '_' . 'status';
+        if ($template_lang == null) $template_lang = \Language::getCurrentLocale();
+        return $type . '_' . $module . '_' . $template_lang  .$templateKey . '_' . 'status';
     }
 }
 
@@ -132,10 +136,12 @@ if (!function_exists('get_setting_email_status')) {
      * @param string $templateKey
      * @return array|\Tec\Setting\Supports\SettingStore|null|string
      */
-    function get_setting_email_status($type, $module, $templateKey)
+    function get_setting_email_status($type, $module, $templateKey, $template_lang ='')
     {
-        $default = config($type . '.' . $module . '.email.templates.' . $templateKey . '.enabled', true);
+        if ($template_lang == null) $template_lang = \Language::getCurrentLocale();
+        $default = config($type . '.' . $module . '.email.templates.' . $template_lang .$templateKey . '.enabled',
+            config($type . '.' . $module . '.email.templates.' . $templateKey . '.enabled', true));
 
-        return setting(get_setting_email_status_key($type, $module, $templateKey), $default);
+        return setting(get_setting_email_status_key($type, $module, $templateKey, $template_lang), $default);
     }
 }

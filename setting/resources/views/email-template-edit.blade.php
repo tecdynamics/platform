@@ -31,7 +31,7 @@
                                 {{ trans('core/setting::setting.email.subject') }}
                             </label>
                             <input type="hidden" name="email_subject_key"
-                                   value="{{ get_setting_email_subject_key($pluginData['type'], $pluginData['name'], $pluginData['template_file']) }}">
+                                   value="{{ get_setting_email_subject_key($pluginData['type'], $pluginData['name'], $pluginData['template_file'],$template_lang) }}">
                             <input data-counter="300" type="text" class="next-input"
                                    name="email_subject"
                                    id="email_subject"
@@ -39,7 +39,7 @@
                         </div>
                     @endif
                     <div class="form-group mb-3">
-                        <input type="hidden" name="template_path" value="{{ get_setting_email_template_path($pluginData['name'], $pluginData['template_file']) }}">
+                        <input type="hidden" name="template_path" value="{{ get_setting_email_template_path($pluginData['name'], $pluginData['template_file'],$template_lang) }}">
                         <label class="text-title-field"
                                for="email_content">{{ trans('core/setting::setting.email.content') }}</label>
                         <textarea id="mail-template-editor" name="email_content" class="form-control" style="overflow-y:scroll; height: 500px;">{{ $emailContent }}</textarea>
@@ -60,6 +60,8 @@
             </div>
         </div>
     </div>
+
+    <input type="hidden" name="template_lang" value="{{$template_lang}}">
     {!! Form::close() !!}
 
     {!! Form::modalAction('reset-template-to-default-modal', trans('core/setting::setting.email.confirm_reset'), 'info', trans('core/setting::setting.email.confirm_message'), 'reset-template-to-default-button', trans('core/setting::setting.email.continue')) !!}

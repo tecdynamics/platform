@@ -65,7 +65,7 @@ Route::group(['namespace' => 'Tec\Setting\Http\Controllers', 'middleware' => ['w
                     'uses' => 'SettingController@postEditEmailConfig',
                 ]);
 
-                Route::get('templates/edit/{type}/{name}/{template_file}', [
+                Route::get('templates/edit/{type}/{name}/{template_file}/{template_lang}', [
                     'as'   => 'setting.email.template.edit',
                     'uses' => 'SettingController@getEditEmailTemplate',
                 ]);

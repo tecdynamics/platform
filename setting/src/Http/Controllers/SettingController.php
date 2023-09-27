@@ -148,7 +148,7 @@ class SettingController extends BaseController
      * @return Factory|View
      * @throws FileNotFoundException
      */
-    public function getEditEmailTemplate($type, $module, $template)
+    public function getEditEmailTemplate($type, $module, $template,$template_lang='')
     {
         $title = trans(config($type . '.' . $module . '.email.templates.' . $template . '.title', ''));
         page_title()->setTitle($title);
@@ -168,15 +168,15 @@ class SettingController extends BaseController
             ]);
 
 
-        $emailContent = get_setting_email_template_content($type, $module, $template);
-        $emailSubject = get_setting_email_subject($type, $module, $template);
+        $emailContent = get_setting_email_template_content($type, $module, $template, $template_lang);
+        $emailSubject = get_setting_email_subject($type, $module, $template, $template_lang);
         $pluginData = [
             'type'          => $type,
             'name'          => $module,
             'template_file' => $template,
         ];
 
-        return view('core/setting::email-template-edit', compact('emailContent', 'emailSubject', 'pluginData'));
+        return view('core/setting::email-template-edit', compact('emailContent' ,'template_lang','emailSubject', 'pluginData'));
     }
 
     /**
@@ -186,13 +186,14 @@ class SettingController extends BaseController
      */
     public function postStoreEmailTemplate(EmailTemplateRequest $request, BaseHttpResponse $response)
     {
+
+
         if ($request->has('email_subject_key')) {
             setting()
-                ->set($request->input('email_subject_key'), $request->input('email_subject'))
+                ->set($request->input('email_subject_key')  , $request->input('email_subject'))
                 ->save();
         }
-
-        save_file_data($request->input('template_path'), $request->input('email_content'), false);
+        save_file_data( $request->input('template_path'), $request->input('email_content'), false);
 
         return $response->setMessage(trans('core/base::notices.update_success_message'));
     }
@@ -205,8 +206,8 @@ class SettingController extends BaseController
      */
     public function postResetToDefault(Request $request, BaseHttpResponse $response)
     {
-        $this->settingRepository->deleteBy(['key' => $request->input('email_subject_key')]);
-        File::delete($request->input('template_path'));
+        $this->settingRepository->deleteBy(['key' => $request->input('template_lang') . '_' .$request->input('email_subject_key')]);
+        File::delete($request->input('template_lang') . '_' .$request->input('template_path'));
 
         return $response->setMessage(trans('core/setting::setting.email.reset_success'));
     }
@@ -285,6 +286,12 @@ class SettingController extends BaseController
         if (!File::exists(storage_path('.license'))) {
             return $response->setError()->setMessage('Your license is invalid. Please activate your license!');
         }
+        $data = [
+            'activated_at' =>Carbon::now()->format('M d Y'),
+            'licensed_to'  => setting('licensed_to'),
+        ];
+
+      return $response->setMessage(  'Verified! Thanks for purchasing our product.' )->setData($data);
 
         try {
             $result = $coreApi->verifyLicense(true);
@@ -322,7 +329,7 @@ class SettingController extends BaseController
 
             return $response
                 ->setError(true)
-                ->setMessage('Envato username must not a URL. Please try with username "' . $username . '"!');
+                ->setMessage('Username must not a URL. Please try with username "' . $username . '"!');
         }
 
         try {

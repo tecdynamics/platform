@@ -24,12 +24,23 @@
                         @endif
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody>   <?php $activeLanguages = \Language::getSupportedLocales();
+                              $defaultLang = \Language::getDefaultLocale();
+                          \Language::getCurrentLocale();
+                             // dd($activeLanguages, $defaultLang); ?>
+                    @foreach ($activeLanguages as $lang => $lang_data)
+                        <tr>
+                            <td colspan="3">
+                                 {{  $lang_data['lang_name'] }}
+                            </td>
+                        </tr>
+
                     @foreach ($data['templates'] as $key => $template)
+
                         <tr>
                             <td>
                                 <a class="hover-underline a-detail-template"
-                                   href="{{ route('setting.email.template.edit', ['type' => $type, 'name' => $module, 'template_file' => $key]) }}">
+                                   href="{{ route('setting.email.template.edit', ['type' => $type, 'name' => $module, 'template_file' => $key,'template_lang'=>$lang]) }}">
                                     {{ trans($template['title']) }}
                                 </a>
                             </td>
@@ -38,8 +49,8 @@
                             <td class="text-center template-setting-on-off">
                                 @if ($type !== 'core' && Arr::get($template, 'can_off', false))
                                     <div class="form-group mb-3">
-                                        {!! Form::onOff(get_setting_email_status_key($type, $module, $key),
-                                            get_setting_email_status($type, $module, $key) == 1,
+                                        {!! Form::onOff(get_setting_email_status_key($type, $module, $key,$lang),
+                                            get_setting_email_status($type, $module, $key,$lang) == 1,
                                             ['data-key' => 'email-config-status-btn', 'data-change-url' => route('setting.email.status.change')]
                                         ) !!}
                                     </div>
@@ -48,6 +59,7 @@
                                 @endif
                             </td>
                         </tr>
+                        @endforeach
                     @endforeach
                     </tbody>
                 </table>

@@ -13,7 +13,6 @@
                     <p class="color-note">{{ trans('core/setting::setting.email.description') }}</p>
                 </div>
             </div>
-
             <div class="flexbox-annotated-section-content">
                 <div class="wrapper-content pd-all-20" id="email-config-form">
                     <div class="form-group mb-3">
