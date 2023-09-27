@@ -10,7 +10,7 @@
                         <div class="thumb">
                             <div class="profile-userpic mt-card-item">
                                 <div class="avatar-view mt-card-avatar mt-overlay-1">
-                                    <img src="{{ $user->avatar_url }}" class="img-fluid" alt="avatar">
+                                     <img  loading="lazy" src="{{ $user->avatar_url }}" class="img-fluid" alt="avatar">
                                     @if ($canChangeProfile)
                                         <div class="mt-overlay">
                                             <ul class="mt-info">

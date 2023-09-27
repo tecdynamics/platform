@@ -26,10 +26,10 @@ class UserStatusEnum extends Enum
     {
         switch ($this->value) {
             case self::ACTIVATED:
-                return Html::tag('span', self::ACTIVATED()->label(), ['class' => 'label-info status-label'])
+                return Html::element('span', self::ACTIVATED()->label(), ['class' => 'label-info status-label'])
                     ->toHtml();
             case self::DEACTIVATED:
-                return Html::tag('span', self::DEACTIVATED()->label(), ['class' => 'label-warning status-label'])
+                return Html::element('span', self::DEACTIVATED()->label(), ['class' => 'label-warning status-label'])
                     ->toHtml();
             default:
                 return parent::toHtml();

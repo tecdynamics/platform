@@ -40,7 +40,7 @@ class PasswordForm extends FormAbstract
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
                 'help_block' => [
-                    'text' => Html::tag('span', 'Password Strength', ['class' => 'hidden'])->toHtml(),
+                    'text' => Html::element('span', 'Password Strength', ['class' => 'hidden'])->toHtml(),
                     'tag'  => 'div',
                     'attr' => [
                         'class' => 'pwstrength_viewport_progress',

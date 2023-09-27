@@ -4,6 +4,7 @@ namespace Tec\ACL\Models;
 
 use Tec\ACL\Notifications\ResetPasswordNotification;
 use Tec\ACL\Traits\PermissionTrait;
+use Tec\b2b\Models\b2bCustomersModel;
 use Tec\Base\Supports\Avatar;
 use Tec\Media\Models\MediaFile;
 use Exception;
@@ -267,5 +268,9 @@ class User extends Authenticatable
         }
 
         return parent::delete();
+    }
+
+    public function getB2b() {
+        return b2bCustomersModel::where('customer_id', $this['id'])->first();
     }
 }

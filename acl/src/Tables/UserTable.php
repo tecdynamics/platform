@@ -73,7 +73,7 @@ class UserTable extends TableAbstract
                     return $item->username;
                 }
 
-                return Html::link(route('users.profile.view', $item->id), $item->username);
+                return Html::a(route('users.profile.view', $item->id), $item->username);
             })
             ->editColumn('created_at', function ($item) {
                 return BaseHelper::formatDate($item->created_at);
@@ -100,11 +100,11 @@ class UserTable extends TableAbstract
 
                 $action = null;
                 if (Auth::user()->isSuperUser()) {
-                    $action = Html::link(route('users.make-super', $item->id), trans('core/acl::users.make_super'),
+                    $action = Html::a(route('users.make-super', $item->id), trans('core/acl::users.make_super'),
                         ['class' => 'btn btn-info'])->toHtml();
 
                     if ($item->super_user) {
-                        $action = Html::link(route('users.remove-super', $item->id), trans('core/acl::users.remove_super'),
+                        $action = Html::a(route('users.remove-super', $item->id), trans('core/acl::users.remove_super'),
                             ['class' => 'btn btn-danger'])->toHtml();
                     }
                 }
