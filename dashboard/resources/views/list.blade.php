@@ -16,6 +16,7 @@
             {!! $widget !!}
         @endforeach
         <div class="clearfix"></div>
+
     </div>
     <div id="list_widgets" class="row">
         @foreach ($userWidgets as $widget)
