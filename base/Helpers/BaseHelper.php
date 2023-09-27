@@ -2,6 +2,7 @@
 
 namespace Tec\Base\Helpers;
 
+use Tec\Base\Facades\Html;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
