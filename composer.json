@@ -21,7 +21,7 @@
         "ext-zip": "*",
         "ext-gd": "*",
         "barryvdh/laravel-dompdf": "^2.0",
-        "Tec/assets": "^1.0",
+        "tecdynamics/assets": "*",
         "intervention/image": "^2.6",
         "kris/laravel-form-builder": "dev-master",
         "spatie/laravel-html": "^3.2.2",
