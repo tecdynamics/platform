@@ -57,7 +57,7 @@ class RoleTable extends TableAbstract
     /**
      * {@inheritDoc}
      */
-    public function ajax()
+    public function ajax(): \Illuminate\Http\JsonResponse
     {
         $data = $this->table
             ->eloquent($this->query())
@@ -66,7 +66,7 @@ class RoleTable extends TableAbstract
                     return $item->name;
                 }
 
-                return Html::a(route('roles.edit', $item->id), $item->name);
+                return Html::link(route('roles.edit', $item->id), $item->name);
             })
             ->editColumn('checkbox', function ($item) {
                 return $this->getCheckbox($item->id);
