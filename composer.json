@@ -1,17 +1,12 @@
 {
     "name": "tecdynamics/platform",
-    "description": "The Tec CMS Platform based on Laravel Framework.",
+    "description": "The Tec Platform based on Laravel Framework.",
     "keywords": [
-        "tec",
-        "tec cms",
-        "tec platform",
-        "laravel"
+        "Tec",
+        "Tec cms",
+        "Tec platform"
     ],
     "homepage": "https://tecdynamics.co.uk",
-    "support": {
-        "issues": "https://bugs.tecdynamics.co.uk",
-        "document": "https://docs.tecdynamics.co.uk"
-    },
     "authors": [
         {
             "name": "Tec-Dynamics LTD",
@@ -20,33 +15,23 @@
     ],
     "type": "project",
     "require": {
-        "ext-zip": "*",
-        "ext-gd": "*",
-        "barryvdh/laravel-dompdf": "^2.0",
+        "barryvdh/laravel-dompdf": "*",
         "tecdynamics/assets": "*",
         "intervention/image": "^2.6",
-        "kris/laravel-form-builder": "dev-master",
-        "spatie/laravel-html": "^3.2.2",
+        "kris/laravel-form-builder": "1.*",
+        "laravelcollective/html": "^6.2",
         "xantios/mimey": "^2.2",
         "tightenco/ziggy": "^1.4",
-        "yajra/laravel-datatables-buttons": "^9.1",
-        "yajra/laravel-datatables-oracle": "^10.2",
+        "yajra/laravel-datatables-buttons": "^4.13",
+        "yajra/laravel-datatables-oracle": "^9.18",
         "guzzlehttp/guzzle": "^6.0|^7.0",
-        "mews/purifier": "^3.3",
-        "maatwebsite/excel": "^3.1",
-        "symfony/http-client": "^6.0",
-        "symfony/postmark-mailer": "^6.0",
-        "symfony/mailgun-mailer": "^6.0",
-        "twig/twig": "^3.0",
-        "doctrine/dbal": "^3.2",
-        "league/flysystem-aws-s3-v3": "^3.0"
+        "mews/purifier": "^3.3"
     },
     "autoload": {
         "psr-4": {
             "Tec\\Support\\": "support/src",
             "Tec\\ACL\\": "acl/src",
             "Tec\\Base\\": "base/src",
-            "Tec\\Base\\Tests\\": "base/tests",
             "Tec\\Dashboard\\": "dashboard/src",
             "Tec\\Media\\": "media/src",
             "Tec\\Setting\\": "setting/src",
@@ -74,21 +59,14 @@
                 "Tec\\Chart\\Providers\\ChartServiceProvider"
             ],
             "aliases": {
-                "Action": "Tec\\Base\\Facades\\Action",
-                "Assets": "Tec\\Base\\Facades\\Assets",
-                "BaseHelper": "Tec\\Base\\Facades\\BaseHelper",
-                "Breadcrumbs": "Tec\\Base\\Facades\\Breadcrumbs",
-                "DashboardMenu": "Tec\\Base\\Facades\\DashboardMenu",
-                "EmailHandler": "Tec\\Base\\Facades\\EmailHandler",
-                "Filter": "Tec\\Base\\Facades\\Filter",
-                "Form": "Tec\\Base\\Facades\\Form",
-                "Html": "Tec\\Base\\Facades\\Html",
-                "MacroableModels": "Tec\\Base\\Facades\\MacroableModels",
-                "MetaBox": "Tec\\Base\\Facades\\MetaBox",
-                "PageTitle": "Tec\\Base\\Facades\\PageTitle",
-                "JsValidator": "Tec\\JsValidation\\Facades\\JsValidator",
-                "Setting": "Tec\\Setting\\Facades\\Setting",
-                "RvMedia": "Tec\\Media\\Facades\\RvMedia"
+                "Assets": "Tec\\Base\\Facades\\AssetsFacade",
+                "BaseHelper": "Tec\\Base\\Facades\\BaseHelperFacade",
+                "MetaBox": "Tec\\Base\\Facades\\MetaBoxFacade",
+                "Action": "Tec\\Base\\Facades\\ActionFacade",
+                "Filter": "Tec\\Base\\Facades\\FilterFacade",
+                "EmailHandler": "Tec\\Base\\Facades\\EmailHandlerFacade",
+                "Breadcrumbs": "Tec\\Base\\Facades\\BreadcrumbsFacade",
+                "JsValidator": "Tec\\JsValidation\\Facades\\JsValidatorFacade"
             }
         }
     },
