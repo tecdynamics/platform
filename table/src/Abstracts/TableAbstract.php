@@ -116,7 +116,7 @@ abstract class TableAbstract extends DataTable
     /**
      * @var string
      */
-    protected $exportClass = TableExportHandler::class;
+    protected string $exportClass = TableExportHandler::class;
 
     /**
      * TableAbstract constructor.
@@ -683,7 +683,7 @@ abstract class TableAbstract extends DataTable
      * @return mixed
      * @throws Throwable
      */
-    public function render($view, $data = [], $mergeData = [])
+    public function render(string $view = null, array $data = [], array $mergeData = [])
     {
         Assets::addScripts(['datatables', 'moment', 'datepicker'])
             ->addStyles(['datatables', 'datepicker'])
@@ -739,7 +739,7 @@ abstract class TableAbstract extends DataTable
      * @param \Illuminate\Database\Eloquent\Builder|Builder $query
      * @return mixed
      */
-    public function applyScopes($query)
+    public function applyScopes($query): \Illuminate\Database\Eloquent\Relations\Relation|\Illuminate\Database\Eloquent\Builder|\Illuminate\Support\Collection|Builder
     {
         $request = request();
 
