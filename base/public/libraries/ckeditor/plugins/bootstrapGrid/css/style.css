@@ -1,0 +1,286 @@
+@charset "UTF-8";
+body {
+  padding-bottom: 3.5em;
+  background-color: #fff;
+}
+body #loading {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  z-index: 9999;
+  display: table;
+  text-align: center;
+}
+body #loading > div {
+  display: table-cell;
+  vertical-align: middle;
+}
+body #loading > div #loader {
+  zoom: 1;
+  /* Increase this for a bigger symbole*/
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 20px auto;
+  animation: wait 0.8s steps(1, start) infinite;
+  background: linear-gradient(0deg, #f4f5fa 1px, transparent 0, transparent 8px, #f4f5fa 8px), linear-gradient(90deg, #f4f5fa 1px, #f6f9fb 0, #f6f9fb 3px, #f4f5fa 3px), linear-gradient(0deg, #ececf5 1px, transparent 0, transparent 8px, #ececf5 8px), linear-gradient(90deg, #ececf5 1px, #f2f3f9 0, #f2f3f9 3px, #ececf5 3px), linear-gradient(0deg, #e7eaf4 1px, transparent 0, transparent 8px, #e7eaf4 8px), linear-gradient(90deg, #e7eaf4 1px, #eef1f8 0, #eef1f8 3px, #e7eaf4 3px), linear-gradient(0deg, #b9bedd 1px, transparent 0, transparent 10px, #b9bedd 10px), linear-gradient(90deg, #b9bedd 1px, #d0d5e8 0, #d0d5e8 3px, #b9bedd 3px), linear-gradient(0deg, #9fa6d2 1px, transparent 0, transparent 15px, #9fa6d2 15px), linear-gradient(90deg, #9fa6d2 1px, #c0c5e1 0, #c0c5e1 3px, #9fa6d2 3px), linear-gradient(0deg, #8490c6 1px, transparent 0, transparent 15px, #8490c6 15px), linear-gradient(90deg, #8490c6 1px, #aeb5da 0, #aeb5da 3px, #8490c6 3px);
+  background-repeat: no-repeat;
+  background-size: 4px 9px, 4px 9px, 4px 9px, 4px 9px, 4px 9px, 4px 9px, 4px 11px, 4px 11px, 4px 16px, 4px 16px, 4px 16px, 4px 16px;
+  background-position: -4px 3px, -4px 3px, -4px 3px, -4px 3px, -4px 3px, -4px 3px, -4px 2px, -4px 2px, -4px 0, -4px 0, -4px 0, -4px 0;
+}
+@keyframes wait {
+  12.5% {
+    background-position: -4px, -4px, -4px, -4px, -4px, -4px, -4px, -4px, -4px, -4px, 0, 0;
+  }
+  25% {
+    background-position: -4px, -4px, -4px, -4px, -4px, -4px, -4px, -4px, 0, 0, 6px, 6px;
+  }
+  37.5% {
+    background-position: -4px, -4px, -4px, -4px, -4px, -4px, 0, 0, 6px, 6px, 12px, 12px;
+  }
+  50% {
+    background-position: -4px, -4px, -4px, -4px, 0, 0, 6px, 6px, 12px, 12px, -4px, -4px;
+  }
+  62.5% {
+    background-position: -4px, -4px, 0, 0, 6px, 6px, 12px, 12px, -4px, -4px, -4px, -4px;
+  }
+  75% {
+    background-position: 0, 0, 6px, 6px, 12px, 12px, -4px, -4px, -4px, -4px, -4px, -4px;
+  }
+  87.5% {
+    background-position: 6px, 6px, 12px, 12px, -4px, -4px, -4px, -4px, -4px, -4px, -4px, -4px;
+  }
+  100% {
+    background-position: 12px, 12px, -4px, -4px, -4px, -4px, -4px, -4px, -4px, -4px, -4px, -4px;
+  }
+}
+body #bootstrapGrid_content .bootstrapGrid_drag-here, body #bootstrapGrid_content .row {
+  position: relative;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding-top: 2em;
+  position: relative;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding-top: 2em;
+}
+body #bootstrapGrid_content .bootstrapGrid_drag-here:after, body #bootstrapGrid_content .row:after {
+  position: absolute;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-left: none;
+  left: 0;
+  top: 0;
+  padding: 0.2em 0.3em;
+  border-bottom-right-radius: 5px;
+  border-top-left-radius: 5px;
+  font-size: 11px;
+  color: #999;
+}
+body #bootstrapGrid_content .row {
+  clear: both;
+  padding-top: 1.5em;
+  overflow: hidden;
+  margin-bottom: 0.5em;
+  min-width: 400px;
+}
+body #bootstrapGrid_content .row:after {
+  content: "row";
+}
+body #bootstrapGrid_content .bootstrapGrid_drag-here {
+  margin: auto;
+}
+body #bootstrapGrid_content .bootstrapGrid_drag-here:after {
+  content: "container";
+}
+body #bootstrapGrid_content .bootstrapGrid_drag-here .container {
+  min-height: 300px;
+}
+body #bootstrapGrid_content .bootstrapGrid_row-placeholder {
+  border: 1px dashed #ddd;
+  background: #f9f9f9;
+  margin-left: -15px;
+  margin-right: -15px;
+  min-height: 60px;
+  z-index: 999;
+}
+body #bootstrapGrid_content .bootstrapGrid_options, body #bootstrapGrid_content .bootstrapGrid_row_options {
+  cursor: pointer;
+  position: absolute;
+  z-index: 999;
+  right: -2px;
+  top: -3px;
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_move, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_move {
+  display: block;
+}
+body #bootstrapGrid_content .bootstrapGrid_options div:after, body #bootstrapGrid_content .bootstrapGrid_row_options div:after {
+  display: inline-block;
+}
+body #bootstrapGrid_content .bootstrapGrid_options div:not(:last-child):after, body #bootstrapGrid_content .bootstrapGrid_row_options div:not(:last-child):after {
+  border-right: none;
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_move, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_remove_wrapper {
+  position: absolute;
+}
+body #bootstrapGrid_content .bootstrapGrid_move {
+  display: none;
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_add, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_edit, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_remove, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_offset_right, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_offset_left, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_cog, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_sink, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_grow, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_move, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_delete, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_settings, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_duplicate, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_add, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_edit, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_remove, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_offset_right, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_offset_left, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_cog, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_sink, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_grow, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_move, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_delete, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_settings, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_duplicate, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_add, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_edit, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_remove, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_offset_right, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_offset_left, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_cog, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_sink, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_grow, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_move, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_delete, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_settings, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_duplicate {
+  width: 18px;
+  height: 12px;
+  float: left;
+  z-index: 9;
+  margin: 0;
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_add:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_edit:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_remove:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_offset_right:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_offset_left:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_cog:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_sink:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_grow:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_move:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_delete:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_settings:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_remove_wrapper:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_duplicate:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_add:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_edit:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_remove:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_offset_right:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_offset_left:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_cog:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_sink:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_grow:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_move:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_delete:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_settings:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_remove_wrapper:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_duplicate:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_add:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_edit:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_remove:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_offset_right:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_offset_left:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_cog:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_sink:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_grow:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_move:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_delete:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_settings:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_remove_wrapper:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_duplicate:after {
+  font-family: "FontAwesome";
+  background-color: #fff;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  padding: 0.2em;
+  width: 100%;
+  text-align: center;
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_move:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_move:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_move:after {
+  content: "";
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_settings:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_settings:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_settings:after {
+  content: "";
+  cursor: pointer;
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_duplicate:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_duplicate:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_duplicate:after {
+  content: "";
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_move, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_move, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_move {
+  cursor: pointer;
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_settings, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_settings, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_settings, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_remove_wrapper {
+  display: none;
+  position: absolute;
+  z-index: 999;
+  margin-left: 17px;
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_remove_wrapper {
+  margin-left: 17px;
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_add:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_add:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_add:after {
+  content: "";
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_edit:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_edit:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_edit:after {
+  content: "";
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_remove:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_delete:after, body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_remove_wrapper:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_remove:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_delete:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_remove_wrapper:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_remove:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_delete:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_remove_wrapper:after {
+  content: "";
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_delete:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_delete:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_delete:after {
+  border-top-right-radius: 5px;
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_offset_right:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_offset_right:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_offset_right:after {
+  content: "";
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_offset_left:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_offset_left:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_offset_left:after {
+  content: "";
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_sink:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_sink:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_sink:after {
+  content: "";
+}
+body #bootstrapGrid_content .bootstrapGrid_options .bootstrapGrid_grow:after, body #bootstrapGrid_content .bootstrapGrid_row_options .bootstrapGrid_grow:after, body #bootstrapGrid_content .bootstrapGrid_wrapper .bootstrapGrid_grow:after {
+  content: "";
+}
+body #bootstrapGrid_content .bootstrapGrid_wrapper:hover .bootstrapGrid_settings, body #bootstrapGrid_content .bootstrapGrid_wrapper:hover .bootstrapGrid_remove_wrapper, body #bootstrapGrid_content .bootstrapGrid_wrapper:hover .bootstrapGrid_move {
+  display: block;
+}
+body #bootstrapGrid_content .bootstrapGrid_options {
+  width: 73px;
+  display: none;
+}
+body #bootstrapGrid_content [class*=col-] {
+  border: 1px dashed rgba(86, 61, 124, 0.2) !important;
+  min-height: 30px;
+  transition: width 0.2s ease-in;
+  position: relative;
+}
+body #bootstrapGrid_content [class*=col-]:hover .bootstrapGrid_options {
+  display: block !important;
+}
+body #bootstrapGrid_content [class*=col-]:after {
+  content: " ";
+  position: absolute;
+  display: block;
+  width: 16px;
+  height: 7px;
+  left: 0;
+  bottom: 0;
+  z-index: 999;
+}
+body #bootstrapGrid_content [class*=col-].col-xs-1:after {
+  background-image: url("../icons/col-1.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-2:after {
+  background-image: url("../icons/col-2.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-3:after {
+  background-image: url("../icons/col-3.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-4:after {
+  background-image: url("../icons/col-4.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-5:after {
+  background-image: url("../icons/col-5.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-6:after {
+  background-image: url("../icons/col-6.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-7:after {
+  background-image: url("../icons/col-7.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-8:after {
+  background-image: url("../icons/col-8.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-9:after {
+  background-image: url("../icons/col-9.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-10:after {
+  background-image: url("../icons/col-10.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-11:after {
+  background-image: url("../icons/col-11.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-12:after {
+  background-image: url("../icons/col-12.png");
+}
+body #bootstrapGrid_content [class*=col-].col-xs-10:after, body #bootstrapGrid_content [class*=col-].col-xs-11:after, body #bootstrapGrid_content [class*=col-].col-xs-12:after {
+  width: 20px;
+}
+body #bootstrapGrid_content .bootstrapGrid_button {
+  background-image: -webkit-gradient(linear, left 0%, left 100%, from(#424242), to(#343432));
+  background-image: -webkit-linear-gradient(top, #424242, 0%, #343432, 100%);
+  background-image: -moz-linear-gradient(top, #424242 0%, #343432 100%);
+  background-image: linear-gradient(to bottom, #424242 0%, #343432 100%);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ff424242", endColorstr="#ff343432", GradientType=0);
+  color: #fff;
+  border: 1px solid #1b1d1d;
+  padding: 0.5em;
+  display: inline-block;
+  width: 130px;
+  margin-right: 0.3em;
+  border-radius: 5px;
+  cursor: pointer;
+}
+body #bootstrapGrid_content .bootstrapGrid_button.active {
+  background-image: -webkit-gradient(linear, left 0%, left 100%, from(#1f1f1c), to(#424242));
+  background-image: -webkit-linear-gradient(top, #1f1f1c, 0%, #424242, 100%);
+  background-image: -moz-linear-gradient(top, #1f1f1c 0%, #424242 100%);
+  background-image: linear-gradient(to bottom, #1f1f1c 0%, #424242 100%);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ff343432", endColorstr="#ff424242", GradientType=0);
+}
+body #bootstrapGrid_content [contenteditable]:focus {
+  outline: none;
+}
+
+/*# sourceMappingURL=style.css.map */
