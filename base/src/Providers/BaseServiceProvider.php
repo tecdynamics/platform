@@ -4,7 +4,7 @@ namespace Tec\Base\Providers;
 
 use App\Http\Middleware\VerifyCsrfToken;
 use Tec\Base\Exceptions\Handler;
-use Tec\Base\Facades\MacroableModelsFacade;
+use Tec\Base\Facades\MacroableModels;
 use Tec\Base\Http\Middleware\CoreMiddleware;
 use Tec\Base\Http\Middleware\DisableInDemoModeMiddleware;
 use Tec\Base\Http\Middleware\HttpsProtocolMiddleware;

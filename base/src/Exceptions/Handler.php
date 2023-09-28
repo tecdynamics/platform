@@ -17,6 +17,8 @@ use RvMedia;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Tec\Page\Models\Page;
+use Tec\Theme\Events\RenderingSingleEvent;
 use Theme;
 use Throwable;
 use URL;
@@ -35,6 +37,7 @@ class Handler extends ExceptionHandler
         }
 
         if ($exception instanceof ModelNotFoundException || $exception instanceof MethodNotAllowedHttpException) {
+
             $exception = new NotFoundHttpException($exception->getMessage(), $exception);
         }
 
@@ -82,8 +85,18 @@ class Handler extends ExceptionHandler
             if (!app()->isDownForMaintenance()) {
                 do_action(BASE_ACTION_SITE_ERROR, $code);
             }
-        }
 
+        if ($code==404){
+        $pageid=theme_option('404_custom_page','-1');
+        if((int)$pageid>0){
+            $slug = \SlugHelper::getSlug(null, \SlugHelper::getPrefix(Page::class), Page::class, (int)$pageid);
+            if ($slug) {
+                event(new RenderingSingleEvent($slug));
+                return redirect(url($slug->key));
+               }
+            }
+          }
+        }
         return parent::render($request, $exception);
     }
 

@@ -34,7 +34,7 @@ class SendMailJob implements ShouldQueue
     /**
      * @var array
      */
-    public $args;
+    public $args;  //attachments <- files
 
     /**
      * @var boolean
@@ -68,6 +68,7 @@ class SendMailJob implements ShouldQueue
     {
         try {
             Mail::to($this->to)->send(new EmailAbstract($this->content, $this->title, $this->args));
+
         } catch (Exception $exception) {
             if ($this->debug) {
                 throw $exception;

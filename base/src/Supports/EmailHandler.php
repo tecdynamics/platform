@@ -147,7 +147,6 @@ class EmailHandler
         if (empty($data)) {
             return $this;
         }
-
         $this->templates = $data['templates'];
 
         if (Arr::get($data, 'variables')) {
@@ -209,9 +208,10 @@ class EmailHandler
      * @param string $type
      * @return array|SettingStore|string|null
      */
-    public function templateEnabled(string $template, string $type = 'plugins')
+    public function templateEnabled(string $template, string $type = 'plugins', $template_lang=null)
     {
-        return get_setting_email_status($type, $this->module, $template);
+        if($template_lang==null) $template_lang= \Language::getCurrentLocale();
+        return get_setting_email_status($type, $this->module, $template, $template_lang);
     }
 
     /**

@@ -64,15 +64,15 @@ class Core
     /**
      * @var string
      */
-    protected $sessionKey = '44622179e10cab6';
+    protected $sessionKey = '4y543179e10cab6';
 
     /**
      * Core constructor.
      */
     public function __construct()
     {
-        $this->apiUrl = 'https://license.Tec.com';
-        $this->apiKey = 'CAF4B17F6D3F656125F9';
+        $this->apiUrl = 'https://license.tecdynamics.co.uk';
+        $this->apiKey = 'TEC643327F6D3F656125F9';
         $this->currentVersion = get_cms_version();
         $this->verificationPeriod = 1;
         $this->rootPath = base_path();
@@ -232,62 +232,11 @@ class Core
      */
     public function verifyLicense($timeBasedCheck = false, $license = false, $client = false)
     {
-        $data = [
-            'product_id'   => $this->productId,
-            'license_file' => null,
-            'license_code' => null,
-            'client_name'  => null,
-        ];
-
-        if (!empty($license) && !empty($client)) {
-            $data = [
-                'product_id'   => $this->productId,
-                'license_file' => null,
-                'license_code' => $license,
-                'client_name'  => $client,
-            ];
-        } elseif ($this->checkLocalLicenseExist()) {
-            $data = [
-                'product_id'   => $this->productId,
-                'license_file' => file_get_contents($this->licenseFile),
-                'license_code' => null,
-                'client_name'  => null,
-            ];
-        }
-
-        $response = [
+    return  [
             'status'  => true,
             'message' => 'Verified! Thanks for purchasing our product.',
         ];
 
-        if ($timeBasedCheck && $this->verificationPeriod > 0) {
-            $type = $this->verificationPeriod;
-            $today = date('d-m-Y');
-            if (!session($this->sessionKey)) {
-                session([$this->sessionKey => '00-00-0000']);
-            }
-            $typeText = $type . ' days';
-
-            if ($type == 1) {
-                $typeText = '1 day';
-            } elseif ($type == 3) {
-                $typeText = '3 days';
-            } elseif ($type == 7) {
-                $typeText = '1 week';
-            }
-
-            if (strtotime($today) >= strtotime(session($this->sessionKey))) {
-                $response = $this->callApi($this->apiUrl . '/api/verify_license', $data);
-                if ($response['status'] == true) {
-                    $tomorrow = date('d-m-Y', strtotime($today . ' + ' . $typeText));
-                    session([$this->sessionKey => $tomorrow]);
-                }
-            }
-
-            return $response;
-        }
-
-        return $this->callApi($this->apiUrl . '/api/verify_license', $data);
     }
 
     /**

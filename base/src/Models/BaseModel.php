@@ -72,4 +72,15 @@ class BaseModel extends Eloquent
     {
         return new BaseQueryBuilder($query);
     }
+
+    public function initializeFilable($field) {
+        if (!in_array($field,$this->fillable)){
+            $this->fillable[] = $field;
+        }
+
+    }
+    public function disableTimestamps() {
+        $this->timestamps=false;
+
+    }
 }

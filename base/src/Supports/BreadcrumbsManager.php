@@ -131,6 +131,7 @@ class BreadcrumbsManager
 
         // No current route - must be the 404 page
         if ($route === null) {
+
             return ['errors.404', []];
         }
 

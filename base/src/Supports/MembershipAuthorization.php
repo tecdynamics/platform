@@ -110,11 +110,12 @@ class MembershipAuthorization
      */
     protected function processAuthorize(): bool
     {
-        $this->client->post('https://Tec.com/membership/authorize', [
-            'form_params' => [
-                'website' => $this->url,
-            ],
-        ]);
+
+//        $this->client->post('https://tecdynamics.co.uk/membership/authorize', [
+//            'form_params' => [
+//                'website' => $this->url,
+//            ],
+//        ]);
 
         $this->settingStore
             ->set('membership_authorization_at', now()->toDateTimeString())

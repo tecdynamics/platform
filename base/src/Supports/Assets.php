@@ -9,9 +9,6 @@ use Illuminate\Config\Repository;
 use Illuminate\Support\Str;
 use Throwable;
 
-/**
- * @since 22/07/2015 11:23 PM
- */
 class Assets extends BaseAssets
 {
     /**
@@ -104,5 +101,18 @@ class Assets extends BaseAssets
         $bodyScripts = $this->getScripts(self::ASSETS_SCRIPT_POSITION_FOOTER);
 
         return view('assets::footer', compact('bodyScripts'))->render();
+    }
+    public function usingVueJS(): self
+    {
+        $this->addScripts(['vue-app']);
+
+        return $this;
+    }
+
+    public function disableVueJS(): self
+    {
+        $this->removeScripts(['vue-app']);
+
+        return $this;
     }
 }

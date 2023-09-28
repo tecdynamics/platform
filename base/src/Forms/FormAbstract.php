@@ -24,8 +24,8 @@ use Kris\LaravelFormBuilder\Fields\FormField;
 use Kris\LaravelFormBuilder\Form;
 use Throwable;
 
-abstract class FormAbstract extends Form
-{
+
+abstract class FormAbstract extends Form {
     /**
      * @var array
      */
@@ -74,8 +74,7 @@ abstract class FormAbstract extends Form
     /**
      * FormAbstract constructor.
      */
-    public function __construct()
-    {
+    public function __construct() {
         $this->setMethod('POST');
         $this->setFormOption('template', $this->template);
         $this->setFormOption('id', strtolower(Str::slug(Str::snake(get_class($this)))));
@@ -84,8 +83,7 @@ abstract class FormAbstract extends Form
     /**
      * @return array
      */
-    public function getOptions(): array
-    {
+    public function getOptions(): array {
         return $this->options;
     }
 
@@ -93,8 +91,7 @@ abstract class FormAbstract extends Form
      * @param array $options
      * @return $this
      */
-    public function setOptions(array $options): self
-    {
+    public function setOptions(array $options): self {
         $this->options = $options;
 
         return $this;
@@ -103,8 +100,7 @@ abstract class FormAbstract extends Form
     /**
      * @return string
      */
-    public function getTitle(): string
-    {
+    public function getTitle(): string {
         return $this->title;
     }
 
@@ -112,8 +108,7 @@ abstract class FormAbstract extends Form
      * @param string $title
      * @return $this
      */
-    public function setTitle($title): self
-    {
+    public function setTitle(string $title): self {
         $this->title = $title;
         return $this;
     }
@@ -121,8 +116,7 @@ abstract class FormAbstract extends Form
     /**
      * @return array
      */
-    public function getMetaBoxes(): array
-    {
+    public function getMetaBoxes(): array {
         uasort($this->metaBoxes, function ($before, $after) {
             if (Arr::get($before, 'priority', 0) > Arr::get($after, 'priority', 0)) {
                 return 1;
@@ -142,8 +136,7 @@ abstract class FormAbstract extends Form
      * @return string
      * @throws Throwable
      */
-    public function getMetaBox($name): string
-    {
+    public function getMetaBox(string $name): string {
         if (!Arr::get($this->metaBoxes, $name)) {
             return '';
         }
@@ -154,11 +147,10 @@ abstract class FormAbstract extends Form
     }
 
     /**
-     * @param array $boxes
+     * @param array|string $boxes
      * @return $this
      */
-    public function addMetaBoxes($boxes): self
-    {
+    public function addMetaBoxes($boxes): self {
         if (!is_array($boxes)) {
             $boxes = [$boxes];
         }
@@ -169,10 +161,9 @@ abstract class FormAbstract extends Form
 
     /**
      * @param string $name
-     * @return FormAbstract
+     * @return \Tec\Base\Forms\FormAbstract
      */
-    public function removeMetaBox($name): self
-    {
+    public function removeMetaBox(string $name): self {
         Arr::forget($this->metaBoxes, $name);
         return $this;
     }
@@ -181,8 +172,7 @@ abstract class FormAbstract extends Form
      * @return string
      * @throws Throwable
      */
-    public function getActionButtons(): string
-    {
+    public function getActionButtons(): string {
         if ($this->actionButtons === '') {
             return view('core/base::forms.partials.form-actions')->render();
         }
@@ -194,8 +184,7 @@ abstract class FormAbstract extends Form
      * @param string $actionButtons
      * @return $this
      */
-    public function setActionButtons($actionButtons): self
-    {
+    public function setActionButtons(string $actionButtons): self {
         $this->actionButtons = $actionButtons;
 
         return $this;
@@ -204,8 +193,7 @@ abstract class FormAbstract extends Form
     /**
      * @return $this
      */
-    public function removeActionButtons(): self
-    {
+    public function removeActionButtons(): self {
         $this->actionButtons = '';
 
         return $this;
@@ -214,8 +202,7 @@ abstract class FormAbstract extends Form
     /**
      * @return string
      */
-    public function getBreakFieldPoint(): string
-    {
+    public function getBreakFieldPoint(): string {
         return $this->breakFieldPoint;
     }
 
@@ -223,8 +210,7 @@ abstract class FormAbstract extends Form
      * @param string $breakFieldPoint
      * @return $this
      */
-    public function setBreakFieldPoint(string $breakFieldPoint): self
-    {
+    public function setBreakFieldPoint(string $breakFieldPoint): self {
         $this->breakFieldPoint = $breakFieldPoint;
         return $this;
     }
@@ -232,8 +218,7 @@ abstract class FormAbstract extends Form
     /**
      * @return bool
      */
-    public function isUseInlineJs(): bool
-    {
+    public function isUseInlineJs(): bool {
         return $this->useInlineJs;
     }
 
@@ -241,8 +226,7 @@ abstract class FormAbstract extends Form
      * @param bool $useInlineJs
      * @return $this
      */
-    public function setUseInlineJs(bool $useInlineJs): self
-    {
+    public function setUseInlineJs(bool $useInlineJs): self {
         $this->useInlineJs = $useInlineJs;
         return $this;
     }
@@ -250,8 +234,7 @@ abstract class FormAbstract extends Form
     /**
      * @return string
      */
-    public function getWrapperClass(): string
-    {
+    public function getWrapperClass(): string {
         return $this->wrapperClass;
     }
 
@@ -259,8 +242,7 @@ abstract class FormAbstract extends Form
      * @param string $wrapperClass
      * @return $this
      */
-    public function setWrapperClass(string $wrapperClass): self
-    {
+    public function setWrapperClass(string $wrapperClass): self {
         $this->wrapperClass = $wrapperClass;
         return $this;
     }
@@ -268,28 +250,25 @@ abstract class FormAbstract extends Form
     /**
      * @return $this
      */
-    public function withCustomFields(): self
-    {
+    public function withCustomFields(): self {
         $customFields = [
-            'customSelect' => CustomSelectField::class,
-            'editor'       => EditorField::class,
-            'onOff'        => OnOffField::class,
-            'customRadio'  => CustomRadioField::class,
-            'mediaImage'   => MediaImageField::class,
-            'mediaImages'  => MediaImagesField::class,
-            'mediaFile'    => MediaFileField::class,
-            'customColor'  => ColorField::class,
-            'time'         => TimeField::class,
-            'date'         => DateField::class,
-            'autocomplete' => AutocompleteField::class,
-            'html'         => HtmlField::class,
-            'repeater'     => RepeaterField::class,
+            'customSelect' => \Tec\Base\Forms\Fields\CustomSelectField::class,
+            'editor' => \Tec\Base\Forms\Fields\EditorField::class,
+            'onOff' => \Tec\Base\Forms\Fields\OnOffField::class,
+            'customRadio' => \Tec\Base\Forms\Fields\CustomRadioField::class,
+            'mediaImage' => \Tec\Base\Forms\Fields\MediaImageField::class,
+            'mediaImages' => \Tec\Base\Forms\Fields\MediaImagesField::class,
+            'mediaFile' => \Tec\Base\Forms\Fields\MediaFileField::class,
+            'customColor' => \Tec\Base\Forms\Fields\ColorField::class,
+            'time' => \Tec\Base\Forms\Fields\TimeField::class,
+            'date' => \Tec\Base\Forms\Fields\DateField::class,
+            'autocomplete' => \Tec\Base\Forms\Fields\AutocompleteField::class,
+            'html' => \Tec\Base\Forms\Fields\HtmlField::class,
+            'repeater' => \Tec\Base\Forms\Fields\RepeaterField::class,
         ];
 
         foreach ($customFields as $key => $field) {
-            if (!$this->formHelper->hasCustomField($key)) {
-                $this->addCustomField($key, $field);
-            }
+            $this->addCustomField($key, $field);
         }
 
         return apply_filters('form_custom_fields', $this, $this->formHelper);
@@ -300,9 +279,10 @@ abstract class FormAbstract extends Form
      * @param string $class
      * @return $this|Form
      */
-    public function addCustomField($name, $class)
-    {
-        parent::addCustomField($name, $class);
+    public function addCustomField($name, $class) {
+        if (!$this->formHelper->hasCustomField($name)) {
+            parent::addCustomField($name, $class);
+        }
 
         return $this;
     }
@@ -310,8 +290,7 @@ abstract class FormAbstract extends Form
     /**
      * @return $this
      */
-    public function hasTabs(): self
-    {
+    public function hasTabs(): self {
         $this->setFormOption('template', 'core/base::forms.form-tabs');
 
         return $this;
@@ -320,8 +299,7 @@ abstract class FormAbstract extends Form
     /**
      * @return int
      */
-    public function hasMainFields()
-    {
+    public function hasMainFields(): int {
         if (!$this->breakFieldPoint) {
             return count($this->fields);
         }
@@ -345,8 +323,7 @@ abstract class FormAbstract extends Form
     /**
      * @return $this
      */
-    public function disableFields()
-    {
+    public function disableFields() {
         parent::disableFields();
 
         return $this;
@@ -359,8 +336,7 @@ abstract class FormAbstract extends Form
      * @param bool $showEnd
      * @return string
      */
-    public function renderForm(array $options = [], $showStart = true, $showFields = true, $showEnd = true): string
-    {
+    public function renderForm(array $options = [], $showStart = true, $showFields = true, $showEnd = true): string {
         Assets::addScripts(['form-validation', 'are-you-sure']);
 
         apply_filters(BASE_FILTER_BEFORE_RENDER_FORM, $this, $this->getModel());
@@ -372,8 +348,7 @@ abstract class FormAbstract extends Form
      * @return string
      * @throws Exception
      */
-    public function renderValidatorJs(): string
-    {
+    public function renderValidatorJs(): string {
         $element = null;
         if ($this->getFormOption('id')) {
             $element = '#' . $this->getFormOption('id');
@@ -387,8 +362,7 @@ abstract class FormAbstract extends Form
     /**
      * @return string
      */
-    public function getValidatorClass(): string
-    {
+    public function getValidatorClass(): string {
         return $this->validatorClass;
     }
 
@@ -396,8 +370,7 @@ abstract class FormAbstract extends Form
      * @param string $validatorClass
      * @return $this
      */
-    public function setValidatorClass($validatorClass): self
-    {
+    public function setValidatorClass(string $validatorClass): self {
         $this->validatorClass = $validatorClass;
 
         return $this;
@@ -409,8 +382,7 @@ abstract class FormAbstract extends Form
      * @param mixed $model
      * @return $this
      */
-    public function setModel($model)
-    {
+    public function setModel($model) {
         $this->model = $model;
 
         $this->rebuildForm();
@@ -424,8 +396,7 @@ abstract class FormAbstract extends Form
      * @param string $model
      * @return $this
      */
-    protected function setupModel($model)
-    {
+    protected function setupModel($model) {
         if (!$this->model) {
             $this->model = $model;
             $this->setupNamedModel();
@@ -440,8 +411,7 @@ abstract class FormAbstract extends Form
      * @param array $formOptions
      * @return $this
      */
-    public function setFormOptions(array $formOptions)
-    {
+    public function setFormOptions(array $formOptions) {
         parent::setFormOptions($formOptions);
 
         if (isset($formOptions['template'])) {
