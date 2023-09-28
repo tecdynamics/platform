@@ -9,6 +9,7 @@ return [
     'editor'                    => [
         'ckeditor' => [
             'js' => [
+
                 '/vendor/core/core/base/libraries/ckeditor/ckeditor.js',
             ],
         ],
@@ -291,6 +292,7 @@ return [
         'Yeseva One',
         'Zeyada',
     ],
+
 
     'countries' => [
         'AF' => 'Afghanistan',
@@ -648,6 +650,8 @@ return [
         ],
     ],
     'enable_system_updater'     => env('CMS_ENABLE_SYSTEM_UPDATER', true),
-    'phone_validation_rule'     => env('CMS_PHONE_VALIDATION_RULE', 'min:8|max:15|regex:/^([0-9\s\-\+\(\)]*)$/'),
+   'phone_validation_rule' => env('CMS_PHONE_VALIDATION_RULE', 'min:10|max:15|regex:/^([0-9\s\-\+\(\)]*)$/'),
+    //'phone_validation_rule'     => env('CMS_PHONE_VALIDATION_RULE', 'min:9|max:15|regex:/^((?:\+30|\+44|\(0030\)|0030|\(0044\)|0044|0|(?!00))\d{10})$/'),
     'disable_verify_csrf_token' => env('CMS_DISABLE_VERIFY_CSRF_TOKEN', false),
+
 ];

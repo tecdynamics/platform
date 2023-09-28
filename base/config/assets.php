@@ -1,9 +1,4 @@
 <?php
-/**
- * Date: 22/07/2015
- * Time: 8:11 PM
- */
-
 return [
     'offline'        => env('ASSETS_OFFLINE', true),
     'enable_version' => env('ASSETS_ENABLE_VERSION', true),
