@@ -1,4 +1,5 @@
 @extends(BaseHelper::getAdminMasterLayoutTemplate())
+
 @section('content')
     {!! Form::open(['route' => ['setting.email.template.store']]) !!}
     <div class="max-width-1200">
@@ -42,8 +43,11 @@
                         <input type="hidden" name="template_path" value="{{ get_setting_email_template_path($pluginData['name'], $pluginData['template_file'],$template_lang) }}">
                         <label class="text-title-field"
                                for="email_content">{{ trans('core/setting::setting.email.content') }}</label>
-                        <textarea id="mail-template-editor" name="email_content" class="form-control" style="overflow-y:scroll; height: 500px;">{{ $emailContent }}</textarea>
+                        <textarea id="mail-template-editor" name="email_content" class="form-control mail-template-editor" style="overflow-y:scroll; height: 500px;">{{ $emailContent }}</textarea>
                     </div>
+                    </div>
+                        <div class="wrapper-content mt-2 pd-all-20">
+                        @include('core/setting::email-preview')
                 </div>
             </div>
 
@@ -63,6 +67,7 @@
 
     <input type="hidden" name="template_lang" value="{{$template_lang}}">
     {!! Form::close() !!}
+
 
     {!! Form::modalAction('reset-template-to-default-modal', trans('core/setting::setting.email.confirm_reset'), 'info', trans('core/setting::setting.email.confirm_message'), 'reset-template-to-default-button', trans('core/setting::setting.email.continue')) !!}
 @endsection
