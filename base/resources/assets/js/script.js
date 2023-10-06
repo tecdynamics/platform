@@ -864,7 +864,7 @@ class Tec {
     static initCodeEditor(id, type = 'css') {
         $(document).find('#' + id).wrap('<div id="wrapper_' + id + '"><div class="container_content_codemirror"></div> </div>');
         $('#wrapper_' + id).append('<div class="handle-tool-drag" id="tool-drag_' + id + '"></div>');
-        CodeMirror.fromTextArea(document.getElementById(id), {
+      const a = CodeMirror.fromTextArea(document.getElementById(id), {
             extraKeys: {'Ctrl-Space': 'autocomplete'},
             lineNumbers: true,
             mode: type,
@@ -878,6 +878,10 @@ class Tec {
             $('body').attr('data-dragtool', _self.attr('id')).on('mousemove', Tec.onDragTool);
             $(window).on('mouseup', Tec.onReleaseTool);
         });
+
+        jQuery('body').on('click','.preview-email',function() {
+            jQuery('#display-area').html(a.getValue())
+        })
     }
 
     static onDragTool(e) {
