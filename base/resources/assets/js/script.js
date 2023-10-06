@@ -880,7 +880,7 @@ class Tec {
         });
 
         jQuery('body').on('click','.preview-email',function() {
-            jQuery('#display-area').html(a.getValue())
+             jQuery('#display-area').html(a.getValue().replace('{{ header }}','').replace('{{ footer }}',''))
         })
     }
 
