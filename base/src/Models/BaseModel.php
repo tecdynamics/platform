@@ -25,11 +25,11 @@ class BaseModel extends Eloquent
 
         return parent::__get($key);
     }
-
-     protected function asJson($value)
+    protected function asJson($value)
     {
         return json_encode($value, JSON_UNESCAPED_UNICODE);
     }
+
     /**
      * @return MorphMany
      */
