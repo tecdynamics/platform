@@ -549,7 +549,7 @@ return [
     'purifier'  => [
         'default' => [
             'HTML.Doctype'             => 'HTML 4.01 Transitional',
-            'HTML.Allowed'             => 'div,b,strong,i,em,u,a[href|title|rel|style|target],ul,ol,li,p[style],br,span[style],img[width|height|alt|src|style],button,ins[style|data-ad-client|data-ad-slot|data-ad-format|data-full-width-responsive]',
+            'HTML.Allowed'             => '*,div[*],b,strong,i,em,u,a[href|title|rel|style|target],section[*],ul,ol,li,p[style],br,span[style],img[width|height|alt|src|style],button,ins[style|data-ad-client|data-ad-slot|data-ad-format|data-full-width-responsive],section[style|pagination|pagination-clickable|space-between|autoplay-disable-on-interaction|autoplay-delay|centered|autoplay-disable-on-interaction]',
             'HTML.AllowedElements'     => [
                 'a',
                 'b',
@@ -600,12 +600,13 @@ return [
                 'del',
                 'div',
                 'button',
-                'ins',
+                'ins'
+
             ],
-            'HTML.SafeIframe'          => 'true',
+            'HTML.SafeIframe'          => true,
             // Add to .env if you want to allow all.
             // CMS_IFRAME_FILTER_URL_REGEX=/^(.*)/
-            'URI.SafeIframeRegexp'     => env('CMS_IFRAME_FILTER_URL_REGEX', '%^(http://|https://|//)(' . env('CMS_IFRAME_ALLOWED_URLS', 'www.youtube.com/embed/|player.vimeo.com/video/') . ')%'),
+           'URI.SafeIframeRegexp'     => env('CMS_IFRAME_FILTER_URL_REGEX', '%^(http://|https://|//)(' . env('CMS_IFRAME_ALLOWED_URLS', 'www.youtube.com/embed/|player.vimeo.com/video/') . ')%'),
             'Attr.AllowedFrameTargets' => ['_blank'],
             'CSS.AllowedProperties'    => [
                 'font',
@@ -642,6 +643,22 @@ return [
         ],
         'custom_attributes' => [
             ['a', 'rel', 'Text'],
+            ['div', 'style', 'Text'],
+            ['div', 'pagination', 'Text'],
+            ['div', 'pagination-clickable', 'Text'],
+            ['div', 'space-between', 'Text'],
+            ['div', 'autoplay-disable-on-interaction', 'Text'],
+            ['div', 'autoplay-delay', 'Text'],
+            ['div', 'centered', 'Text'],
+            ['div', 'autoplay-disable-on-interaction', 'Text'],
+            ['section', 'style', 'Text'],
+            ['section', 'pagination', 'Text'],
+            ['section', 'pagination-clickable', 'Text'],
+            ['section', 'space-between', 'Text'],
+            ['section', 'autoplay-disable-on-interaction', 'Text'],
+            ['section', 'autoplay-delay', 'Text'],
+            ['section', 'centered', 'Text'],
+            ['section', 'autoplay-disable-on-interaction', 'Text'],
             ['ins', 'data-ad-client', 'Text'],
             ['ins', 'data-ad-slot', 'Text'],
             ['ins', 'data-ad-format', 'Text'],
@@ -649,7 +666,7 @@ return [
             ['img', 'data-src', 'Text'],
         ],
     ],
-    'enable_system_updater'     => env('CMS_ENABLE_SYSTEM_UPDATER', true),
+    'enable_system_updater'     => env('CMS_ENABLE_SYSTEM_UPDATER', false),
    'phone_validation_rule' => env('CMS_PHONE_VALIDATION_RULE', 'min:10|max:15|regex:/^([0-9\s\-\+\(\)]*)$/'),
     //'phone_validation_rule'     => env('CMS_PHONE_VALIDATION_RULE', 'min:9|max:15|regex:/^((?:\+30|\+44|\(0030\)|0030|\(0044\)|0044|0|(?!00))\d{10})$/'),
     'disable_verify_csrf_token' => env('CMS_DISABLE_VERIFY_CSRF_TOKEN', false),
