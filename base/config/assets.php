@@ -21,6 +21,7 @@ return [
         'jquery-waypoints',
         'spectrum',
         'fancybox',
+        'lazysizes.min'
     ],
     'styles'         => [
         'fontawesome',
@@ -32,6 +33,7 @@ return [
         'datepicker',
         'spectrum',
         'fancybox',
+
     ],
     'resources'      => [
         'scripts' => [
