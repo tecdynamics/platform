@@ -101,7 +101,7 @@ class SettingManagement {
         });
 
         if (typeof CodeMirror !== 'undefined') {
-            Tec.initCodeEditor('mail-template-editor');
+            Tec.initCodeEditor('mail-template-editor','htmlmixed');
         }
 
         $(document).on('click', '.btn-trigger-reset-to-default', event => {

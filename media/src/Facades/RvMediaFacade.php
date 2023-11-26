@@ -2,7 +2,7 @@
 
 namespace Tec\Media\Facades;
 
-use Tec\Media\RvMedia;
+use Tec\Media\RvMedia as BaseRvMedia;
 use Illuminate\Support\Facades\Facade;
 
 class RvMediaFacade extends Facade
@@ -12,6 +12,6 @@ class RvMediaFacade extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return RvMedia::class;
+        return BaseRvMedia::class;
     }
 }

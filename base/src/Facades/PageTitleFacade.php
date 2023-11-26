@@ -2,7 +2,7 @@
 
 namespace Tec\Base\Facades;
 
-use Tec\Base\Supports\PageTitle;
+use Tec\Base\Supports\PageTitle as PageTitleSupport;
 use Illuminate\Support\Facades\Facade;
 /**
  * @method static void setTitle(string $title)
@@ -17,6 +17,6 @@ class PageTitleFacade extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return PageTitle::class;
+        return PageTitleSupport::class;
     }
 }

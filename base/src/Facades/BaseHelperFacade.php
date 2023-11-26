@@ -2,7 +2,7 @@
 
 namespace Tec\Base\Facades;
 
-use Tec\Base\Helpers\BaseHelper;
+use Tec\Base\Helpers\BaseHelper as BaseHelperService;
 use Illuminate\Support\Facades\Facade;
 
 class BaseHelperFacade extends Facade
@@ -12,6 +12,6 @@ class BaseHelperFacade extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return BaseHelper::class;
+        return BaseHelperService::class;
     }
 }
