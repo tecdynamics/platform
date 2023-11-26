@@ -19,7 +19,7 @@
         "ext-gd": "*",
         "barryvdh/laravel-dompdf": "*",
         "tecdynamics/assets": "*",
-       "intervention/image": "^2.6",
+        "intervention/image": "^2.6",
         "kris/laravel-form-builder": "dev-master",
         "laravelcollective/html": "^6.2",
         "xantios/mimey": "^2.2",
@@ -33,7 +33,7 @@
         "symfony/mailgun-mailer": "^6.3",
         "twig/twig": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.0"
-        "guzzlehttp/guzzle": "^6.0|^7.0", 
+        "guzzlehttp/guzzle": "^6.0|^7.0",
     },
     "autoload": {
         "psr-4": {
@@ -74,14 +74,14 @@
                 "Filter": "Tec\\Base\\Facades\\FilterFacade",
                 "EmailHandler": "Tec\\Base\\Facades\\EmailHandlerFacade",
                 "Breadcrumbs": "Tec\\Base\\Facades\\BreadcrumbsFacade",
-                "JsValidator": "Tec\\JsValidation\\Facades\\JsValidatorFacade" 
-                "DashboardMenu": "Tec\\Base\\Facades\\DashboardMenu", 
-                "Form": "Tec\\Base\\Facades\\Form",
-                "Html": "Tec\\Base\\Facades\\Html",
-                "MacroableModels": "Tec\\Base\\Facades\\MacroableModels", 
-                "PageTitle": "Tec\\Base\\Facades\\PageTitle", 
-                "Setting": "Tec\\Setting\\Facades\\Setting",
-                "RvMedia": "Tec\\Media\\Facades\\RvMedia"
+                "JsValidator": "Tec\\JsValidation\\Facades\\JsValidatorFacade",
+                "DashboardMenu": "Tec\\Base\\Facades\\DashboardMenuFacade",
+                "Form": "Tec\\Base\\Facades\\FormFacade",
+                "Html": "Tec\\Base\\Facades\\HtmlFacade",
+                "MacroableModels": "Tec\\Base\\Facades\\MacroableModelsFacade",
+                "PageTitle": "Tec\\Base\\Facades\\PageTitleFacade",
+                "Setting": "Tec\\Setting\\Facades\\SettingFacade",
+                "RvMedia": "Tec\\Media\\Facades\\RvMediaFacade"
             }
         }
     },
