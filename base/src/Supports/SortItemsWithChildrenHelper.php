@@ -27,6 +27,7 @@ class SortItemsWithChildrenHelper
      * @var string
      */
     protected $childrenProperty = 'children_items';
+    protected $ChildrenIntentProperty = '&nbsp;&nbsp;';
 
     /**
      * @var array
@@ -83,6 +84,12 @@ class SortItemsWithChildrenHelper
 
         return $this;
     }
+    public function setChildrenIntentProperty(string $string): self
+    {
+        $this->ChildrenIntentProperty = $string;
+
+        return $this;
+    }
 
     /**
      * @return array
@@ -96,16 +103,22 @@ class SortItemsWithChildrenHelper
      * @param int $parentId
      * @return array
      */
-    protected function processSort(int $parentId = 0): array
+    protected function processSort(int $parentId = 0,int $depth=0): array
     {
         $result = [];
         $filtered = $this->items->where($this->parentField, $parentId);
         foreach ($filtered as $item) {
+
+            $item->depth=$depth;
+            $item->intent_text = str_repeat($this->ChildrenIntentProperty, $depth);
+
             if (is_object($item)) {
-                $item->{$this->childrenProperty} = $this->processSort($item->{$this->compareKey});
+                $item->{$this->childrenProperty} = $this->processSort($item->{$this->compareKey},($depth+1));
             } else {
-                $item[$this->childrenProperty] = $this->processSort(Arr::get($item, $this->compareKey));
+                $item[$this->childrenProperty] = $this->processSort(Arr::get($item, $this->compareKey)($depth+1));
             }
+
+
             $result[] = $item;
         }
 
