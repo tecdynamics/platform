@@ -15,17 +15,25 @@
     ],
     "type": "project",
     "require": {
+        "ext-zip": "*",
+        "ext-gd": "*",
         "barryvdh/laravel-dompdf": "*",
         "tecdynamics/assets": "*",
-        "intervention/image": "^2.6",
-        "kris/laravel-form-builder": "1.*",
+       "intervention/image": "^2.6",
+        "kris/laravel-form-builder": "dev-master",
         "laravelcollective/html": "^6.2",
         "xantios/mimey": "^2.2",
         "tightenco/ziggy": "^1.4",
-        "yajra/laravel-datatables-buttons": "^4.13",
-        "yajra/laravel-datatables-oracle": "^9.18",
-        "guzzlehttp/guzzle": "^6.0|^7.0",
-        "mews/purifier": "^3.3"
+        "yajra/laravel-datatables-buttons": "^10.0",
+        "yajra/laravel-datatables-oracle": "^10.11",
+        "mews/purifier": "^3.3",
+        "maatwebsite/excel": "^3.1",
+        "symfony/http-client": "^6.3",
+        "symfony/postmark-mailer": "^6.3",
+        "symfony/mailgun-mailer": "^6.3",
+        "twig/twig": "^3.0",
+        "league/flysystem-aws-s3-v3": "^3.0"
+        "guzzlehttp/guzzle": "^6.0|^7.0", 
     },
     "autoload": {
         "psr-4": {
@@ -66,7 +74,14 @@
                 "Filter": "Tec\\Base\\Facades\\FilterFacade",
                 "EmailHandler": "Tec\\Base\\Facades\\EmailHandlerFacade",
                 "Breadcrumbs": "Tec\\Base\\Facades\\BreadcrumbsFacade",
-                "JsValidator": "Tec\\JsValidation\\Facades\\JsValidatorFacade"
+                "JsValidator": "Tec\\JsValidation\\Facades\\JsValidatorFacade" 
+                "DashboardMenu": "Tec\\Base\\Facades\\DashboardMenu", 
+                "Form": "Tec\\Base\\Facades\\Form",
+                "Html": "Tec\\Base\\Facades\\Html",
+                "MacroableModels": "Tec\\Base\\Facades\\MacroableModels", 
+                "PageTitle": "Tec\\Base\\Facades\\PageTitle", 
+                "Setting": "Tec\\Setting\\Facades\\Setting",
+                "RvMedia": "Tec\\Media\\Facades\\RvMedia"
             }
         }
     },
