@@ -4,6 +4,7 @@ namespace Tec\ACL\Tables;
 
 use BaseHelper;
 use Html;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Tec\ACL\Repositories\Interfaces\RoleInterface;
 use Tec\ACL\Repositories\Interfaces\UserInterface;
@@ -57,7 +58,7 @@ class RoleTable extends TableAbstract
     /**
      * {@inheritDoc}
      */
-    public function ajax()
+    public function ajax(): JsonResponse
     {
         $data = $this->table
             ->eloquent($this->query())
@@ -105,7 +106,7 @@ class RoleTable extends TableAbstract
     /**
      * {@inheritDoc}
      */
-    public function columns()
+    public function columns(): array
     {
         return [
             'id'          => [

@@ -11,7 +11,7 @@ mix
     .js(source + '/resources/assets/js/login.js', dist + '/js')
     .js(source + '/resources/assets/js/role.js', dist + '/js')
 
-    .sass(source + '/resources/assets/sass/login.scss', dist + '/css')
+  //  .sass(source + '/resources/assets/sass/login.scss', dist + '/css')
 
     .copyDirectory(dist + '/js', source + '/public/js')
     .copyDirectory(dist + '/css', source + '/public/css');

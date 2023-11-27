@@ -10,6 +10,7 @@ use MetaBox as MetaBoxSupport;
 
 class BaseModel extends Eloquent
 {
+    use \Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
     /**
      * @param string $key
      * @return mixed

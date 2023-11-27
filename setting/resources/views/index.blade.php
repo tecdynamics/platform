@@ -161,17 +161,21 @@
 
                         <div class="form-group mb-3">
 
+
                             <label class="text-title-field"
-                                   for="rich_editor">{{ trans('core/setting::setting.general.rich_editor') }}
+                                     for="rich_editor">{{ trans('core/setting::setting.general.rich_editor') }}
                             </label>
-                            <label class="me-2">
-                                <input type="radio" name="rich_editor" value="ckeditor"
-                                       @if (BaseHelper::getRichEditor() == 'ckeditor') checked @endif>CKEditor
-                            </label>
-                            <label>
-                                <input type="radio" name="rich_editor" value="tinymce"
-                                       @if (BaseHelper::getRichEditor() == 'tinymce') checked @endif>TinyMCE
-                            </label>
+
+                            @foreach(BaseHelper::availableRichEditors() as $key=>$rich_editor)
+                                <label class="me-2">
+                                    <input type="radio" name="rich_editor" value="{{$key}}"
+                                           @if (BaseHelper::getRichEditor() == $key) checked @endif>{{$rich_editor}}
+                                </label>
+
+
+                            @endforeach
+
+
                         </div>
 
                         <div class="form-group mb-3">

@@ -6,13 +6,12 @@ use Tec\Support\Http\Requests\Request;
 
 class FilterRequest extends Request
 {
-    /**
-     * @return array
-     */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'class' => 'required',
+            'key' => ['nullable', 'string'],
+            'value' => ['nullable', 'string'],
+            'class' => ['required', 'string'],
         ];
     }
 }

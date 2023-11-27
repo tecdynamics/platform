@@ -6,10 +6,11 @@ let directory = path.basename(path.resolve(__dirname));
 const source = 'platform/core/' + directory;
 const dist = 'public/vendor/core/core/' + directory;
 
-mix.js(source + '/resources/assets/js/setting.js', dist + '/js').vue({ version: 2 });
+mix.js(source + '/resources/assets/js/setting.js', dist + '/js').vue({ version: 2 })
+    .js(source + '/resources/assets/js/email_preview.js', dist + '/js').vue({ version: 2 });
 
-mix
-    .sass(source + '/resources/assets/sass/setting.scss', dist + '/css')
+  mix
+     //.sass(source + '/resources/assets/sass/setting.scss', dist + '/css')
 
     .copyDirectory(dist + '/js', source + '/public/js')
     .copyDirectory(dist + '/css', source + '/public/css')

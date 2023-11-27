@@ -3,96 +3,87 @@
 namespace Tec\Table\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Tec\Base\Facades\Form;
 use Tec\Base\Http\Responses\BaseHttpResponse;
+use Tec\Table\Abstracts\TableAbstract;
 use Tec\Table\Http\Requests\BulkChangeRequest;
+use Tec\Table\Http\Requests\DispatchBulkActionRequest;
 use Tec\Table\Http\Requests\FilterRequest;
+use Tec\Table\Http\Requests\SaveBulkChangeRequest;
 use Tec\Table\TableBuilder;
 use Exception;
-use Form;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Throwable;
 
 class TableController extends Controller
 {
-
-    /**
-     * @var TableBuilder
-     */
-    protected $tableBuilder;
-
-    /**
-     * TableController constructor.
-     * @param TableBuilder $tableBuilder
-     */
-    public function __construct(TableBuilder $tableBuilder)
+    public function __construct(protected TableBuilder $tableBuilder)
     {
-        $this->tableBuilder = $tableBuilder;
     }
 
-    /**
-     * @param BulkChangeRequest $request
-     * @return array|mixed
-     * @throws Throwable
-     */
-    public function getDataForBulkChanges(BulkChangeRequest $request)
+    public function getDataForBulkChanges(BulkChangeRequest $request): array
     {
         $class = $request->input('class');
 
-        if (!$class || !class_exists($class)) {
+        if (! class_exists($class)) {
             return [];
         }
 
         $object = $this->tableBuilder->create($class);
 
         $data = $object->getValueInput(null, null, 'text');
-        if (!$request->input('key')) {
+
+        $key = $request->input('key');
+
+        if (! $key) {
             return $data;
         }
 
-        $column = Arr::get($object->getBulkChanges(), $request->input('key'));
+        $column = Arr::get($object->getAllBulkChanges(), $key);
         if (empty($column)) {
             return $data;
         }
 
-        $labelClass = 'control-label';
-        if (!empty($column) && Str::contains(Arr::get($column, 'validate'), 'required')) {
-            $labelClass .= ' required';
-        }
+        if (isset($column['callback'])) {
+            $callback = $column['callback'];
 
-        $label = '';
-        if (!empty($column['title'])) {
-            $label = Form::label($column['title'], null, ['class' => $labelClass])->toHtml();
-        }
-
-        if (isset($column['callback']) && method_exists($object, $column['callback'])) {
-            $data = $object->getValueInput(
-                $column['title'],
-                null,
-                $column['type'],
-                call_user_func([$object, $column['callback']])
-            );
+            if (is_callable($callback)) {
+                $data = $object->getValueInput(
+                    $column['title'],
+                    null,
+                    $column['type'],
+                    $callback()
+                );
+            } elseif (method_exists($object, $callback)) {
+                $data = $object->getValueInput(
+                    $column['title'],
+                    null,
+                    $column['type'],
+                    call_user_func([$object, $callback])
+                );
+            }
         } else {
             $data = $object->getValueInput($column['title'], null, $column['type'], Arr::get($column, 'choices', []));
         }
 
-        $data['html'] = $label . $data['html'];
+        if (! empty($column['title'])) {
+            $labelClass = config('laravel-form-builder.label_class');
+            if (Str::contains(Arr::get($column, 'validate'), 'required')) {
+                $labelClass .= ' required';
+            }
+
+            $data['html'] = Form::label($column['title'], null, ['class' => $labelClass])->toHtml() . $data['html'];
+        }
 
         return $data;
     }
 
-    /**
-     * @param Request $request
-     * @param BaseHttpResponse $response
-     * @return BaseHttpResponse
-     * @throws BindingResolutionException
-     */
-    public function postSaveBulkChange(Request $request, BaseHttpResponse $response)
+    public function postSaveBulkChange(SaveBulkChangeRequest $request, BaseHttpResponse $response)
     {
         $ids = $request->input('ids');
+
         if (empty($ids)) {
             return $response
                 ->setError()
@@ -104,16 +95,15 @@ class TableController extends Controller
 
         $class = $request->input('class');
 
-        if (!$class || !class_exists($class)) {
-            return $response
-                ->setError();
+        if (! class_exists($class)) {
+            return $response->setError();
         }
 
         $object = $this->tableBuilder->create($class);
 
-        $columns = $object->getBulkChanges();
+        $columns = $object->getAllBulkChanges();
 
-        if (!empty($columns[$inputKey]['validate'])) {
+        if (! empty($columns[$inputKey]['validate'])) {
             $validator = Validator::make($request->input(), [
                 'value' => $columns[$inputKey]['validate'],
             ]);
@@ -136,37 +126,68 @@ class TableController extends Controller
         return $response->setMessage(trans('core/table::table.save_bulk_change_success'));
     }
 
-    /**
-     * @param FilterRequest $request
-     * @return array|mixed
-     * @throws BindingResolutionException
-     * @throws Throwable
-     */
+    public function postDispatchBulkAction(DispatchBulkActionRequest $request, BaseHttpResponse $response): BaseHttpResponse
+    {
+        if (
+            ! class_exists($request->input('bulk_action_table')) ||
+            ! class_exists($request->input('bulk_action_target'))
+        ) {
+            return $response
+                ->setError()
+                ->setMessage(trans('core/table::invalid_bulk_action'));
+        }
+
+        try {
+            /**
+             * @var TableAbstract $table
+             */
+            $table = app()->make($request->input('bulk_action_table'));
+
+            abort_unless($table instanceof TableAbstract, 400);
+
+            return $table->dispatchBulkAction();
+        } catch (BindingResolutionException) {
+            return $response
+                ->setError()
+                ->setMessage(__('Something went wrong.'));
+        }
+    }
+
     public function getFilterInput(FilterRequest $request)
     {
         $class = $request->input('class');
 
-        if (!$class || !class_exists($class)) {
+        if (! class_exists($class)) {
             return [];
         }
+
+        $key = $request->input('key');
 
         $object = $this->tableBuilder->create($class);
 
         $data = $object->getValueInput(null, null, 'text');
-        if (!$request->input('key')) {
+
+        if (! $key) {
             return $data;
         }
 
-        $column = Arr::get($object->getFilters(), $request->input('key'));
+        $column = Arr::get($object->getFilters(), $key);
         if (empty($column)) {
             return $data;
         }
 
         $value = $request->input('value');
+
         $choices = Arr::get($column, 'choices', []);
 
-        if (isset($column['callback']) && method_exists($object, $column['callback'])) {
-            $choices = call_user_func_array([$object, $column['callback']], [$value]);
+        if (isset($column['callback'])) {
+            $callback = $column['callback'];
+
+            if (is_callable($callback)) {
+                $choices = $callback($value);
+            } elseif (method_exists($object, $callback)) {
+                $choices = call_user_func_array([$object, $callback], [$value]);
+            }
         }
 
         return $object->getValueInput(

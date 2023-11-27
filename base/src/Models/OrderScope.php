@@ -35,8 +35,11 @@ class OrderScope implements Scope
 
     public function apply(Builder $builder, Model $model)
     {
-       $column=(strpos($this->column, '.') ==false)?$model->getTable().'.'.$this->column:$this->column;
-        $builder->orderBy($column, $this->direction);
+          $filables = $model->getFillable();
+        if(in_array($this->column,$filables)){
+            $column=(strpos($this->column, '.') ==false)?$model->getTable().'.'.$this->column:$this->column;
+            $builder->orderBy($column, $this->direction);
+        }
     }
 
 }

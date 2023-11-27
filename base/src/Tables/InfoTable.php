@@ -2,6 +2,7 @@
 
 namespace Tec\Base\Tables;
 
+use Illuminate\Http\JsonResponse;
 use Tec\Base\Supports\SystemManagement;
 use Tec\Table\Abstracts\TableAbstract;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
@@ -27,7 +28,7 @@ class InfoTable extends TableAbstract
     /**
      * {@inheritDoc}
      */
-    public function ajax()
+    public function ajax(): JsonResponse
     {
         return $this->toJson($this->table
             ->of($this->query())
@@ -54,7 +55,7 @@ class InfoTable extends TableAbstract
     /**
      * {@inheritDoc}
      */
-    public function columns()
+    public function columns(): array
     {
         return [
             'name'         => [

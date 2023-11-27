@@ -2,6 +2,7 @@
 
 namespace Tec\Support\Repositories\Eloquent;
 
+use Illuminate\Pagination\Paginator;
 use Tec\Base\Supports\RepositoryHelper;
 use Tec\Support\Repositories\Interfaces\RepositoryInterface;
 use Eloquent;
@@ -376,6 +377,7 @@ abstract class RepositoriesAbstract implements RepositoryInterface
             'order_by'  => [],
             'take'      => null,
             'paginate'  => [
+                'path'=>null,
                 'per_page'      => null,
                 'current_paged' => 1,
             ],
@@ -424,13 +426,14 @@ abstract class RepositoriesAbstract implements RepositoryInterface
             if (Arr::get($params, 'paginate.type') && method_exists($data, Arr::get($params, 'paginate.type'))) {
                 $paginateType = Arr::get($params, 'paginate.type');
             }
+
             $result = $this->applyBeforeExecuteQuery($data)
                 ->$paginateType(
                     (int)Arr::get($params, 'paginate.per_page', 10),
                     [$this->originalModel->getTable() . '.' . $this->originalModel->getKeyName()],
-                    'page',
+                    'page' ,
                     (int)Arr::get($params, 'paginate.current_paged', 1)
-                );
+                ) ;
         } else {
             $result = $this->applyBeforeExecuteQuery($data)->get();
         }

@@ -222,12 +222,29 @@ class BaseHelper {
         return false;
     }
 
+    public function availableRichEditors(): array
+    {
+        return apply_filters(BASE_FILTER_AVAILABLE_EDITORS, [
+            'ckeditor' => 'CKEditor',
+            'tinymce' => 'TinyMCE',
+        ]);
+    }
     /**
      * @return string
      */
-    public function getRichEditor(): string {
-        return setting('rich_editor', config('core.base.general.editor.primary'));
+    public function getRichEditor(): string
+    {
+        $richEditor = setting('rich_editor', config('core.base.general.editor.primary'));
+
+        if (array_key_exists($richEditor, $this->availableRichEditors())) {
+            return $richEditor;
+        }
+
+        setting()->set(['rich_editor' => 'ckeditor'])->save();
+
+        return 'ckeditor';
     }
+
 
     /**
      * @param string|null $url
@@ -431,4 +448,7 @@ class BaseHelper {
 
         return $shortcodeCompiler->strip($content, []);
     }
+
+
+
 }

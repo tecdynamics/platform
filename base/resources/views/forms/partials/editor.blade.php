@@ -64,5 +64,4 @@
 @else
     @php Arr::forget($attributes, 'with-short-code'); @endphp
 @endif
-
 {!! call_user_func_array([Form::class, BaseHelper::getRichEditor()], [$name, $value, $attributes]) !!}
