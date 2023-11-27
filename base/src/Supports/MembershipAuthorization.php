@@ -2,58 +2,24 @@
 
 namespace Tec\Base\Supports;
 
-use Tec\Setting\Supports\SettingStore;
 use Carbon\Carbon;
-use Exception;
-use GuzzleHttp\Client;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Throwable;
 
 class MembershipAuthorization
 {
-    /**
-     * @var Client
-     */
-    protected $client;
+    protected string $url;
 
-    /**
-     * @var SettingStore
-     */
-    protected $settingStore;
-
-    /**
-     * @var Request
-     */
-    protected $request;
-
-    /**
-     * @var string
-     */
-    protected $url;
-
-    /**
-     * MembershipAuthorization constructor.
-     * @param Client $client
-     * @param SettingStore $settingStore
-     * @param Request $request
-     */
-    public function __construct(Client $client, SettingStore $settingStore, Request $request)
+    public function __construct()
     {
-        $this->client = $client;
-        $this->settingStore = $settingStore;
-        $this->request = $request;
-
         $this->url = rtrim(url('/'), '/');
     }
 
-    /**
-     * @return boolean
-     */
     public function authorize(): bool
     {
         try {
-
-            if (!filter_var($this->url, FILTER_VALIDATE_URL)) {
+            if (! filter_var($this->url, FILTER_VALIDATE_URL)) {
                 return false;
             }
 
@@ -61,25 +27,23 @@ class MembershipAuthorization
                 return false;
             }
 
-            $authorizeDate = $this->settingStore->get('membership_authorization_at');
-            if (!$authorizeDate) {
+            $authorizeDate = setting('membership_authorization_at');
+
+            if (! $authorizeDate) {
                 return $this->processAuthorize();
             }
 
             $authorizeDate = Carbon::createFromFormat('Y-m-d H:i:s', $authorizeDate);
-            if (now()->diffInDays($authorizeDate) > 7) {
+            if (Carbon::now()->diffInDays($authorizeDate) > 7) {
                 return $this->processAuthorize();
             }
 
             return true;
-        } catch (Exception $exception) {
+        } catch (Throwable) {
             return false;
         }
     }
 
-    /**
-     * @return bool
-     */
     protected function isInvalidDomain(): bool
     {
         if (filter_var($this->url, FILTER_VALIDATE_IP)) {
@@ -105,22 +69,27 @@ class MembershipAuthorization
         return false;
     }
 
-    /**
-     * @return bool
-     */
     protected function processAuthorize(): bool
     {
+        try {
+            $response = Http::withoutVerifying()
+                ->asJson()
+                ->acceptJson()
+                ->post('https://Tec.com/membership/authorize', [
+                    'website' => $this->url,
+                ]);
 
-//        $this->client->post('https://tecdynamics.co.uk/membership/authorize', [
-//            'form_params' => [
-//                'website' => $this->url,
-//            ],
-//        ]);
+            if (! $response->ok()) {
+                return true;
+            }
 
-        $this->settingStore
-            ->set('membership_authorization_at', now()->toDateTimeString())
-            ->save();
+            setting()
+                ->set('membership_authorization_at', Carbon::now()->toDateTimeString())
+                ->save();
 
-        return true;
+            return true;
+        } catch (Throwable) {
+            return true;
+        }
     }
 }

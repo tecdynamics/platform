@@ -7,7 +7,9 @@ use Tec\Base\Http\Responses\BaseHttpResponse;
 use Tec\Support\Repositories\Interfaces\RepositoryInterface;
 use Exception;
 use Illuminate\Http\Request;
-
+/**
+ * @deprecated
+ */
 trait HasDeleteManyItemsTrait
 {
     /**

@@ -10,49 +10,38 @@ use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 
 class EmailAbstract extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
-    /**
-     * @var string
-     */
-    public $content;
+    public string $content;
 
-    /**
-     * @var string
-     */
     public $subject;
 
-    /**
-     * @var array
-     */
-    public $data;
+    public array $data;
 
-    /**
-     * Create a new message instance.
-     *
-     * @param string $content
-     * @param string $subject
-     * @param array $data
-     */
-    public function __construct($content, $subject, $data = [])
+    public function __construct(string|null $content, string|null $subject, array $data = [])
     {
         $this->content = $content;
         $this->subject = $subject;
         $this->data = $data;
     }
 
-    /**
-     * Build the message.
-     *
-     * @return EmailAbstract
-     */
-    public function build()
+    public function build(): EmailAbstract
     {
-        $inlineCss = new CssToInlineStyles;
+        $inlineCss = new CssToInlineStyles();
 
         $fromAddress = setting('email_from_address', config('mail.from.address'));
 
         $fromName = setting('email_from_name', config('mail.from.name'));
+
+        if (isset($this->data['from'])) {
+            if (is_array($this->data['from'])) {
+                $fromAddress = Arr::first(array_keys($this->data['from']));
+                $fromName = Arr::first($this->data['from']);
+            } else {
+                $fromAddress = $this->data['from'];
+            }
+        }
 
         $email = $this
             ->from($fromAddress, $fromName)
@@ -60,8 +49,8 @@ class EmailAbstract extends Mailable
             ->html($inlineCss->convert($this->content));
 
         $attachments = Arr::get($this->data, 'attachments');
-        if (!empty($attachments)) {
-            if (!is_array($attachments)) {
+        if (! empty($attachments)) {
+            if (! is_array($attachments)) {
                 $attachments = [$attachments];
             }
             foreach ($attachments as $file) {

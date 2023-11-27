@@ -70,7 +70,7 @@ abstract class TableBulkActionAbstract implements Htmlable, Stringable
         return $this;
     }
 
-    public function handleBeforeDispatch(BaseModel|Model $model, array $ids): void
+    public function handleBeforeDispatch($model, array $ids): void
     {
         if (isset($this->beforeDispatch)) {
             call_user_func($this->beforeDispatch, $model, $ids);
@@ -84,14 +84,14 @@ abstract class TableBulkActionAbstract implements Htmlable, Stringable
         return $this;
     }
 
-    public function handleAfterDispatch(BaseModel|Model $model, array $ids): void
+    public function handleAfterDispatch($model, array $ids): void
     {
         if (isset($this->afterDispatch)) {
             call_user_func($this->afterDispatch, $model, $ids);
         }
     }
 
-    abstract public function dispatch(BaseModel|Model $model, array $ids): BaseHttpResponse;
+    abstract public function dispatch($model, array $ids): BaseHttpResponse;
 
     public function render(): string
     {

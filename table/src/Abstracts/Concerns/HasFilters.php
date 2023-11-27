@@ -2,7 +2,7 @@
 
 namespace Tec\Table\Abstracts\Concerns;
 
-use Tec\Base\Facades\BaseHelper;
+use BaseHelper;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Relations\Relation as EloquentRelation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -44,12 +44,11 @@ trait HasFilters
         });
     }
 
-    public function applyFilterCondition(
-        EloquentBuilder|QueryBuilder|EloquentRelation $query,
+    public function applyFilterCondition( $query,
         string $key,
         string $operator,
         string|null $value
-    ): EloquentRelation|EloquentBuilder|QueryBuilder {
+    ) {
         if (strpos($key, '.') !== -1) {
             $key = Arr::last(explode('.', $key));
         }

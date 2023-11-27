@@ -3,36 +3,22 @@
 namespace Tec\Base\Listeners;
 
 use Tec\Base\Events\SendMailEvent;
+use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Supports\EmailAbstract;
 use Exception;
 use Illuminate\Contracts\Mail\Mailer;
-use Log;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class SendMailListener
+class SendMailListener implements ShouldQueue
 {
+    use InteractsWithQueue;
 
-    /**
-     * @var Mailer
-     */
-    protected $mailer;
-
-    /**
-     * SendMailListener constructor.
-     * @param Mailer $mailer
-     */
-    public function __construct(Mailer $mailer)
+    public function __construct(protected Mailer $mailer)
     {
-        $this->mailer = $mailer;
     }
 
-    /**
-     * Handle the event.
-     *
-     * @param SendMailEvent $event
-     * @return void
-     * @throws Exception
-     */
-    public function handle(SendMailEvent $event)
+    public function handle(SendMailEvent $event): void
     {
         try {
             $this->mailer->to($event->to)->send(new EmailAbstract($event->content, $event->title, $event->args));
@@ -40,7 +26,8 @@ class SendMailListener
             if ($event->debug) {
                 throw $exception;
             }
-            Log::error($exception->getMessage());
+
+            BaseHelper::logError($exception);
         }
     }
 }

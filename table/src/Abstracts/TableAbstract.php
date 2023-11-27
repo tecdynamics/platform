@@ -306,7 +306,7 @@ abstract class TableAbstract extends DataTable
     /**
      * @param BaseModel|class-string<BaseModel> $model
      */
-    public function model(BaseModelContract|string $model): static
+    public function model($model): static
     {
         if (is_string($model)) {
             throw_unless(
@@ -331,7 +331,7 @@ abstract class TableAbstract extends DataTable
         return $this;
     }
 
-    protected function getModel(): BaseModelContract|Model
+    protected function getModel()
     {
         return $this->model ?: ($this->repository ? $this->repository->getModel() : new BaseModel());
     }

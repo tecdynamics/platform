@@ -2,8 +2,8 @@
 
 namespace Tec\Base\Supports;
 
-use Cache;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Intervention\Image\AbstractFont;
 use Intervention\Image\AbstractShape;
@@ -13,35 +13,17 @@ use InvalidArgumentException;
 
 class Avatar
 {
-    /**
-     * @var string
-     */
-    protected $name;
+    protected string|null $name = null;
 
-    /**
-     * @var int
-     */
-    protected $chars = 1;
+    protected int $chars = 1;
 
-    /**
-     * @var string
-     */
-    protected $shape = 'circle';
+    protected string $shape = 'circle';
 
-    /**
-     * @var int
-     */
-    protected $width = 250;
+    protected int $width = 250;
 
-    /**
-     * @var int
-     */
-    protected $height = 250;
+    protected int $height = 250;
 
-    /**
-     * @var array
-     */
-    protected $availableBackgrounds = [
+    protected array $availableBackgrounds = [
         '#f44336',
         '#E91E63',
         '#9C27B0',
@@ -59,68 +41,35 @@ class Avatar
         '#FF5722',
     ];
 
-    /**
-     * @var array
-     */
-    protected $availableForegrounds = [
+    protected array $availableForegrounds = [
         '#FFFFFF',
     ];
 
-    /**
-     * @var int
-     */
-    protected $fontSize = 152;
+    protected int $fontSize = 152;
 
-    /**
-     * @var int
-     */
-    protected $borderSize = 1;
+    protected int $borderSize = 0;
 
-    /**
-     * @var string
-     */
-    protected $borderColor = 'foreground';
+    protected string $borderColor = 'foreground';
 
-    /**
-     * @var bool
-     */
-    protected $ascii = false;
+    protected bool $ascii = false;
 
-    /**
-     * @var bool
-     */
-    protected $uppercase = false;
+    protected bool $uppercase = false;
 
-    /**
-     * @var Image
-     */
-    protected $image;
+    protected Image $image;
 
-    /**
-     * @var string
-     */
-    protected $font = __DIR__ . '/../../public/fonts/Roboto-Bold.ttf';
+    protected string $font;
 
-    /**
-     * @var string
-     */
-    protected $background = '#CCCCCC';
+    protected string $background = '#CCCCCC';
 
-    /**
-     * @var string
-     */
-    protected $foreground = '#FFFFFF';
+    protected string $foreground = '#FFFFFF';
 
     public function __construct()
     {
         $this->foreground = $this->getRandomElement($this->availableForegrounds, $this->foreground);
         $this->background = $this->getRandomElement($this->availableBackgrounds, $this->background);
+        $this->font = core_path('base/public/fonts/Roboto-Bold.ttf');
     }
 
-    /**
-     * @param string $color
-     * @return $this
-     */
     public function setBackground(string $color): self
     {
         $this->background = $color;
@@ -128,10 +77,6 @@ class Avatar
         return $this;
     }
 
-    /**
-     * @param string $color
-     * @return $this
-     */
     public function setForeground(string $color): self
     {
         $this->foreground = $color;
@@ -139,10 +84,6 @@ class Avatar
         return $this;
     }
 
-    /**
-     * @param string $shape
-     * @return $this
-     */
     public function setShape(string $shape): self
     {
         $this->shape = $shape;
@@ -150,18 +91,13 @@ class Avatar
         return $this;
     }
 
-    /**
-     * @param array $array
-     * @param string $default
-     * @return mixed
-     */
-    protected function getRandomElement(array $array, $default)
+    protected function getRandomElement(array $array, string $default)
     {
         // Make it work for associative array
         $array = array_values($array);
 
         $name = $this->name;
-        if ($name === '') {
+        if ($name == null) {
             $name = chr(rand(65, 90));
         }
 
@@ -180,18 +116,12 @@ class Avatar
         return $array[$number % count($array)];
     }
 
-    /**
-     * @return string
-     */
     public function __toString()
     {
-        return (string)$this->toBase64();
+        return $this->toBase64();
     }
 
-    /**
-     * @return string
-     */
-    public function toBase64()
+    public function toBase64(): string
     {
         $key = $this->cacheKey();
         if ($base64 = Cache::get($key)) {
@@ -207,10 +137,7 @@ class Avatar
         return $base64;
     }
 
-    /**
-     * @return string
-     */
-    protected function cacheKey()
+    protected function cacheKey(): string
     {
         $keys = [];
         $attributes = [
@@ -232,9 +159,6 @@ class Avatar
         return md5(implode('-', $keys));
     }
 
-    /**
-     * @return $this
-     */
     public function buildAvatar(): self
     {
         $driver = 'gd';
@@ -263,9 +187,6 @@ class Avatar
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
     protected function createShape()
     {
         $method = 'create' . ucfirst($this->shape) . 'Shape';
@@ -276,18 +197,11 @@ class Avatar
         throw new InvalidArgumentException('Shape [' . $this->shape . '] currently not supported.');
     }
 
-    /**
-     * @param string $name
-     * @param int $length
-     * @param bool $uppercase
-     * @param bool $ascii
-     * @return string
-     */
-    public function make($name, $length = 1, $uppercase = false, $ascii = false)
+    public function make(string|array|null|object $name, int $length = 1, bool $uppercase = false, bool $ascii = false): string
     {
         $this->setName($name, $ascii);
 
-        $words = new Collection(explode(' ', $this->name));
+        $words = collect(explode(' ', $this->name));
 
         // if name contains single word, use first N character
         if ($words->count() === 1) {
@@ -298,7 +212,7 @@ class Avatar
             }
         } else {
             // otherwise, use initial char from each word
-            $initials = new Collection;
+            $initials = new Collection();
             $words->each(function ($word) use ($initials) {
                 $initials->push(Str::substr($word, 0, 1));
             });
@@ -313,17 +227,13 @@ class Avatar
         return $initial;
     }
 
-    /**
-     * @param string $name
-     * @param bool $ascii
-     */
-    protected function setName($name, $ascii)
+    protected function setName(string|array|null|object $name, bool $ascii): void
     {
         if (is_array($name)) {
             throw new InvalidArgumentException(
                 'Passed value cannot be an array'
             );
-        } elseif (is_object($name) && !method_exists($name, '__toString')) {
+        } elseif (is_object($name) && ! method_exists($name, '__toString')) {
             throw new InvalidArgumentException(
                 'Passed object must have a __toString method'
             );
@@ -341,23 +251,14 @@ class Avatar
         $this->name = $name;
     }
 
-    /**
-     * @param string $name
-     * @return $this
-     */
-    public function create($name): self
+    public function create(string|null $name): self
     {
         $this->name = $name;
 
         return $this;
     }
 
-    /**
-     * @param string $path
-     * @param int $quality
-     * @return Image
-     */
-    public function save($path, $quality = 90)
+    public function save(string $path, int $quality = 90): Image
     {
         $this->buildAvatar();
 
@@ -368,8 +269,8 @@ class Avatar
     {
         $this->image->circle(
             $this->width - $this->borderSize,
-            $this->width / 2,
-            $this->height / 2,
+            intval($this->width / 2),
+            intval($this->height / 2),
             function (AbstractShape $draw) {
                 $draw->background($this->background);
                 $draw->border($this->borderSize, $this->getBorderColor());
@@ -377,14 +278,12 @@ class Avatar
         );
     }
 
-    /**
-     * @return mixed|string
-     */
-    protected function getBorderColor()
+    protected function getBorderColor(): string|null
     {
         if ($this->borderColor == 'foreground') {
             return $this->foreground;
         }
+
         if ($this->borderColor == 'background') {
             return $this->background;
         }
@@ -392,9 +291,9 @@ class Avatar
         return $this->borderColor;
     }
 
-    protected function createSquareShape()
+    protected function createSquareShape(): void
     {
-        $edge = ceil($this->borderSize / 2);
+        $edge = (int)ceil($this->borderSize / 2);
         $width = $this->width - $edge;
         $height = $this->height - $edge;
 

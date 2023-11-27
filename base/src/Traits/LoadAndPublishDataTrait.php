@@ -2,6 +2,7 @@
 
 namespace Tec\Base\Traits;
 
+use Illuminate\Support\Facades\File;
 use Tec\Base\Supports\Helper;
 use Exception;
 use Illuminate\Support\ServiceProvider;
@@ -16,7 +17,8 @@ trait LoadAndPublishDataTrait
     /**
      * @var string
      */
-    protected $namespace = null;
+
+    protected string|null $namespace = null;
 
     /**
      * @var string
@@ -27,9 +29,12 @@ trait LoadAndPublishDataTrait
      * @param string $namespace
      * @return $this
      */
-    public function setNamespace(string $namespace): self
+
+    protected function setNamespace(string $namespace): self
     {
         $this->namespace = ltrim(rtrim($namespace, '/'), '/');
+
+        $this->app['config']->set(['core.base.general.plugin_namespaces.' . File::basename($this->getPath()) => $namespace]);
 
         return $this;
     }
@@ -55,24 +60,20 @@ trait LoadAndPublishDataTrait
 
         return $this;
     }
-
-    /**
-     * Get path of the give file name in the given module
-     * @param string $file
-     * @return string
-     * @throws Exception
-     */
-    protected function getConfigFilePath($file): string
+    protected function getConfigFilePath(string $file): string
     {
-        $file = $this->getBasePath() . $this->getDashedNamespace() . '/config/' . $file . '.php';
-
-        if (!file_exists($file) && Str::contains($file, plugin_path())) {
-            $this->throwInvalidPluginError();
-        }
-
-        return $file;
+        return $this->getPath('config/' . $file . '.php');
     }
 
+    protected function getDashedNamespace(): string
+    {
+        return str_replace('.', '/', $this->namespace);
+    }
+
+    protected function getDotedNamespace(): string
+    {
+        return str_replace('/', '.', $this->namespace);
+    }
     /**
      * @return string
      */
@@ -91,21 +92,59 @@ trait LoadAndPublishDataTrait
 
         return $this;
     }
-
-    /**
-     * @return string
-     */
-    protected function getDashedNamespace(): string
+    protected function getAssetsPath(): string
     {
-        return str_replace('.', '/', $this->namespace);
+        return $this->getPath('public');
     }
 
-    /**
-     * @return string
-     */
-    protected function getDotedNamespace(): string
+    protected function loadHelpers(): self
     {
-        return str_replace('/', '.', $this->namespace);
+        \Tec\Base\Supports\Helper::autoload($this->getPath('/helpers'));
+
+        return $this;
+    }
+    protected function getViewsPath(): string
+    {
+        return $this->getPath('/resources/views');
+    }
+
+    public function loadAndPublishTranslations(): self
+    {
+        $this->loadTranslationsFrom($this->getTranslationsPath(), $this->getDashedNamespace());
+        $this->publishes(
+            [$this->getTranslationsPath() => lang_path('vendor/' . $this->getDashedNamespace())],
+            'cms-lang'
+        );
+
+        return $this;
+    }
+
+    protected function getTranslationsPath(): string
+    {
+        return $this->getPath('/resources/lang');
+    }
+
+    protected function loadMigrations(): self
+    {
+        $this->loadMigrationsFrom($this->getMigrationsPath());
+
+        return $this;
+    }
+
+    protected function getMigrationsPath(): string
+    {
+        return $this->getPath('/database/migrations');
+    }
+
+    protected function publishAssets(string $path = null): self
+    {
+        if (empty($path)) {
+            $path = 'vendor/core/' . $this->getDashedNamespace();
+        }
+
+        $this->publishes([$this->getAssetsPath() => public_path($path)], 'cms-public');
+
+        return $this;
     }
 
     /**
@@ -113,9 +152,9 @@ trait LoadAndPublishDataTrait
      * @param array|string $fileNames
      * @return $this
      */
-    public function loadRoutes($fileNames = ['web']): self
+       protected function loadRoutes(array|string $fileNames = ['web']): self
     {
-        if (!is_array($fileNames)) {
+        if (! is_array($fileNames)) {
             $fileNames = [$fileNames];
         }
 
@@ -126,25 +165,12 @@ trait LoadAndPublishDataTrait
         return $this;
     }
 
-    /**
-     * @param string $file
-     * @return string
-     */
-    protected function getRouteFilePath($file): string
+    protected function getRouteFilePath(string $file): string
     {
-        $file = $this->getBasePath() . $this->getDashedNamespace() . '/routes/' . $file . '.php';
-
-        if (!file_exists($file) && Str::contains($file, plugin_path())) {
-            $this->throwInvalidPluginError();
-        }
-
-        return $file;
+        return $this->getPath('routes/' . $file . '.php');
     }
 
-    /**
-     * @return $this
-     */
-    public function loadAndPublishViews(): self
+    protected function loadAndPublishViews(): self
     {
         $this->loadViewsFrom($this->getViewsPath(), $this->getDashedNamespace());
         if ($this->app->runningInConsole()) {
@@ -155,76 +181,6 @@ trait LoadAndPublishDataTrait
         }
 
         return $this;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getViewsPath(): string
-    {
-        return $this->getBasePath() . $this->getDashedNamespace() . '/resources/views/';
-    }
-
-    /**
-     * @return $this
-     */
-    public function loadAndPublishTranslations(): self
-    {
-        $this->loadTranslationsFrom($this->getTranslationsPath(), $this->getDashedNamespace());
-        $this->publishes([$this->getTranslationsPath() => resource_path('lang/vendor/' . $this->getDashedNamespace())],
-            'cms-lang');
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getTranslationsPath(): string
-    {
-        return $this->getBasePath() . $this->getDashedNamespace() . '/resources/lang/';
-    }
-
-    /**
-     * @return $this
-     */
-    public function loadMigrations(): self
-    {
-        $this->loadMigrationsFrom($this->getMigrationsPath());
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getMigrationsPath(): string
-    {
-        return $this->getBasePath() . $this->getDashedNamespace() . '/database/migrations/';
-    }
-
-    /**
-     * @param string|null $path
-     * @return $this
-     */
-    public function publishAssets($path = null): self
-    {
-        if ($this->app->runningInConsole()) {
-            if (empty($path)) {
-                $path = 'vendor/core/' . $this->getDashedNamespace();
-            }
-            $this->publishes([$this->getAssetsPath() => public_path($path)], 'cms-public');
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getAssetsPath(): string
-    {
-        return $this->getBasePath() . $this->getDashedNamespace() . '/public/';
     }
 
     /**
@@ -245,13 +201,33 @@ trait LoadAndPublishDataTrait
         }
     }
 
-    /**
-     * @return $this
-     */
-    public function loadHelpers(): self
+    protected function loadAnonymousComponents(): self
     {
-        Helper::autoload(base_path('platform/') . $this->getDashedNamespace() . '/helpers');
+        $this->app['blade.compiler']->anonymousComponentPath(
+            $this->getViewsPath() . '/components',
+            str_replace('/', '-', $this->namespace)
+        );
 
         return $this;
     }
+    protected function getPath(string $path = null): string
+    {
+        $reflection = new ReflectionClass($this);
+
+        $modulePath = str_replace('/src/Providers', '', File::dirname($reflection->getFilename()));
+
+        if (! Str::contains($modulePath, base_path('platform/plugins'))) {
+            $modulePath = base_path('platform/' . $this->getDashedNamespace());
+        }
+
+        return $modulePath . ($path ? '/' . ltrim($path, '/') : '');
+    }
+
+
+
+
+
+
+
+
 }

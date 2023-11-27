@@ -2,13 +2,16 @@
 
 namespace Tec\Base\Helpers;
 
+use Html;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\HtmlString;
+use Throwable;
 
 class BaseHelper {
     /**
@@ -192,6 +195,82 @@ class BaseHelper {
         $homepageId = $this->getHomepageId();
 
         return $pageId && $homepageId && $pageId == $homepageId;
+    }
+
+    public function cleanShortcodes(string|null $content): string|null
+    {
+        if (! $content) {
+            return $content;
+        }
+
+        $content = $this->clean($content);
+
+        if (! function_exists('shortcode')) {
+            return $content;
+        }
+
+        $shortcodeCompiler = shortcode()->getCompiler();
+
+        return $shortcodeCompiler->strip($content);
+    }
+
+    public function stringify($content): string|null
+    {
+        if (empty($content)) {
+            return null;
+        }
+
+        if (is_string($content) || is_numeric($content) || is_bool($content)) {
+            return $content;
+        }
+
+        if (is_array($content)) {
+            return json_encode($content);
+        }
+
+        return null;
+    }
+
+    public function getGoogleFontsURL(string $path = null): string
+    {
+        $url = config('core.base.general.google_fonts_url', 'https://fonts.bunny.net');
+
+        if (! $path) {
+            return $url;
+        }
+
+        return $url . '/' . ltrim($path, '/');
+    }
+
+    public function googleFonts(string $font, bool $inline = true)
+    {
+        if (! config('core.base.general.google_fonts_enabled', true)) {
+            return '';
+        }
+
+        $directlyUrl = Html::style(str_replace('https://fonts.googleapis.com', $this->getGoogleFontsURL(), $font));
+
+        if (! config('core.base.general.google_fonts_enabled_cache', true)) {
+            return $directlyUrl;
+        }
+
+        try {
+            $fontUrl = str_replace($this->getGoogleFontsURL(), 'https://fonts.googleapis.com', $font);
+
+            $googleFont = app('core.google-fonts')->load($fontUrl);
+
+            if (! $googleFont) {
+                return $directlyUrl;
+            }
+
+            if (! $inline) {
+                return $googleFont->link();
+            }
+
+            return $googleFont->toHtml();
+        } catch (Throwable) {
+            return $directlyUrl;
+        }
     }
 
     /**
@@ -437,18 +516,30 @@ class BaseHelper {
      * @param string|null $content
      * @return string|null
      */
-    public function cleanShortcodes(?string $content): ?string {
-        if (!$content) {
-            return $content;
-        }
 
-        $content = $this->clean($content);
-
-        $shortcodeCompiler = shortcode()->getCompiler();
-
-        return $shortcodeCompiler->strip($content, []);
+    public function routeIdRegex(): string|null
+    {
+        return '[0-9]+';
     }
 
+    public function hasDemoModeEnabled(): bool
+    {
+        return App::environment('demo');
+    }
 
+    public function logError(Throwable $throwable): void
+    {
+        logger()->error($throwable->getMessage() . ' - ' . $throwable->getFile() . ':' . $throwable->getLine());
+    }
+
+    public function getDateFormat(): string
+    {
+        return config('core.base.general.date_format.date');
+    }
+
+    public function getDateTimeFormat(): string
+    {
+        return config('core.base.general.date_format.date_time');
+    }
 
 }

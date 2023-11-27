@@ -41,14 +41,14 @@ abstract class TableActionAbstract implements Htmlable, Stringable
         return $this->name;
     }
 
-    public function model(BaseModel $model): static
+    public function model($model): static
     {
         $this->model = $model;
 
         return $this;
     }
 
-    public function getModel(): BaseModel
+    public function getModel()
     {
         return $this->model;
     }

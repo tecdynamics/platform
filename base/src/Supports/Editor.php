@@ -2,41 +2,30 @@
 
 namespace Tec\Base\Supports;
 
-use App;
-use Assets;
+use Tec\Base\Facades\Assets;
 use BaseHelper;
 use Illuminate\Support\Arr;
-use Throwable;
+use Illuminate\Support\Facades\App;
 
 class Editor
 {
-    public function __construct()
+    public function registerAssets(): self
     {
-        add_action(BASE_ACTION_ENQUEUE_SCRIPTS, [$this, 'registerAssets'], 12);
-    }
-
-    public function registerAssets()
-    {
-        Assets::addScriptsDirectly(
-            config('core.base.general.editor.' . BaseHelper::getRichEditor() . '.js')
-        )
+        Assets::addScriptsDirectly(config('core.base.general.editor.' . BaseHelper::getRichEditor() . '.js'))
             ->addScriptsDirectly('vendor/core/core/base/js/editor.js');
-        if (BaseHelper::getRichEditor() == 'ckeditor' && App::getLocale() != 'en') {
-            Assets::addScriptsDirectly('https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/translations/' . App::getLocale() . '.js');
+
+        $locale = App::getLocale();
+
+        if (BaseHelper::getRichEditor() == 'ckeditor' && $locale != 'en') {
+            Assets::addScriptsDirectly(
+                sprintf('https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/translations/%s.js', $locale)
+            );
         }
 
         return $this;
     }
 
-    /**
-     * @param string $name
-     * @param null $value
-     * @param bool $withShortcode
-     * @param array $attributes
-     * @return string
-     * @throws Throwable
-     */
-    public function render($name, $value = null, $withShortcode = false, array $attributes = [])
+    public function render(string $name, $value = null, bool $withShortcode = false, array $attributes = []): string
     {
         $attributes['class'] = Arr::get($attributes, 'class', '') . ' editor-' . BaseHelper::getRichEditor();
 

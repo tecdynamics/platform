@@ -3,23 +3,17 @@
 namespace Tec\Base\Listeners;
 
 use Tec\Base\Events\CreatedContentEvent;
+use Tec\Base\Facades\BaseHelper;
 use Exception;
 
 class CreatedContentListener
 {
-
-    /**
-     * Handle the event.
-     *
-     * @param CreatedContentEvent $event
-     * @return void
-     */
-    public function handle(CreatedContentEvent $event)
+    public function handle(CreatedContentEvent $event): void
     {
         try {
             do_action(BASE_ACTION_AFTER_CREATE_CONTENT, $event->screen, $event->request, $event->data);
         } catch (Exception $exception) {
-            info($exception->getMessage());
+            BaseHelper::logError($exception);
         }
     }
 }

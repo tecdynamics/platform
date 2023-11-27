@@ -2,15 +2,18 @@
 
 namespace Tec\Base\Models;
 
+use Tec\Base\Models\Concerns\HasBaseEloquentBuilder;
+use Tec\Base\Models\Concerns\HasMetadata;
+use Tec\Base\Models\Concerns\HasUuidsOrIntegerIds;
 use Eloquent;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 use MacroableModels;
-use MetaBox as MetaBoxSupport;
 
 class BaseModel extends Eloquent
 {
-    use \Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
+    use HasBaseEloquentBuilder;
+    use HasMetadata;
+    use HasUuidsOrIntegerIds;
     /**
      * @param string $key
      * @return mixed
@@ -31,52 +34,6 @@ class BaseModel extends Eloquent
         return json_encode($value, JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * @return MorphMany
-     */
-    public function metadata()
-    {
-        return $this->morphMany(MetaBox::class, 'reference')
-            ->select([
-                'reference_id',
-                'reference_type',
-                'meta_key',
-                'meta_value',
-            ]);
-    }
-
-    /**
-     * @param string $key
-     * @param bool $single
-     * @return string|array
-     */
-    public function getMetaData(string $key, bool $single = false)
-    {
-        $field = $this->metadata
-            ->where('meta_key', apply_filters('stored_meta_box_key', $key, $this))
-            ->first();
-
-        if (!$field) {
-            $field = $this->metadata->where('meta_key', $key)->first();
-        }
-
-        if (!$field) {
-            return $single ? '' : [];
-        }
-
-        return MetaBoxSupport::getMetaData($field, $key, $single);
-    }
-
-    /**
-     * Create a new Eloquent query builder for the model.
-     *
-     * @param \Illuminate\Database\Query\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder|static
-     */
-    public function newEloquentBuilder($query)
-    {
-        return new BaseQueryBuilder($query);
-    }
 
     public function initializeFilable($field) {
         if (!in_array($field,$this->fillable)){

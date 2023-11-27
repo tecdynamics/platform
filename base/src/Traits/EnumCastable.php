@@ -3,7 +3,9 @@
 namespace Tec\Base\Traits;
 
 use Tec\Base\Supports\Enum;
-
+/**
+ * @deprecated
+ */
 trait EnumCastable
 {
     /**

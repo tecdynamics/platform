@@ -92,7 +92,7 @@ class InfoTable extends TableAbstract
     /**
      * {@inheritDoc}
      */
-    public function actions()
+    public function actions(): array
     {
         return [];
     }
