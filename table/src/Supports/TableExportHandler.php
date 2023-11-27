@@ -5,8 +5,6 @@ namespace Tec\Table\Supports;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Events\BeforeSheet;
-use Maatwebsite\Excel\Events\Event;
-use PhpOffice\PhpSpreadsheet\Exception;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
@@ -15,24 +13,18 @@ use Yajra\DataTables\Services\DataTablesExportHandler;
 
 class TableExportHandler extends DataTablesExportHandler implements WithEvents
 {
-    /**
-     * @return array
-     */
     public function registerEvents(): array
     {
         return [
             BeforeSheet::class => function (BeforeSheet $event) {
                 $this->beforeSheet($event);
             },
-            AfterSheet::class  => function (AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) {
                 $this->afterSheet($event);
             },
         ];
     }
 
-    /**
-     * @param BeforeSheet $event
-     */
     protected function beforeSheet(BeforeSheet $event)
     {
         $delegate = $event->sheet->getDelegate();
@@ -56,38 +48,33 @@ class TableExportHandler extends DataTablesExportHandler implements WithEvents
             ->setFooter(0.0);
     }
 
-    /**
-     * @param AfterSheet $event
-     * @throws Exception
-     */
     protected function afterSheet(AfterSheet $event)
     {
         $delegate = $event->sheet->getDelegate();
         $totalColumns = count(array_filter($this->headings()));
         $lastColumnName = $this->getNameFromNumber($totalColumns);
-        try {
-            $dimensions = 'A1:' . $lastColumnName . '1';
-            $delegate->getStyle($dimensions)->applyFromArray(
-                [
-                    'font'      => [
-                        'bold'  => true,
-                        'color' => [
-                            'argb' => 'ffffff',
-                        ],
+
+        $dimensions = 'A1:' . $lastColumnName . '1';
+        $style = $delegate->getStyle($dimensions);
+
+        if ($style->getIndex()) {
+            $style->applyFromArray([
+                'font' => [
+                    'bold' => true,
+                    'color' => [
+                        'argb' => 'ffffff',
                     ],
-                    'alignment' => [
-                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                ],
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                ],
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => [
+                        'argb' => '1d9977',
                     ],
-                    'fill'      => [
-                        'fillType'   => Fill::FILL_SOLID,
-                        'startColor' => [
-                            'argb' => '1d9977',
-                        ],
-                    ],
-                ]
-            );
-        } catch (Exception $exception) {
-            info($exception->getMessage());
+                ],
+            ]);
         }
 
         $delegate->getColumnDimension('A')->setWidth(10);
@@ -109,11 +96,7 @@ class TableExportHandler extends DataTablesExportHandler implements WithEvents
             ->freezePane('A2');
     }
 
-    /**
-     * @param int $number
-     * @return string
-     */
-    protected function getNameFromNumber($number)
+    protected function getNameFromNumber(int $number): string
     {
         $numeric = ($number - 1) % 26;
         $letter = chr(65 + $numeric);
@@ -125,35 +108,23 @@ class TableExportHandler extends DataTablesExportHandler implements WithEvents
         return $letter;
     }
 
-    /**
-     * @param string $imageUrl
-     * @return null|resource
-     */
-    protected function getImageResourceFromURL($imageUrl)
+    protected function getImageResourceFromURL(string|null $imageUrl)
     {
-        if (!$imageUrl) {
+        if (! $imageUrl) {
             return null;
         }
 
         $imageUrl = url($imageUrl);
 
-        try {
-            $content = @file_get_contents($imageUrl);
-            if (!$content) {
-                return null;
-            }
-            return imagecreatefromstring($content);
-        } catch (Exception $exception) {
+        $content = @file_get_contents($imageUrl);
+        if (! $content) {
             return null;
         }
+
+        return imagecreatefromstring($content);
     }
 
-    /**
-     * @param Event $event
-     * @param string $cell
-     * @throws Exception
-     */
-    protected function drawingImage(Event $event, string $column, int $row)
+    protected function drawingImage(AfterSheet $event, string $column, int $row): bool
     {
         if (request()->input('action') !== 'excel') {
             return false;
@@ -166,7 +137,7 @@ class TableExportHandler extends DataTablesExportHandler implements WithEvents
         $imageContent = $this->getImageResourceFromURL($image);
 
         if ($imageContent) {
-            $drawing = new MemoryDrawing;
+            $drawing = new MemoryDrawing();
             $drawing->setName('Image')
                 ->setWorksheet($event->sheet->getDelegate());
 

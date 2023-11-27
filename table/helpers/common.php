@@ -1,27 +1,22 @@
 <?php
 
-if (!function_exists('table_checkbox')) {
+use Illuminate\Database\Eloquent\Model;
+
+if (! function_exists('table_checkbox')) {
     /**
-     * @param int $id
-     * @return string
-     * @throws Throwable
+     * @deprecated
      */
-    function table_checkbox($id): string
+    function table_checkbox(int|string $id): string
     {
         return view('core/table::partials.checkbox', compact('id'))->render();
     }
 }
 
-if (!function_exists('table_actions')) {
+if (! function_exists('table_actions')) {
     /**
-     * @param string $edit
-     * @param string $delete
-     * @param \Tec\Base\Models\BaseModel $item
-     * @param string $extra
-     * @return string
-     * @throws Throwable
+     * @deprecated
      */
-    function table_actions($edit, $delete, $item, $extra = null): string
+    function table_actions(string|null $edit, string|null $delete, Model $item, string|null $extra = null): string
     {
         return view('core/table::partials.actions', compact('edit', 'delete', 'item', 'extra'))->render();
     }

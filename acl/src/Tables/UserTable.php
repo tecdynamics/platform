@@ -3,6 +3,7 @@
 namespace Tec\ACL\Tables;
 
 use BaseHelper;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Tec\ACL\Enums\UserStatusEnum;
 use Tec\ACL\Repositories\Interfaces\ActivationInterface;
@@ -61,7 +62,7 @@ class UserTable extends TableAbstract
     /**
      * {@inheritDoc}
      */
-    public function ajax()
+    public function ajax(): JsonResponse
     {
         $data = $this->table
             ->eloquent($this->query())
@@ -141,7 +142,7 @@ class UserTable extends TableAbstract
     /**
      * {@inheritDoc}
      */
-    public function columns()
+    public function columns(): array
     {
         return [
             'username'   => [

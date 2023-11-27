@@ -6,13 +6,11 @@ use Tec\Support\Http\Requests\Request;
 
 class BulkChangeRequest extends Request
 {
-    /**
-     * @return array
-     */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'class' => 'required',
+            'key' => ['required', 'string'],
+            'class' => ['required', 'string'],
         ];
     }
 }

@@ -28,6 +28,28 @@
     'action_name' => trans('core/base::tables.submit'),
     'action_button_attributes' => [
         'class' => 'confirm-bulk-change-button',
-        'data-load-url' => route('tables.bulk-change.data'),
+        'data-load-url' => $table->getBulkChangeDataUrl(),
+    ],
+])
+
+@include('core/table::partials.modal-item', [
+    'type' => 'danger',
+    'name' => 'bulk-action-confirm-modal',
+    'title' => '',
+    'content' => '',
+    'action_name' => '',
+    'action_button_attributes' => [
+        'class' => 'confirm-trigger-bulk-actions-button',
+    ],
+])
+
+@include('core/table::partials.modal-item', [
+    'type' => 'danger',
+    'name' => 'single-action-confirm-modal',
+    'title' => '',
+    'content' => '',
+    'action_name' => '',
+    'action_button_attributes' => [
+        'class' => 'confirm-trigger-single-action-button',
     ],
 ])
