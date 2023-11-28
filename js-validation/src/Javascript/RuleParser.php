@@ -2,6 +2,7 @@
 
 namespace Tec\JsValidation\Javascript;
 
+use Tec\JsValidation\JsValidatorFactory;
 use Tec\JsValidation\Support\DelegatedValidator;
 use Tec\JsValidation\Support\RuleListTrait;
 use Tec\JsValidation\Support\UseDelegatedValidatorTrait;
@@ -15,12 +16,12 @@ class RuleParser
     /**
      * Rule used to validate remote requests.
      */
-    const REMOTE_RULE = 'laravelValidationRemote';
+    public const REMOTE_RULE = 'laravelValidationRemote';
 
     /**
      * Rule used to validate javascript fields.
      */
-    const JAVASCRIPT_RULE = 'laravelValidation';
+    public const JAVASCRIPT_RULE = 'laravelValidation';
 
     /**
      * Token used to secure remote validations.
@@ -74,12 +75,7 @@ class RuleParser
         return [$attribute, $jsRule, $parameters];
     }
 
-    /**
-     * Gets rules from Validator instance.
-     *
-     * @return array
-     */
-    public function getValidatorRules()
+    public function getValidatorRules(): array
     {
         return $this->validator->getRules();
     }
@@ -94,7 +90,7 @@ class RuleParser
     public function addConditionalRules($attribute, $rules = [])
     {
         foreach ((array)$attribute as $key) {
-            $current = isset($this->conditional[$key]) ? $this->conditional[$key] : [];
+            $current = $this->conditional[$key] ?? [];
             $rules = $this->validator->explodeRules((array)$rules);
             $merge = reset($rules);
             $this->conditional[$key] = array_merge($current, $merge);
@@ -161,6 +157,8 @@ class RuleParser
      */
     protected function getAttributeName($attribute)
     {
+        $attribute = str_replace(JsValidatorFactory::ASTERISK, '*', $attribute);
+
         $attributeArray = explode('.', $attribute);
         if (count($attributeArray) > 1) {
             return $attributeArray[0] . '[' . implode('][', array_slice($attributeArray, 1)) . ']';

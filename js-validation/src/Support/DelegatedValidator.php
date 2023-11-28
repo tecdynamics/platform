@@ -9,76 +9,29 @@ class DelegatedValidator
 {
     use AccessProtectedTrait;
 
-    /**
-     * The Validator resolved instance.
-     *
-     * @var BaseValidator
-     */
-    protected $validator;
+    protected Closure $validatorMethod;
 
-    /**
-     * Validation rule parser instance.
-     *
-     * @var ValidationRuleParserProxy
-     */
-    protected $ruleParser;
-
-    /**
-     * Closure to invoke non accessible Validator methods.
-     *
-     * @var Closure
-     */
-    protected $validatorMethod;
-
-    /**
-     * DelegatedValidator constructor.
-     *
-     * @param BaseValidator $validator
-     * @param ValidationRuleParserProxy $ruleParser
-     */
-    public function __construct(BaseValidator $validator, ValidationRuleParserProxy $ruleParser)
+    public function __construct(protected BaseValidator $validator, protected ValidationRuleParserProxy $ruleParser)
     {
-        $this->validator = $validator;
-        $this->ruleParser = $ruleParser;
         $this->validatorMethod = $this->createProtectedCaller($validator);
     }
 
-    /**
-     * Get current \Illuminate\Validation\Validator instance.
-     *
-     * @return BaseValidator
-     */
-    public function getValidator()
+    public function getValidator(): BaseValidator
     {
         return $this->validator;
     }
 
-    /**
-     * Get the data under validation.
-     *
-     * @return array
-     */
-    public function getData()
+    public function getData(): array
     {
         return $this->validator->getData();
     }
 
-    /**
-     * Set the data under validation.
-     *
-     * @param array
-     */
-    public function setData($data)
+    public function setData(array $data): void
     {
         $this->validator->setData($data);
     }
 
-    /**
-     * Get the validation rules.
-     *
-     * @return array
-     */
-    public function getRules()
+    public function getRules(): array
     {
         return $this->validator->getRules();
     }

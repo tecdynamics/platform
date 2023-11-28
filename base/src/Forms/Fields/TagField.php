@@ -2,16 +2,12 @@
 
 namespace Tec\Base\Forms\Fields;
 
-use Assets;
-use Kris\LaravelFormBuilder\Fields\FormField;
+use Tec\Base\Facades\Assets;
+use Tec\Base\Forms\FormField;
 
 class TagField extends FormField
 {
-
-    /**
-     * {@inheritDoc}
-     */
-    protected function getTemplate()
+    protected function getTemplate(): string
     {
         Assets::addStylesDirectly('vendor/core/core/base/libraries/tagify/tagify.css')
             ->addScriptsDirectly([

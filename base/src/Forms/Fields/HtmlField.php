@@ -2,35 +2,26 @@
 
 namespace Tec\Base\Forms\Fields;
 
-use Kris\LaravelFormBuilder\Fields\FormField;
+use Tec\Base\Forms\FormField;
 
 class HtmlField extends FormField
 {
-    /**
-     * {@inheritDoc}
-     */
-    protected function getDefaults()
+    protected function getDefaults(): array
     {
         return [
-            'html'       => '',
-            'wrapper'    => false,
+            'html' => '',
+            'wrapper' => false,
             'label_show' => false,
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getAllAttributes()
+    public function getAllAttributes(): array
     {
         // No input allowed for html fields.
         return [];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    protected function getTemplate()
+    protected function getTemplate(): string
     {
         return 'core/base::forms.fields.html';
     }

@@ -2,6 +2,7 @@
 
 namespace Tec\JsValidation\Javascript;
 
+use Tec\JsValidation\JsValidatorFactory;
 use Tec\JsValidation\Support\DelegatedValidator;
 use Tec\JsValidation\Support\UseDelegatedValidatorTrait;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -23,7 +24,7 @@ class MessageParser
      * @param DelegatedValidator $validator
      * @param bool $escape
      */
-    public function __construct(DelegatedValidator $validator, $escape = false)
+    public function __construct(DelegatedValidator $validator, bool $escape = false)
     {
         $this->validator = $validator;
         $this->escape = $escape;
@@ -39,6 +40,8 @@ class MessageParser
      */
     public function getMessage($attribute, $rule, $parameters)
     {
+        $attribute = str_replace(JsValidatorFactory::ASTERISK, '*', $attribute);
+
         $data = $this->fakeValidationData($attribute, $rule, $parameters);
 
         $message = $this->validator->getMessage($attribute, $rule);
@@ -96,7 +99,7 @@ class MessageParser
      */
     private function fakeFileData($data, $attribute)
     {
-        if (!$this->validator->hasRule($attribute, ['Mimes', 'Image'])) {
+        if (! $this->validator->hasRule($attribute, ['Mimes', 'Image'])) {
             return;
         }
 

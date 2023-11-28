@@ -2,16 +2,12 @@
 
 namespace Tec\Base\Forms\Fields;
 
-use Assets;
-use Kris\LaravelFormBuilder\Fields\FormField;
+use Tec\Base\Facades\Assets;
+use Tec\Base\Forms\FormField;
 
 class TimeField extends FormField
 {
-
-    /**
-     * {@inheritDoc}
-     */
-    protected function getTemplate()
+    protected function getTemplate(): string
     {
         Assets::addScripts(['timepicker'])
             ->addStyles(['timepicker']);

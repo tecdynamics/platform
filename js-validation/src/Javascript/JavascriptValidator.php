@@ -26,7 +26,7 @@ class JavascriptValidator implements Arrayable
     /**
      * View that renders Javascript.
      *
-     * @var
+     * @var string
      */
     protected $view;
 
@@ -48,7 +48,7 @@ class JavascriptValidator implements Arrayable
      * @param ValidatorHandler $validator
      * @param array $options
      */
-    public function __construct(ValidatorHandler $validator, $options = [])
+    public function __construct(ValidatorHandler $validator, array $options = [])
     {
         $this->validator = $validator;
         $this->setDefaults($options);
@@ -64,7 +64,11 @@ class JavascriptValidator implements Arrayable
     {
         $this->selector = empty($options['selector']) ? 'form' : $options['selector'];
         $this->view = empty($options['view']) ? 'core/js-validation::bootstrap' : $options['view'];
-        $this->remote = isset($options['remote']) ? $options['remote'] : true;
+        $this->remote = $options['remote'] ?? true;
+
+        if (isset($options['ignore'])) {
+            $this->ignore = $options['ignore'];
+        }
     }
 
     /**
@@ -118,25 +122,20 @@ class JavascriptValidator implements Arrayable
     public function __get($name)
     {
         $data = $this->getViewData();
-        if (!array_key_exists($name, $data)) {
+        if (! array_key_exists($name, $data)) {
             throw new PropertyNotFoundException($name, get_class());
         }
 
         return $data[$name];
     }
 
-    /**
-     * Gets view data.
-     *
-     * @return array
-     */
-    protected function getViewData()
+    protected function getViewData(): array
     {
         $this->validator->setRemote($this->remote);
         $data = $this->validator->validationData();
         $data['selector'] = $this->selector;
 
-        if (!empty($this->ignore)) {
+        if (! empty($this->ignore)) {
             $data['ignore'] = $this->ignore;
         }
 

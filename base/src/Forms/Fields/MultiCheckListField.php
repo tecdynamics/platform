@@ -2,15 +2,11 @@
 
 namespace Tec\Base\Forms\Fields;
 
-use Kris\LaravelFormBuilder\Fields\FormField;
+use Tec\Base\Forms\FormField;
 
 class MultiCheckListField extends FormField
 {
-
-    /**
-     * {@inheritDoc}
-     */
-    protected function getTemplate()
+    protected function getTemplate(): string
     {
         return 'core/base::forms.fields.multi-check-list';
     }
