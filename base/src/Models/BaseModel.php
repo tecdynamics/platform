@@ -2,29 +2,24 @@
 
 namespace Tec\Base\Models;
 
+use Tec\Base\Contracts\BaseModel as BaseModelContract;
+use Illuminate\Database\Eloquent\Model;
 use Tec\Base\Models\Concerns\HasBaseEloquentBuilder;
 use Tec\Base\Models\Concerns\HasMetadata;
 use Tec\Base\Models\Concerns\HasUuidsOrIntegerIds;
-use Eloquent;
 use Illuminate\Support\Str;
 use MacroableModels;
 
-class BaseModel extends Eloquent
+class BaseModel extends Model implements BaseModelContract
 {
-    use HasBaseEloquentBuilder;
-    use HasMetadata;
-    use HasUuidsOrIntegerIds;
-    /**
-     * @param string $key
-     * @return mixed
-     */
+    use  HasBaseEloquentBuilder;
+    use  HasMetadata;
+    use  HasUuidsOrIntegerIds;
+
     public function __get($key)
     {
-        if (class_exists('MacroableModels')) {
-            $method = 'get' . Str::studly($key) . 'Attribute';
-            if (MacroableModels::modelHasMacro(get_class($this), $method)) {
-                return call_user_func([$this, $method]);
-            }
+        if (MacroableModels::modelHasMacro($this::class, $method = 'get' . Str::studly($key) . 'Attribute')) {
+            return call_user_func([$this, $method]);
         }
 
         return parent::__get($key);

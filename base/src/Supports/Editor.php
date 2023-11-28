@@ -2,7 +2,7 @@
 
 namespace Tec\Base\Supports;
 
-use Tec\Base\Facades\Assets;
+use Assets;
 use BaseHelper;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
