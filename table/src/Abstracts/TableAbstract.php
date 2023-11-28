@@ -63,7 +63,7 @@ abstract class TableAbstract extends DataTable
     protected array $options = [];
 
     /**
-     * @deprecated since v6.8.0
+     * @deprecated
      */
     protected $repository;
 
@@ -78,7 +78,6 @@ abstract class TableAbstract extends DataTable
     protected bool $hasColumnVisibility = true;
 
     protected string $exportClass = TableExportHandler::class;
-
     /**
      * @var \Closure(\Tec\Table\DataTables $table): \Illuminate\Http\JsonResponse
      */
@@ -88,7 +87,6 @@ abstract class TableAbstract extends DataTable
      * @var \Tec\Table\Columns\Column[]
      */
     protected array $columns = [];
-
     /**
      * @var \Closure(\Illuminate\Contracts\Database\Eloquent\Builder $query): void
      */
