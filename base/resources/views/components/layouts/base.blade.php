@@ -60,11 +60,6 @@
     <script>
         window.siteUrl = "{{ url('') }}";
         window.siteEditorLocale = "{{ apply_filters('cms_site_editor_locale', App::getLocale()) }}";
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': {{csrf_token() }}
-            }
-        });
     </script>
 
     {{ $header ?? null }}

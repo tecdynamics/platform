@@ -30,7 +30,7 @@
         @include('core/media::partials.media')
         <script>
             'use strict';
-            Tec.initMediaIntegrate();
+            Botble.initMediaIntegrate();
         </script>
     @else
         @push('footer')
