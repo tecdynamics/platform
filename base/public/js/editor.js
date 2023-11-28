@@ -255,55 +255,32 @@ var EditorManagement = /*#__PURE__*/function () {
           onEdit: function onEdit(shortcode) {
             var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
             var description = null;
-            _this.shortcodes.forEach(function (item) {
-              if (item.key === name) {
-                description = item.description;
-                return true;
-              }
-            });
+            if (_this.shortcodes.length) {
+              _this.shortcodes.forEach(function (item) {
+                if (item.key === name) {
+                  description = item.description;
+                  return true;
+                }
+              });
+            }
             _this.shortcodeCallback({
               key: name,
               href: route('short-codes.ajax-get-admin-config', name),
               data: {
+                key: name,
                 code: shortcode
               },
               description: description,
+              previewImage: '',
               update: true
             });
           },
-          shortcodes: this.getShortcodesAvailable(editor),
+          shortcodes: this.getShortcodesAvailable(editor) || [],
           onCallback: function onCallback(shortcode, options) {
             _this.shortcodeCallback({
               key: shortcode,
-              href: options.url
-            });
-          }
-        },
-        div: {
-          onEdit: function onEdit(shortcode) {
-            var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
-            var description = null;
-            _this.shortcodes.forEach(function (item) {
-              if (item.key === name) {
-                description = item.description;
-                return true;
-              }
-            });
-            _this.shortcodeCallback({
-              key: name,
-              href: route('short-codes.ajax-get-admin-config', name),
-              data: {
-                code: shortcode
-              },
-              description: description,
-              update: true
-            });
-          },
-          shortcodes: this.getShortcodesAvailable(editor),
-          onCallback: function onCallback(shortcode, options) {
-            _this.shortcodeCallback({
-              key: shortcode,
-              href: options.url
+              href: options.url,
+              previewImage: ''
             });
           }
         },
@@ -336,14 +313,66 @@ var EditorManagement = /*#__PURE__*/function () {
         },
         placeholder: ' ',
         toolbar: {
-          items: ['heading', '|', 'fontColor', 'fontSize', 'fontBackgroundColor', 'fontFamily', 'bold', 'italic', 'underline', 'link', 'strikethrough', 'bulletedList', 'numberedList', '|', 'alignment', 'shortcode', 'outdent', 'indent', '|', 'div', '|', 'htmlEmbed', 'imageInsert', 'blockQuote', 'insertTable', 'mediaEmbed', 'undo', 'redo', 'findAndReplace', 'removeFormat', 'sourceEditing', 'codeBlock']
+          items: ['heading', '|', 'fontColor', 'fontSize', 'fontBackgroundColor', 'fontFamily', 'bold', 'italic', 'underline', 'link', 'strikethrough', 'bulletedList', 'numberedList', '|', 'alignment', 'direction', 'shortcode', 'outdent', 'indent', '|', 'htmlEmbed', 'imageInsert', 'blockQuote', 'insertTable', 'mediaEmbed', 'undo', 'redo', 'findAndReplace', 'removeFormat', 'sourceEditing', 'codeBlock']
         },
-        language: 'en',
+        language: {
+          ui: window.siteEditorLocale || 'en',
+          content: window.siteEditorLocale || 'en'
+        },
         image: {
           toolbar: ['imageTextAlternative', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', 'toggleImageCaption', 'ImageResize'],
           upload: {
             types: ['jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'svg+xml']
           }
+        },
+        codeBlock: {
+          languages: [{
+            language: 'plaintext',
+            label: 'Plain text'
+          }, {
+            language: 'c',
+            label: 'C'
+          }, {
+            language: 'cs',
+            label: 'C#'
+          }, {
+            language: 'cpp',
+            label: 'C++'
+          }, {
+            language: 'css',
+            label: 'CSS'
+          }, {
+            language: 'diff',
+            label: 'Diff'
+          }, {
+            language: 'html',
+            label: 'HTML'
+          }, {
+            language: 'java',
+            label: 'Java'
+          }, {
+            language: 'javascript',
+            label: 'JavaScript'
+          }, {
+            language: 'php',
+            label: 'PHP'
+          }, {
+            language: 'python',
+            label: 'Python'
+          }, {
+            language: 'ruby',
+            label: 'Ruby'
+          }, {
+            language: 'typescript',
+            label: 'TypeScript'
+          }, {
+            language: 'xml',
+            label: 'XML'
+          }, {
+            language: 'dart',
+            label: 'Dart',
+            "class": 'language-dart'
+          }]
         },
         link: {
           defaultProtocol: 'http://',
@@ -409,7 +438,7 @@ var EditorManagement = /*#__PURE__*/function () {
       var _$$parents$find;
       var $dropdown = (_$$parents$find = $(editor).parents('.form-group').find('.add_shortcode_btn_trigger')) === null || _$$parents$find === void 0 ? void 0 : _$$parents$find.next('.dropdown-menu');
       var lists = [];
-      if ($dropdown) {
+      if ($dropdown && $dropdown.find('> li').length) {
         $dropdown.find('> li').each(function () {
           var item = $(this).find('> a');
           lists.push({
@@ -433,17 +462,10 @@ var EditorManagement = /*#__PURE__*/function () {
       } else {
         formData.append('upload', blobInfo);
       }
-      $.ajax({
-        type: 'POST',
-        data: formData,
-        url: RV_MEDIA_URL.media_upload_from_editor,
-        processData: false,
-        contentType: false,
-        cache: false,
-        success: function success(res) {
-          if (res.uploaded) {
-            callback(res.url);
-          }
+      $httpClient.make().postForm(RV_MEDIA_URL.media_upload_from_editor, formData).then(function (_ref) {
+        var data = _ref.data;
+        if (data.uploaded) {
+          callback(data.url);
         }
       });
     }
@@ -456,7 +478,7 @@ var EditorManagement = /*#__PURE__*/function () {
         selector: '#' + element,
         min_height: $('#' + element).prop('rows') * 110,
         resize: 'vertical',
-        plugins: 'code autolink advlist visualchars link image media table charmap hr pagebreak nonbreaking hanbiroclip anchor insertdatetime lists textcolor wordcount imagetools  contextmenu  visualblocks',
+        plugins: 'code autolink advlist visualchars link image media table charmap hr pagebreak nonbreaking anchor insertdatetime lists wordcount imagetools visualblocks',
         extended_valid_elements: 'input[id|name|value|type|class|style|required|placeholder|autocomplete|onclick]',
         toolbar: 'formatselect | bold italic strikethrough forecolor backcolor | link image table | alignleft aligncenter alignright alignjustify  | numlist bullist indent  |  visualblocks code',
         convert_urls: false,
@@ -481,8 +503,6 @@ var EditorManagement = /*#__PURE__*/function () {
   }, {
     key: "initEditor",
     value: function initEditor(element, extraConfig, type) {
-      extraConfig.entities_greek = true;
-      extraConfig.htmlEncodeOutput = true;
       if (!element.length) {
         return false;
       }
@@ -519,13 +539,14 @@ var EditorManagement = /*#__PURE__*/function () {
         var editorInstance = _self.data('result');
         var $result = $('#' + editorInstance);
         if ($result.hasClass('editor-ckeditor')) {
+          var $editorActionItem = $('.editor-action-item');
           if (_this3.CKEDITOR[editorInstance] && typeof _this3.CKEDITOR[editorInstance] !== 'undefined') {
             _this3.CKEDITOR[editorInstance].destroy();
             _this3.CKEDITOR[editorInstance] = null;
-            $('.editor-action-item').not('.action-show-hide-editor').hide();
+            $editorActionItem.not('.action-show-hide-editor').hide();
           } else {
             current.initCkEditor(editorInstance, {}, 'ckeditor');
-            $('.editor-action-item').not('.action-show-hide-editor').show();
+            $editorActionItem.not('.action-show-hide-editor').show();
           }
         } else if ($result.hasClass('editor-tinymce')) {
           tinymce.execCommand('mceToggleEditor', false, editorInstance);
@@ -545,7 +566,9 @@ var EditorManagement = /*#__PURE__*/function () {
         _params$data = params.data,
         data = _params$data === void 0 ? {} : _params$data,
         _params$update = params.update,
-        update = _params$update === void 0 ? false : _params$update;
+        update = _params$update === void 0 ? false : _params$update,
+        _params$previewImage = params.previewImage,
+        previewImage = _params$previewImage === void 0 ? null : _params$previewImage;
       $('.short-code-admin-config').html('');
       var $addShortcodeButton = $('.short_code_modal .add_short_code_btn');
       if (update) {
@@ -553,30 +576,25 @@ var EditorManagement = /*#__PURE__*/function () {
       } else {
         $addShortcodeButton.text($addShortcodeButton.data('add-text'));
       }
-      if (description !== '' && description != null) {
+      if (description != null) {
         $('.short_code_modal .modal-title strong').text(description);
+      }
+      if (previewImage != null && previewImage !== '') {
+        $('.short_code_modal .shortcode-preview-image-link').attr('href', previewImage).show();
+      } else {
+        $('.short_code_modal .shortcode-preview-image-link').hide();
       }
       $('.short_code_modal').modal('show');
       $('.half-circle-spinner').show();
-      $.ajax({
-        type: 'GET',
-        data: data,
-        url: href,
-        success: function success(res) {
-          if (res.error) {
-            Tec.showError(res.message);
-            return false;
-          }
-          $('.short-code-data-form').trigger('reset');
-          $('.short_code_input_key').val(key);
-          $('.half-circle-spinner').hide();
-          $('.short-code-admin-config').html(res.data);
-          Tec.initResources();
-          Tec.initMediaIntegrate();
-        },
-        error: function error(data) {
-          Tec.handleError(data);
-        }
+      $httpClient.make().post(href, data).then(function (_ref2) {
+        var data = _ref2.data;
+        $('.short-code-data-form').trigger('reset');
+        $('.short_code_input_key').val(key);
+        $('.half-circle-spinner').hide();
+        $('.short-code-admin-config').html(data.data);
+        Tec.initResources();
+        Tec.initMediaIntegrate();
+        document.dispatchEvent(new CustomEvent('core-shortcode-config-loaded'));
       });
     }
   }, {
@@ -589,14 +607,15 @@ var EditorManagement = /*#__PURE__*/function () {
           self.shortcodeCallback({
             href: $(this).prop('href'),
             key: $(this).data('key'),
-            description: $(this).data('description')
+            description: $(this).data('description'),
+            previewImage: $(this).data('preview-image')
           });
         } else {
           var editorInstance = $('.add_shortcode_btn_trigger').data('result');
           var shortcode = '[' + $(this).data('key') + '][/' + $(this).data('key') + ']';
           if ($('.editor-ckeditor').length > 0) {
             self.CKEDITOR[editorInstance].commands.execute('shortcode', shortcode);
-          } else {
+          } else if ($('.editor-tinymce').length > 0) {
             tinymce.get(editorInstance).execCommand('mceInsertContent', false, shortcode);
           }
         }
@@ -628,6 +647,10 @@ var EditorManagement = /*#__PURE__*/function () {
             name = name.replace('[]', '');
             if (element.data('shortcode-attribute') !== 'content') {
               name = name.replace('[]', '');
+              if (value && typeof value === 'string') {
+                value = value.replace(/"([^"]*)"/g, '“$1”');
+                value = value.replace(/"/g, '“');
+              }
               attributes += ' ' + name + '="' + value + '"';
             }
           }
@@ -642,8 +665,15 @@ var EditorManagement = /*#__PURE__*/function () {
         var shortcode = '[' + $shortCodeKey + attributes + ']' + content + '[/' + $shortCodeKey + ']';
         if ($('.editor-ckeditor').length > 0) {
           self.CKEDITOR[editorInstance].commands.execute('shortcode', shortcode);
-        } else {
+        } else if ($('.editor-tinymce').length > 0) {
           tinymce.get(editorInstance).execCommand('mceInsertContent', false, shortcode);
+        } else {
+          var coreInsertShortCodeEvent = new CustomEvent('core-insert-shortcode', {
+            detail: {
+              shortcode: shortcode
+            }
+          });
+          document.dispatchEvent(coreInsertShortCodeEvent);
         }
         $(this).closest('.modal').modal('hide');
       });

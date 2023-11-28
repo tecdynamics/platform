@@ -20,24 +20,13 @@ var CacheManagement = /*#__PURE__*/function () {
         event.preventDefault();
         var _self = $(event.currentTarget);
         _self.addClass('button-loading');
-        $.ajax({
-          url: _self.data('url'),
-          type: 'POST',
-          data: {
-            type: _self.data('type')
-          },
-          success: function success(data) {
-            _self.removeClass('button-loading');
-            if (data.error) {
-              Tec.showError(data.message);
-            } else {
-              Tec.showSuccess(data.message);
-            }
-          },
-          error: function error(data) {
-            _self.removeClass('button-loading');
-            Tec.handleError(data);
-          }
+        $httpClient.make().post(_self.data('url'), {
+          type: _self.data('type')
+        }).then(function (_ref) {
+          var data = _ref.data;
+          return Tec.showSuccess(data.message);
+        })["finally"](function () {
+          return _self.removeClass('button-loading');
         });
       });
     }

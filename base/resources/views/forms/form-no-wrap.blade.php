@@ -8,7 +8,7 @@
     @foreach ($fields as $field)
         @if (!in_array($field->getName(), $exclude))
             {!! $field->render() !!}
-            @if ($field->getName() == 'name' && defined('BASE_FILTER_SLUG_AREA'))
+            @if (defined('BASE_FILTER_SLUG_AREA') && $field->getName() == SlugHelper::getColumnNameToGenerateSlug($form->getModel()))
                 {!! apply_filters(BASE_FILTER_SLUG_AREA, null, $form->getModel()) !!}
             @endif
         @endif
@@ -41,4 +41,3 @@
         @endpush
     @endif
 @endif
-

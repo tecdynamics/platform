@@ -3,24 +3,41 @@
         @auth
             @if (BaseHelper::getAdminPrefix() != '')
                 <li class="dropdown">
-                    <a class="dropdown-toggle dropdown-header-name" style="padding-right: 10px" href="{{ url('/') }}" target="_blank"><i class="fa fa-globe"></i> <span @if (isset($themes) && is_array($themes) && count($themes) > 1 && setting('enable_change_admin_theme') != false) class="d-none d-sm-inline" @endif>{{ trans('core/base::layouts.view_website') }}</span> </a>
+                    <a
+                        class="dropdown-toggle dropdown-header-name pe-2"
+                        href="{{ route('public.index') }}"
+                        target="_blank"
+                    >
+                        <i class="fa fa-globe"></i>
+                        <span class="d-none d-sm-inline">
+                            {{ trans('core/base::layouts.view_website') }}
+                        </span>
+                    </a>
                 </li>
             @endif
-            @if (Auth::check())
+            @if (Auth::guard()->check())
                 {!! apply_filters(BASE_FILTER_TOP_HEADER_LAYOUT, null) !!}
             @endif
 
-            @if (isset($themes) && is_array($themes) && count($themes) > 1 && setting('enable_change_admin_theme') != false)
+            @if (isset($themes) && is_array($themes) && count($themes) > 1 && setting('enable_change_admin_theme'))
                 <li class="dropdown">
-                    <a href="javascript:;" class="dropdown-toggle dropdown-header-name" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span>{{ trans('core/base::layouts.theme') }}</span>
+                    <a
+                        class="dropdown-toggle dropdown-header-name"
+                        data-bs-toggle="dropdown"
+                        href="javascript:;"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                    >
+                        <span class="d-inline d-sm-none"><i class="fas fa-palette"></i></span>
+                        <span class="d-none d-sm-inline">{{ trans('core/base::layouts.theme') }}</span>
                         <i class="fa fa-angle-down"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-right icons-right">
 
                         @foreach ($themes as $name => $file)
                             @if ($activeTheme === $name)
-                                <li class="active"><a href="{{ route('admin.theme', [$name]) }}">{{ Str::studly($name) }}</a></li>
+                                <li class="active"><a
+                                        href="{{ route('admin.theme', [$name]) }}">{{ Str::studly($name) }}</a></li>
                             @else
                                 <li><a href="{{ route('admin.theme', [$name]) }}">{{ Str::studly($name) }}</a></li>
                             @endif
@@ -31,14 +48,28 @@
             @endif
 
             <li class="dropdown dropdown-user">
-                <a href="javascript:void(0)" class="dropdown-toggle dropdown-header-name" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <img alt="{{ Auth::user()->name }}" class="rounded-circle" src="{{ Auth::user()->avatar_url }}" />
-                    <span class="username"> {{ Auth::user()->name }} </span>
+                <a
+                    class="dropdown-toggle dropdown-header-name"
+                    data-bs-toggle="dropdown"
+                    href="javascript:void(0)"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                >
+                    <img
+                        class="rounded-circle"
+                        src="{{ Auth::guard()->user()->avatar_url }}"
+                        alt="{{ Auth::guard()->user()->name }}"
+                    />
+                    <span class="username d-none d-sm-inline"> {{ Auth::guard()->user()->name }} </span>
                     <i class="fa fa-angle-down"></i>
                 </a>
                 <ul class="dropdown-menu">
-                    <li><a href="{{ route('users.profile.view', Auth::id()) }}"><i class="icon-user"></i> {{ trans('core/base::layouts.profile') }}</a></li>
-                    <li><a href="{{ route('access.logout') }}" class="btn-logout"><i class="icon-key"></i> {{ trans('core/base::layouts.logout') }}</a></li>
+                    <li><a href="{{ route('users.profile.view', Auth::guard()->id()) }}"><i class="icon-user"></i>
+                            {{ trans('core/base::layouts.profile') }}</a></li>
+                    <li><a
+                            class="btn-logout"
+                            href="{{ route('access.logout') }}"
+                        ><i class="icon-key"></i> {{ trans('core/base::layouts.logout') }}</a></li>
                 </ul>
             </li>
         @endauth

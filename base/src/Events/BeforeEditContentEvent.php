@@ -2,33 +2,15 @@
 
 namespace Tec\Base\Events;
 
-use Eloquent;
+use Tec\Base\Contracts\BaseModel;
 use Illuminate\Http\Request;
 use Illuminate\Queue\SerializesModels;
-use stdClass;
 
 class BeforeEditContentEvent extends Event
 {
     use SerializesModels;
 
-    /**
-     * @var Request
-     */
-    public $request;
-
-    /**
-     * @var Eloquent|false
-     */
-    public $data;
-
-    /**
-     * BeforeEditContentEvent constructor.
-     * @param Request $request
-     * @param Eloquent|false|stdClass $data
-     */
-    public function __construct($request, $data)
+    public function __construct(public Request $request, public bool|BaseModel|null $data)
     {
-        $this->request = $request;
-        $this->data = $data;
     }
 }

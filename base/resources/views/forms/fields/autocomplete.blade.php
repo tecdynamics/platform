@@ -10,10 +10,9 @@
 
 @if ($showField)
     @php
-        Arr::set($options['attr'], 'class', Arr::get($options['attr'], 'class') . ' ui-select');
         $emptyVal = $options['empty_value'] ? ['' => $options['empty_value']] : null;
     @endphp
-    {!! Form::autocomplete($name, (array)$emptyVal + $options['choices'], $options['selected'], $options['attr']) !!}
+    {!! Form::autocomplete($name, (array) $emptyVal + $options['choices'], $options['selected'], $options['attr']) !!}
     @include('core/base::forms.partials.help-block')
 @endif
 

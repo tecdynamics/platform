@@ -23,23 +23,32 @@
                 </div>
                 <div class="tree-categories-body card-body">
                     <div class="mb-3 d-flex">
-                        <button class="btn btn-primary toggle-tree"
-                            type="button"
+                        <button
+                            class="btn btn-primary toggle-tree"
                             data-expand="{{ trans('core/base::forms.expand_all') }}"
-                            data-collapse="{{ trans('core/base::forms.collapse_all') }}">
+                            data-collapse="{{ trans('core/base::forms.collapse_all') }}"
+                            type="button"
+                        >
                             {{ trans('core/base::forms.collapse_all') }}
                         </button>
                         @if ($createRoute)
-                            <a class="tree-categories-create btn btn-info mx-2
-                                @if (!$canCreate) d-none  @endif"
-                                href="{{ route($createRoute) }}">
+                            <a
+                                class="tree-categories-create btn btn-info mx-2
+                                @if (!$canCreate) d-none @endif"
+                                href="{{ route($createRoute) }}"
+                            >
                                 @include('core/table::partials.create')
                             </a>
                         @endif
                     </div>
 
-                    <div class="file-tree-wrapper" data-url="{{ $indexRoute ? route($indexRoute) : '' }}">
-                        @include('core/base::forms.partials.tree-categories')
+                    <div
+                        class="file-tree-wrapper"
+                        data-url="{{ $indexRoute ? route($indexRoute) : '' }}"
+                    >
+                        @include('core/base::forms.partials.tree-categories', [
+                            'categories' => $categories,
+                        ])
                     </div>
                 </div>
             </div>
@@ -59,5 +68,14 @@
 @stop
 
 @push('footer')
-    @include('core/table::modal')
+    @include('core/table::partials.modal-item', [
+        'type' => 'danger',
+        'name' => 'modal-confirm-delete',
+        'title' => trans('core/base::tables.confirm_delete'),
+        'content' => trans('core/base::tables.confirm_delete_msg'),
+        'action_name' => trans('core/base::tables.delete'),
+        'action_button_attributes' => [
+            'class' => 'delete-crud-entry',
+        ],
+    ])
 @endpush

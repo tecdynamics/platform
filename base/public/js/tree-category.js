@@ -72,7 +72,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
   };
 })(jQuery);
 $(function () {
-  $treeWrapper = $('.file-tree-wrapper');
+  var $treeWrapper = $('.file-tree-wrapper');
   $treeWrapper.dragScroll();
   var $formLoading = $('.tree-form-container').find('.tree-loading');
   var $treeLoading = $('.tree-categories-container').find('.tree-loading');
@@ -89,54 +89,34 @@ $(function () {
     $('.tree-form-body').html(data);
     Tec.initResources();
     Tec.handleCounterUp();
-    Tec.initMediaIntegrate();
     if (window.EditorManagement) {
-      new EditorManagement().init();
+      window.EDITOR = new EditorManagement().init();
     }
+    Tec.initMediaIntegrate();
   }
   $(document).on('click', '.tree-categories-container .toggle-tree', function (e) {
     var $this = $(e.currentTarget);
+    var $treeCategoryContainer = $('.tree-categories-container');
     if ($this.hasClass('open-tree')) {
       $this.text($this.data('collapse'));
-      $('.tree-categories-container').find('.folder-root.closed').removeClass('closed').addClass('open');
+      $treeCategoryContainer.find('.folder-root.closed').removeClass('closed').addClass('open');
     } else {
       $this.text($this.data('expand'));
-      $('.tree-categories-container').find('.folder-root.open').removeClass('open').addClass('closed');
+      $treeCategoryContainer.find('.folder-root.open').removeClass('open').addClass('closed');
     }
     $this.toggleClass('open-tree');
   });
-  function clearRefSetupDefault() {
-    var data = $.ajaxSetup().data;
-    if (data) {
-      delete data.ref_from;
-      delete data.ref_lang;
-    }
-  }
   function fetchData(url, $el) {
-    clearRefSetupDefault();
-    $.ajax({
-      url: url,
-      type: 'GET',
-      beforeSend: function beforeSend() {
-        $formLoading.removeClass('d-none');
-        $treeWrapper.find('a.active').removeClass('active');
-        if ($el) {
-          $el.addClass('active');
-        }
-      },
-      success: function success(data) {
-        if (data.error) {
-          Tec.showError(data.message);
-        } else {
-          reloadForm(data.data);
-        }
-      },
-      error: function error(data) {
-        Tec.handleError(data);
-      },
-      complete: function complete() {
-        $formLoading.addClass('d-none');
-      }
+    $formLoading.removeClass('d-none');
+    $treeWrapper.find('a.active').removeClass('active');
+    if ($el) {
+      $el.addClass('active');
+    }
+    $httpClient.make().get(url).then(function (_ref) {
+      var data = _ref.data;
+      return reloadForm(data.data);
+    })["finally"](function () {
+      return $formLoading.addClass('d-none');
     });
   }
   $treeWrapper.on('click', '.fetch-data', function (event) {
@@ -160,51 +140,27 @@ $(function () {
     if (searchParams.get('ref_lang')) {
       data.ref_lang = searchParams.get('ref_lang');
     }
-    $.ajax({
-      url: url,
-      type: 'GET',
-      data: data,
-      beforeSend: function beforeSend() {
-        $formLoading.removeClass('d-none');
-      },
-      success: function success(data) {
-        if (data.error) {
-          Tec.showError(data.message);
-        } else {
-          reloadForm(data.data);
-        }
-      },
-      error: function error(data) {
-        Tec.handleError(data);
-      },
-      complete: function complete() {
-        $formLoading.addClass('d-none');
-      }
+    $formLoading.removeClass('d-none');
+    $httpClient.make().get(url, data).then(function (_ref2) {
+      var data = _ref2.data;
+      return reloadForm(data.data);
+    })["finally"](function () {
+      return $formLoading.addClass('d-none');
     });
   }
   function reloadTree(activeId, callback) {
-    $.ajax({
-      url: $treeWrapper.data('url'),
-      type: 'GET',
-      success: function success(data) {
-        if (data.error) {
-          Tec.showError(data.message);
-        } else {
-          $treeWrapper.html(data.data);
-          loadTree(activeId);
-          if (jQuery().tooltip) {
-            $('[data-bs-toggle="tooltip"]').tooltip({
-              placement: 'top',
-              boundary: 'window'
-            });
-          }
-          if (callback) {
-            callback();
-          }
-        }
-      },
-      error: function error(data) {
-        Tec.handleError(data);
+    $httpClient.make().get($treeWrapper.data('url') || window.location.href).then(function (_ref3) {
+      var data = _ref3.data;
+      $treeWrapper.html(data.data);
+      loadTree(activeId);
+      if (jQuery().tooltip) {
+        $('[data-bs-toggle="tooltip"]').tooltip({
+          placement: 'top',
+          boundary: 'window'
+        });
+      }
+      if (callback) {
+        callback();
       }
     });
   }
@@ -216,52 +172,39 @@ $(function () {
     var _event$originalEvent;
     event.preventDefault();
     var $form = $(event.currentTarget);
-    var formData = $form.serializeArray();
+    var formData = new FormData(event.currentTarget);
     var submitter = (_event$originalEvent = event.originalEvent) === null || _event$originalEvent === void 0 ? void 0 : _event$originalEvent.submitter;
     var saveAndEdit = false;
     if (submitter && submitter.name) {
       saveAndEdit = submitter.value === 'apply';
-      formData.push({
-        name: submitter.name,
-        value: submitter.value
-      });
+      formData.append(submitter.name, submitter.value);
     }
-    $.ajax({
-      url: $form.attr('action'),
-      type: $form.attr('method') || 'POST',
-      data: formData,
-      beforeSend: function beforeSend() {
-        $formLoading.removeClass('d-none');
-      },
-      success: function success(data) {
-        if (data.error) {
-          Tec.showError(data.message);
+    var method = $form.attr('method').toLowerCase() || 'post';
+    $formLoading.removeClass('d-none');
+    $httpClient.make()[method]($form.attr('action'), formData).then(function (_ref4) {
+      var data = _ref4.data;
+      Tec.showSuccess(data.message);
+      $formLoading.addClass('d-none');
+      var $createButton = $('.tree-categories-create');
+      var activeId = saveAndEdit && data.data && data.data.model ? data.data.model.id : null;
+      reloadTree(activeId, function () {
+        if (activeId) {
+          var fetchDataButton = $('.folder-root[data-id="' + activeId + '"] > a.fetch-data');
+          if (fetchDataButton.length) {
+            fetchDataButton.trigger('click');
+          } else {
+            location.reload();
+          }
+        } else if ($createButton.length) {
+          $createButton.trigger('click');
         } else {
-          Tec.showSuccess(data.message);
-          $formLoading.addClass('d-none');
-          var activeId = saveAndEdit && data.data.model ? data.data.model.id : null;
-          reloadTree(activeId, function () {
-            if (activeId) {
-              var fetchDataButton = $('.folder-root[data-id="' + activeId + '"] a.fetch-data');
-              if (fetchDataButton.length) {
-                fetchDataButton.trigger('click');
-              } else {
-                location.reload();
-              }
-            } else if ($('.tree-categories-create').length) {
-              $('.tree-categories-create').trigger('click');
-            } else {
-              var _data$data;
-              reloadForm((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.form);
-              $formLoading.addClass('d-none');
-            }
-          });
+          var _data$data;
+          reloadForm((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.form);
         }
-      },
-      error: function error(data) {
-        Tec.handleError(data);
-        $formLoading.addClass('d-none');
-      }
+      });
+    })["finally"](function () {
+      $formLoading.addClass('d-none');
+      $form.find('button[type=submit]').prop('disabled', false).removeClass('disabled');
     });
   });
   $(document).on('click', '.deleteDialog', function (event) {
@@ -275,32 +218,19 @@ $(function () {
     var _self = $(event.currentTarget);
     _self.addClass('button-loading');
     var deleteURL = _self.data('section');
-    $.ajax({
-      url: deleteURL,
-      type: 'POST',
-      data: {
-        '_method': 'DELETE'
-      },
-      success: function success(data) {
-        if (data.error) {
-          Tec.showError(data.message);
-        } else {
-          Tec.showSuccess(data.message);
-          reloadTree();
-          var $createButton = $('.tree-categories-create');
-          if ($createButton.length) {
-            $createButton.trigger('click');
-          } else {
-            reloadForm('');
-          }
-        }
-        _self.closest('.modal').modal('hide');
-        _self.removeClass('button-loading');
-      },
-      error: function error(data) {
-        Tec.handleError(data);
-        _self.removeClass('button-loading');
+    $httpClient.make()["delete"](deleteURL).then(function (_ref5) {
+      var data = _ref5.data;
+      Tec.showSuccess(data.message);
+      reloadTree();
+      var $createButton = $('.tree-categories-create');
+      if ($createButton.length) {
+        $createButton.trigger('click');
+      } else {
+        reloadForm('');
       }
+      _self.closest('.modal').modal('hide');
+    })["finally"](function () {
+      _self.removeClass('button-loading');
     });
   });
 });
