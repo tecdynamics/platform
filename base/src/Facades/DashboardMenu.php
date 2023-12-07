@@ -2,8 +2,9 @@
 
 namespace Tec\Base\Facades;
 
+use Tec\Base\Supports\DashboardMenu as DashboardMenuSupport;
 use Illuminate\Support\Facades\Facade;
-use Tec\Base\Supports\DashboardMenu as  DashboardMenuFacade;
+
 /**
  * @method static \Tec\Base\Supports\DashboardMenu make()
  * @method static \Tec\Base\Supports\DashboardMenu registerItem(array $options)
@@ -18,11 +19,8 @@ use Tec\Base\Supports\DashboardMenu as  DashboardMenuFacade;
  */
 class DashboardMenu extends Facade
 {
-    /**
-     * @return string
-     */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return DashboardMenuFacade::class;
+        return DashboardMenuSupport::class;
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use Tec\Base\Facades\BaseHelper;
 use Tec\Table\Http\Controllers\TableController;
 use Illuminate\Support\Facades\Route;
 

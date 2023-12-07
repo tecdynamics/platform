@@ -3,8 +3,8 @@
 namespace Tec\Base\Supports;
 
 use Tec\Base\Events\SendMailEvent;
-use BaseHelper;
-use RvMedia;
+use Tec\Base\Facades\BaseHelper;
+use Tec\Media\Facades\RvMedia;
 use Carbon\Carbon;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Arr;

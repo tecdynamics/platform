@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 
 class DropZoneUploadHandler extends AbstractHandler
 {
-    const CHUNK_UUID_INDEX = 'dzuuid';
-    const CHUNK_INDEX = 'dzchunkindex';
-    const CHUNK_TOTAL_INDEX = 'dztotalchunkcount';
+    public const CHUNK_UUID_INDEX = 'dzuuid';
+    public const CHUNK_INDEX = 'dzchunkindex';
+    public const CHUNK_TOTAL_INDEX = 'dztotalchunkcount';
 
     /**
      * The DropZone file uuid.
@@ -32,9 +32,6 @@ class DropZoneUploadHandler extends AbstractHandler
      */
     protected $chunksTotal = 0;
 
-    /**
-     * {@inheritDoc}
-     */
     public function __construct(Request $request, $file)
     {
         parent::__construct($request, $file);
@@ -44,53 +41,39 @@ class DropZoneUploadHandler extends AbstractHandler
         $this->fileUuid = $request->input(self::CHUNK_UUID_INDEX);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getChunkFileName()
     {
         return $this->createChunkFileName($this->fileUuid, $this->currentChunk);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function startSaving($chunkStorage)
     {
         // Build the parallel save
         return new ParallelSave($this->file, $this, $chunkStorage);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function isFirstChunk()
+    public function isFirstChunk(): bool
     {
         return 1 == $this->currentChunk;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function isLastChunk()
+    public function isLastChunk(): bool
     {
-        // the bytes starts from zero, remove 1 byte from total
+        // the bytes start from zero, remove 1 byte from total
         return $this->currentChunk == $this->chunksTotal;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function isChunkedUpload()
+    public function isChunkedUpload(): bool
     {
         return $this->chunksTotal > 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getPercentageDone()
     {
+        if (! $this->chunksTotal) {
+            return 100;
+        }
+
         return ceil($this->currentChunk / $this->chunksTotal * 100);
     }
 }

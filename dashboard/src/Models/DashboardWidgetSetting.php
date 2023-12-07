@@ -7,22 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DashboardWidgetSetting extends BaseModel
 {
-    /**
-     * @var string
-     */
     protected $table = 'dashboard_widget_settings';
 
-    /**
-     * @var array
-     */
-    protected $dates = [
-        'created_at',
-        'updated_at',
-    ];
-
-    /**
-     * @var array
-     */
     protected $fillable = [
         'settings',
         'widget_id',
@@ -31,17 +17,11 @@ class DashboardWidgetSetting extends BaseModel
         'status',
     ];
 
-    /**
-     * @var array
-     */
     protected $casts = [
         'settings' => 'json',
     ];
 
-    /**
-     * @return BelongsTo
-     */
-    public function widget()
+    public function widget(): BelongsTo
     {
         return $this->belongsTo(DashboardWidget::class);
     }

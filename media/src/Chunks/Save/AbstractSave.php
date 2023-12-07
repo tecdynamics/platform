@@ -8,43 +8,25 @@ use Illuminate\Http\UploadedFile;
 abstract class AbstractSave
 {
     /**
-     * @var UploadedFile
-     */
-    protected $file;
-
-    /**
-     * @var AbstractHandler
-     */
-    private $handler;
-
-    /**
-     * AbstractUpload constructor.
-     *
      * @param UploadedFile $file the uploaded file (chunk file)
      * @param AbstractHandler $handler the handler that detected the correct save method
      */
-    public function __construct(UploadedFile $file, AbstractHandler $handler)
+    public function __construct(protected UploadedFile $file, protected AbstractHandler $handler)
     {
-        $this->file = $file;
-        $this->handler = $handler;
     }
 
     /**
      * Checks if the file upload is finished.
-     *
-     * @return bool
      */
-    public function isFinished()
+    public function isFinished(): bool
     {
         return $this->isValid();
     }
 
     /**
      * Checks if the upload is valid.
-     *
-     * @return bool
      */
-    public function isValid()
+    public function isValid(): bool
     {
         return $this->file->isValid();
     }
@@ -52,9 +34,9 @@ abstract class AbstractSave
     /**
      * Returns the error message.
      *
-     * @return string
+     * @return string|null
      */
-    public function getErrorMessage()
+    public function getErrorMessage(): string|null
     {
         return $this->file->getErrorMessage();
     }
@@ -71,18 +53,12 @@ abstract class AbstractSave
         return call_user_func_array([$this->getFile(), $name], $arguments);
     }
 
-    /**
-     * @return UploadedFile
-     */
-    public function getFile()
+    public function getFile(): UploadedFile
     {
         return $this->file;
     }
 
-    /**
-     * @return AbstractHandler
-     */
-    public function handler()
+    public function handler(): AbstractHandler
     {
         return $this->handler;
     }

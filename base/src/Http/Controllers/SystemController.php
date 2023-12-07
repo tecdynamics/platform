@@ -2,52 +2,41 @@
 
 namespace Tec\Base\Http\Controllers;
 
-use Arr;
-use Assets;
+use Tec\Base\Enums\SystemUpdaterStepEnum;
+use Tec\Base\Events\UpdatedEvent;
+use Tec\Base\Events\UpdatingEvent;
+use Tec\Base\Facades\Assets;
+use Tec\Base\Facades\BaseHelper;
+use Tec\Base\Facades\PageTitle;
 use Tec\Base\Http\Responses\BaseHttpResponse;
+use Tec\Base\Services\CleanDatabaseService;
+use Tec\Base\Services\ClearCacheService;
 use Tec\Base\Supports\Core;
-use Tec\Base\Supports\Helper;
 use Tec\Base\Supports\Language;
 use Tec\Base\Supports\MembershipAuthorization;
 use Tec\Base\Supports\SystemManagement;
 use Tec\Base\Tables\InfoTable;
-use Tec\Table\TableBuilder;
 use Exception;
-use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Foundation\Application;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
-use Menu;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Throwable;
 
 class SystemController extends Controller
 {
-
-    /**
-     * @param Request $request
-     * @param TableBuilder $tableBuilder
-     * @return Factory|View
-     * @throws Throwable
-     * @throws BindingResolutionException
-     * @throws FileNotFoundException
-     */
-    public function getInfo(Request $request, TableBuilder $tableBuilder)
+    public function getInfo(Request $request, InfoTable $infoTable)
     {
-        page_title()->setTitle(trans('core/base::system.info.title'));
+        PageTitle::setTitle(trans('core/base::system.info.title'));
 
         Assets::addScriptsDirectly('vendor/core/core/base/js/system-info.js')
             ->addStylesDirectly(['vendor/core/core/base/css/system-info.css']);
 
         $composerArray = SystemManagement::getComposerArray();
         $packages = SystemManagement::getPackagesAndDependencies($composerArray['require']);
-
-        $infoTable = $tableBuilder->create(InfoTable::class);
 
         if ($request->expectsJson()) {
             return $infoTable->renderTable();
@@ -56,76 +45,77 @@ class SystemController extends Controller
         $systemEnv = SystemManagement::getSystemEnv();
         $serverEnv = SystemManagement::getServerEnv();
 
-        $requiredPhpVersion = Arr::get($composerArray, 'require.php', '^7.4');
+        $requiredPhpVersion = Arr::get($composerArray, 'require.php', get_minimum_php_version());
         $requiredPhpVersion = str_replace('^', '', $requiredPhpVersion);
         $requiredPhpVersion = str_replace('~', '', $requiredPhpVersion);
 
-        $matchPHPRequirement = version_compare(phpversion(), $requiredPhpVersion) > 0;
+        $matchPHPRequirement = version_compare(phpversion(), $requiredPhpVersion, '>=') > 0;
 
-        return view('core/base::system.info', compact(
-            'packages',
-            'infoTable',
-            'systemEnv',
-            'serverEnv',
-            'matchPHPRequirement',
-            'requiredPhpVersion'
-        ));
+        return view(
+            'core/base::system.info',
+            compact(
+                'packages',
+                'infoTable',
+                'systemEnv',
+                'serverEnv',
+                'matchPHPRequirement',
+                'requiredPhpVersion'
+            )
+        );
     }
 
-    /**
-     * @return Factory|View
-     */
     public function getCacheManagement()
     {
-        page_title()->setTitle(trans('core/base::cache.cache_management'));
+        PageTitle::setTitle(trans('core/base::cache.cache_management'));
 
         Assets::addScriptsDirectly('vendor/core/core/base/js/cache.js');
 
         return view('core/base::system.cache');
     }
 
-    /**
-     * @param Request $request
-     * @param BaseHttpResponse $response
-     * @param Filesystem $files
-     * @param Application $app
-     * @return BaseHttpResponse
-     */
-    public function postClearCache(Request $request, BaseHttpResponse $response, Filesystem $files, Application $app)
+    public function postClearCache(Request $request, BaseHttpResponse $response, ClearCacheService $clearCacheService)
     {
-        switch ($request->input('type')) {
+        $request->validate([
+            'type' => ['required', 'string', Rule::in([
+                'clear_cms_cache',
+                'refresh_compiled_views',
+                'clear_config_cache',
+                'clear_route_cache',
+                'clear_log',
+            ])],
+        ]);
+
+        $type = $request->input('type');
+
+        switch ($type) {
             case 'clear_cms_cache':
-                Helper::clearCache();
-                Menu::clearCacheMenuItems();
+                $clearCacheService->clearFrameworkCache();
+                $clearCacheService->clearGoogleFontsCache();
+                $clearCacheService->clearPurifier();
+                $clearCacheService->clearDebugbar();
+
                 break;
             case 'refresh_compiled_views':
-                foreach ($files->glob(config('view.compiled') . '/*') as $view) {
-                    $files->delete($view);
-                }
+                $clearCacheService->clearCompiledViews();
+
                 break;
             case 'clear_config_cache':
-                $files->delete($app->getCachedConfigPath());
+                $clearCacheService->clearConfig();
+
                 break;
             case 'clear_route_cache':
-                $files->delete($app->getCachedRoutesPath());
+                $clearCacheService->clearRoutesCache();
+
                 break;
             case 'clear_log':
-                if ($files->isDirectory(storage_path('logs'))) {
-                    foreach ($files->allFiles(storage_path('logs')) as $file) {
-                        $files->delete($file->getPathname());
-                    }
-                }
+                $clearCacheService->clearLogs();
+
                 break;
         }
 
-        return $response->setMessage(trans('core/base::cache.commands.' . $request->input('type') . '.success_msg'));
+        return $response->setMessage(trans('core/base::cache.commands.' . $type . '.success_msg'));
     }
 
-    /**
-     * @param MembershipAuthorization $authorization
-     * @param BaseHttpResponse $response
-     * @return BaseHttpResponse
-     */
     public function authorize(MembershipAuthorization $authorization, BaseHttpResponse $response)
     {
         $authorization->authorize();
@@ -133,16 +123,10 @@ class SystemController extends Controller
         return $response;
     }
 
-    /**
-     * @param string $lang
-     * @param Request $request
-     * @return RedirectResponse
-     * @throws Exception
-     */
-    public function getLanguage($lang, Request $request)
+    public function getLanguage(string $lang, Request $request)
     {
-        if ($lang != false && array_key_exists($lang, Language::getAvailableLocales())) {
-            if (Auth::check()) {
+        if ($lang && array_key_exists($lang, Language::getAvailableLocales())) {
+            if (Auth::guard()->check()) {
                 cache()->forget(md5('cache-dashboard-menu-' . $request->user()->getKey()));
             }
             session()->put('site-locale', $lang);
@@ -151,10 +135,6 @@ class SystemController extends Controller
         return redirect()->back();
     }
 
-    /**
-     * @param BaseHttpResponse $response
-     * @return BaseHttpResponse
-     */
     public function getMenuItemsCount(BaseHttpResponse $response)
     {
         $data = apply_filters(BASE_FILTER_MENU_ITEMS_COUNT, []);
@@ -162,56 +142,217 @@ class SystemController extends Controller
         return $response->setData($data);
     }
 
-    /**
-     * @return BaseHttpResponse
-     */
-    public function getCheckUpdate(BaseHttpResponse $response)
+    public function getCheckUpdate(BaseHttpResponse $response, Core $core)
     {
-        if (!config('core.base.general.enable_system_updater')) {
+        if (! config('core.base.general.enable_system_updater')) {
             return $response;
         }
 
         $response->setData(['has_new_version' => false]);
 
-        $api = new Core;
+        $updateData = $core->checkUpdate();
 
-        $updateData = $api->checkUpdate();
-
-        if ($updateData['status']) {
+        if ($updateData) {
             $response
                 ->setData(['has_new_version' => true])
-                ->setMessage('A new version (' . $updateData['version'] . ' / released on ' . $updateData['release_date'] . ') is available to update');
+                ->setMessage(
+                    sprintf('A new version (%s / released on %s) is available to update', $updateData->version, BaseHelper::formatDate($updateData->releasedDate))
+                );
         }
 
         return $response;
     }
 
-    /**
-     * @return \Illuminate\Contracts\Foundation\Application|Factory|\Illuminate\Contracts\View\View
-     */
-    public function getUpdater()
+    public function getUpdater(Core $core)
     {
-        if (!config('core.base.general.enable_system_updater')) {
+        if (! config('core.base.general.enable_system_updater')) {
             abort(404);
         }
 
         header('Cache-Control: no-cache');
 
-        @ini_set('max_execution_time', -1);
-        @ini_set('memory_limit', -1);
+        Assets::addScriptsDirectly('vendor/core/core/base/js/system-update.js');
+        Assets::usingVueJS();
 
-        page_title()->setTitle(trans('core/base::system.updater'));
+        BaseHelper::maximumExecutionTimeAndMemoryLimit();
 
-        $api = new Core;
+        PageTitle::setTitle(trans('core/base::system.updater'));
 
-        $updateData = $api->checkUpdate();
+        $isOutdated = false;
 
-        if ($updateData['status']) {
-            $updateData['message'] = 'A new version (' . $updateData['version'] . ' / released on ' . $updateData['release_date'] . ') is available to update!';
-        } else {
-            $updateData['message'] = 'The system is up-to-date. There are no new versions to update!';
+        $latestUpdate = $core->getLatestVersion();
+
+        if ($latestUpdate) {
+            $isOutdated = version_compare($core->version(), $latestUpdate->version, '<');
         }
 
-        return view('core/base::system.updater', compact('api', 'updateData'));
+        $updateData = ['message' => null, 'status' => false];
+
+        return view('core/base::system.updater', compact('latestUpdate', 'isOutdated', 'updateData'));
+    }
+
+    public function postUpdater(Core $core, Request $request, BaseHttpResponse $response): BaseHttpResponse
+    {
+        $request->validate([
+            'step' => ['required_without:step_name', 'integer', 'min:1', 'max:4'],
+            'step_name' => ['required_without:step', 'string'],
+            'update_id' => ['required', 'string'],
+            'version' => ['required', 'string'],
+        ]);
+
+        BaseHelper::maximumExecutionTimeAndMemoryLimit();
+
+        if ($request->filled('step_name')) {
+            return $this->postUpdaterByStepName($core, $request, $response);
+        }
+
+        if ($request->filled('step')) {
+            return $this->postUpdaterByStep($core, $request, $response);
+        }
+
+        return $response
+            ->setMessage(__('Something went wrong.'))
+            ->setError()
+            ->setCode(422);
+    }
+
+    public function getCleanup(
+        Request $request,
+        BaseHttpResponse $response,
+        CleanDatabaseService $cleanDatabaseService
+    ): BaseHttpResponse|View {
+        PageTitle::setTitle(trans('core/base::system.cleanup.title'));
+
+        Assets::addScriptsDirectly('vendor/core/core/base/js/cleanup.js');
+
+        try {
+            $tables = DB::connection()->getDoctrineSchemaManager()->listTableNames();
+        } catch (Throwable) {
+            $tables = [];
+        }
+
+        $disabledTables = [
+            'disabled' => $cleanDatabaseService->getIgnoreTables(),
+            'checked' => [],
+        ];
+
+        if ($request->isMethod('POST')) {
+            if (! config('core.base.general.enabled_cleanup_database', false)) {
+                return $response
+                    ->setCode(401)
+                    ->setError()
+                    ->setMessage(strip_tags(trans('core/base::system.cleanup.not_enabled_yet')));
+            }
+
+            $request->validate(['tables' => 'array']);
+
+            $cleanDatabaseService->execute($request->input('tables', []));
+
+            return $response->setMessage(trans('core/base::system.cleanup.success_message'));
+        }
+
+        return view('core/base::system.cleanup', compact('tables', 'disabledTables'));
+    }
+
+    /**
+     * @deprecated Will be removed in the future, use postUpdaterByStepName instead.
+     */
+    protected function postUpdaterByStep(Core $core, Request $request, BaseHttpResponse $response): BaseHttpResponse
+    {
+        $updateId = $request->input('update_id');
+        $version = $request->input('version');
+
+        try {
+            switch ($request->integer('step', 1)) {
+                case 1:
+                    event(new UpdatingEvent());
+
+                    if ($core->downloadUpdate($updateId, $version)) {
+                        return $response->setMessage(__('The update files have been downloaded successfully.'));
+                    }
+
+                    return $response
+                        ->setMessage(__('Could not download updated file. Please check your license or your internet network.'))
+                        ->setError()
+                        ->setCode(422);
+
+                case 2:
+                    if ($core->updateFilesAndDatabase($version)) {
+                        return $response->setMessage(__('Your files and database have been updated successfully.'));
+                    }
+
+                    return $response
+                        ->setMessage(__('Could not update files & database.'))
+                        ->setError()
+                        ->setCode(422);
+                case 3:
+                    $core->publishUpdateAssets();
+
+                    return $response->setMessage(__('Your asset files have been published successfully.'));
+                case 4:
+                    $core->cleanCaches();
+
+                    event(new UpdatedEvent());
+
+                    return $response->setMessage(__('Your system has been cleaned up successfully.'));
+                default:
+                    throw new Exception(__('Invalid step.'));
+            }
+        } catch (Throwable $exception) {
+            $core->logError($exception);
+
+            return $response
+                ->setMessage($exception->getMessage())
+                ->setError()
+                ->setCode(422);
+        }
+    }
+
+    protected function postUpdaterByStepName(Core $core, Request $request, BaseHttpResponse $response): BaseHttpResponse
+    {
+        $updateId = $request->input('update_id');
+        $version = $request->input('version');
+        $stepName = $request->input('step_name');
+        $step = SystemUpdaterStepEnum::tryFrom($stepName);
+
+        if (! $step) {
+            return $response
+                ->setMessage(__('Invalid step.'))
+                ->setError()
+                ->setCode(422);
+        }
+
+        try {
+            $success = match ($step->getValue()) {
+                SystemUpdaterStepEnum::DOWNLOAD => $core->downloadUpdate($updateId, $version),
+                SystemUpdaterStepEnum::UPDATE_FILES => $core->updateFiles($version),
+                SystemUpdaterStepEnum::UPDATE_DATABASE => $core->updateDatabase(),
+                SystemUpdaterStepEnum::PUBLISH_CORE_ASSETS => $core->publishCoreAssets(),
+                SystemUpdaterStepEnum::PUBLISH_PACKAGES_ASSETS => $core->publishPackagesAssets(),
+                SystemUpdaterStepEnum::CLEAN_UP => $core->cleanUp(),
+                default => throw new Exception(__('Invalid step.')),
+            };
+
+            if (! $success) {
+                return $response
+                    ->setError()
+                    ->setMessage($step->failedMessage());
+            }
+
+            return $response
+                ->setData([
+                    'next_step' => $step->nextStep(),
+                    'next_message' => $step->nextStepMessage(),
+                    'current_percent' => $step->currentPercent(),
+                ])
+                ->setMessage($step->successMessage());
+        } catch (Throwable $exception) {
+            $core->logError($exception);
+
+            return $response
+                ->setMessage($exception->getMessage())
+                ->setError()
+                ->setCode(422);
+        }
     }
 }

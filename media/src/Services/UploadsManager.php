@@ -2,88 +2,65 @@
 
 namespace Tec\Media\Services;
 
+use Tec\Media\Facades\RvMedia;
 use Carbon\Carbon;
 use Exception;
-use File;
-use Illuminate\Contracts\Filesystem\FileExistsException;
-use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Http\UploadedFile;
-use League\Flysystem\FileNotFoundException;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use League\Flysystem\FilesystemException;
+use League\Flysystem\UnableToRetrieveMetadata;
 use Mimey\MimeTypes;
-use RvMedia;
-use Storage;
 
 class UploadsManager
 {
-    /**
-     * @var MimeTypes
-     */
-    protected $mimeType;
-
-    /**
-     * UploadsManager constructor.
-     * @param MimeTypes $mimeType
-     */
-    public function __construct(MimeTypes $mimeType)
+    public function __construct(protected MimeTypes $mimeType)
     {
-        $this->mimeType = $mimeType;
     }
 
-    /**
-     * Return an array of file details for a file
-     *
-     * @param string $path
-     * @return array
-     */
-    public function fileDetails($path)
+    public function fileDetails(string $path): array
     {
         return [
-            'filename'  => File::basename($path),
-            'url'       => $path,
+            'filename' => File::basename($path),
+            'url' => $path,
             'mime_type' => $this->fileMimeType($path),
-            'size'      => $this->fileSize($path),
-            'modified'  => $this->fileModified($path),
+            'size' => $this->fileSize($path),
+            'modified' => $this->fileModified($path),
         ];
     }
 
-    /**
-     * Return the mime type
-     *
-     * @param string $path
-     * @return mixed|null|string
-     */
-    public function fileMimeType($path): ?string
+    public function fileMimeType(string $path): string|null
     {
-        return $this->mimeType->getMimeType(File::extension(RvMedia::getRealPath($path)));
+        if (File::extension($path) == 'jfif') {
+            return 'image/jpeg';
+        }
+
+        try {
+            return $this->mimeType->getMimeType(File::extension(RvMedia::getRealPath($path)));
+        } catch (UnableToRetrieveMetadata) {
+            return null;
+        }
     }
 
-    /**
-     * Return the file size
-     *
-     * @param string $path
-     * @return int
-     */
-    public function fileSize($path)
+    public function fileSize(string $path): int
     {
-        return Storage::size($path);
+        try {
+            return Storage::size($path);
+        } catch (UnableToRetrieveMetadata) {
+            return 0;
+        }
     }
 
-    /**
-     * Return the last modified time
-     *
-     * @param string $path
-     * @return string
-     */
-    public function fileModified($path)
+    public function fileModified(string $path): string
     {
-        return Carbon::createFromTimestamp(Storage::lastModified($path));
+        try {
+            return Carbon::createFromTimestamp(Storage::lastModified($path));
+        } catch (UnableToRetrieveMetadata) {
+            return Carbon::now();
+        }
     }
 
-    /**
-     * @param string $folder
-     * @return array|bool|Translator|string|null
-     */
-    public function createDirectory($folder)
+    public function createDirectory(string $folder): bool|string
     {
         $folder = $this->cleanFolder($folder);
 
@@ -94,57 +71,39 @@ class UploadsManager
         return Storage::makeDirectory($folder);
     }
 
-    /**
-     * Sanitize the folder name
-     *
-     * @param string $folder
-     * @return string
-     */
-    protected function cleanFolder($folder)
+    protected function cleanFolder(string $folder): string
     {
         return DIRECTORY_SEPARATOR . trim(str_replace('..', '', $folder), DIRECTORY_SEPARATOR);
     }
 
-    /**
-     * @param string $folder
-     * @return array|bool|Translator|string|null
-     */
-    public function deleteDirectory($folder)
+    public function deleteDirectory(string $folder): bool|string
     {
         $folder = $this->cleanFolder($folder);
 
         $filesFolders = array_merge(Storage::directories($folder), Storage::files($folder));
 
-        if (!empty($filesFolders)) {
+        if (! empty($filesFolders)) {
             return trans('core/media::media.directory_must_empty');
         }
 
         return Storage::deleteDirectory($folder);
     }
 
-    /**
-     * @param string $path
-     * @return bool
-     */
-    public function deleteFile($path)
+    public function deleteFile(string $path): bool
     {
         $path = $this->cleanFolder($path);
 
         return Storage::delete($path);
     }
 
-    /**
-     * @param string $path
-     * @param string $content
-     * @param UploadedFile|null $file
-     * @return bool
-     * @throws FileExistsException
-     * @throws FileNotFoundException
-     */
-    public function saveFile($path, $content, UploadedFile $file = null)
-    {
-        if (!RvMedia::isChunkUploadEnabled() || !$file) {
-            return Storage::put($this->cleanFolder($path), $content);
+    public function saveFile(
+        string $path,
+        string $content,
+        UploadedFile $file = null,
+        array $visibility = ['visibility' => 'public']
+    ): bool {
+        if (! RvMedia::isChunkUploadEnabled() || ! $file) {
+            return Storage::put($this->cleanFolder($path), $content, $visibility);
         }
 
         $currentChunksPath = RvMedia::getConfig('chunk.storage.chunks') . '/' . $file->getFilename();
@@ -153,11 +112,11 @@ class UploadsManager
         try {
             $stream = $disk->getDriver()->readStream($currentChunksPath);
 
-            if ($result = Storage::writeStream($path, $stream, ['visibility' => 'public'])) {
+            if ($result = Storage::writeStream($path, $stream, $visibility)) {
                 $disk->delete($currentChunksPath);
             }
-        } catch (Exception $exception) {
-            return Storage::put($this->cleanFolder($path), $content, ['visibility' => 'public']);
+        } catch (Exception|FilesystemException) {
+            return Storage::put($this->cleanFolder($path), $content, $visibility);
         }
 
         return $result;

@@ -108,7 +108,7 @@
             @endonce
         @endif
 
-        {!! apply_filters(BASE_FILTER_FORM_EDITOR_BUTTONS, null) !!}
+        {!! apply_filters(BASE_FILTER_FORM_EDITOR_BUTTONS, null,$name,$attributes) !!}
     </div>
     <div class="clearfix"></div>
 @else

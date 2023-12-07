@@ -7,20 +7,14 @@ use Illuminate\Support\Facades\Auth;
 
 class UpdatePasswordRequest extends Request
 {
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
-    public function rules()
+    public function rules(): array
     {
         $rules = [
-            'password'              => 'required|min:6|max:60',
+            'password' => 'required|min:6|max:60',
             'password_confirmation' => 'same:password',
         ];
 
-        if (Auth::user() && Auth::user()->isSuperUser()) {
+        if (Auth::guard()->user() && Auth::guard()->user()->isSuperUser()) {
             return $rules;
         }
 

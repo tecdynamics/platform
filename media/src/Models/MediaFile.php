@@ -2,36 +2,24 @@
 
 namespace Tec\Media\Models;
 
+use Tec\Base\Casts\SafeContent;
+use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Models\BaseModel;
+use Tec\Media\Facades\RvMedia;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use RvMedia;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Str;
 
 class MediaFile extends BaseModel
 {
     use SoftDeletes;
 
-    /**
-     * The database table used by the model.
-     *
-     * @var string
-     */
     protected $table = 'media_files';
 
-    /**
-     * The date fields for the model.clear
-     *
-     * @var array
-     */
-    protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
-    ];
-
-    /**
-     * @var array
-     */
     protected $fillable = [
         'name',
         'mime_type',
@@ -41,89 +29,141 @@ class MediaFile extends BaseModel
         'options',
         'folder_id',
         'user_id',
+        'alt',
     ];
 
-    /**
-     * @var array
-     */
     protected $casts = [
         'options' => 'json',
+        'name' => SafeContent::class,
     ];
 
-    protected static function boot()
+    protected static function booted(): void
     {
-        parent::boot();
-        static::deleting(function (MediaFile $file) {
-            if ($file->isForceDeleting()) {
-                RvMedia::deleteFile($file);
-            }
+        static::forceDeleting(function (MediaFile $file) {
+            RvMedia::deleteFile($file);
         });
     }
 
-    /**
-     * @return BelongsTo
-     */
     public function folder(): BelongsTo
     {
-        return $this->belongsTo(MediaFolder::class, 'id', 'folder_id');
+        return $this->belongsTo(MediaFolder::class, 'folder_id')->withDefault();
     }
 
-    /**
-     * @return string
-     */
-    public function getTypeAttribute(): string
+    protected function type(): Attribute
     {
-        $type = 'document';
+        return Attribute::make(
+            get: function ($value, $attributes) {
+                $type = 'document';
 
-        foreach (RvMedia::getConfig('mime_types', []) as $key => $value) {
-            if (in_array($this->attributes['mime_type'], $value)) {
-                $type = $key;
-                break;
+                foreach (RvMedia::getConfig('mime_types', []) as $key => $value) {
+                    if (in_array($attributes['mime_type'], $value)) {
+                        $type = $key;
+
+                        break;
+                    }
+                }
+
+                return $type;
+            },
+        );
+    }
+
+    protected function humanSize(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, $attributes) => BaseHelper::humanFilesize($attributes['size'])
+        );
+    }
+
+    protected function icon(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return match ($this->type) {
+                    'image' => 'far fa-file-image',
+                    'video' => 'far fa-file-video',
+                    'pdf' => 'far fa-file-pdf',
+                    'excel' => 'far fa-file-excel',
+                    default => 'far fa-file-alt',
+                };
             }
-        }
-
-        return $type;
+        );
     }
 
-    /**
-     * @return string
-     */
-    public function getHumanSizeAttribute(): string
+    protected function previewUrl(): Attribute
     {
-        return human_file_size($this->attributes['size']);
+        return Attribute::make(
+            get: function (): string|null {
+                $preview = null;
+                switch ($this->type) {
+                    case 'image':
+                    case 'pdf':
+                    case 'text':
+                    case 'video':
+                        $preview = RvMedia::url($this->url);
+
+                        break;
+                    case 'document':
+                        if ($this->mime_type === 'application/pdf') {
+                            $preview = RvMedia::url($this->url);
+
+                            break;
+                        }
+
+                        $config = config('core.media.media.preview.document', []);
+                        if (
+                            Arr::get($config, 'enabled') &&
+                            Request::ip() !== '127.0.0.1' &&
+                            in_array($this->mime_type, Arr::get($config, 'mime_types', [])) &&
+                            $url = Arr::get($config, 'providers.' . Arr::get($config, 'default'))
+                        ) {
+                            $preview = Str::replace('{url}', urlencode(RvMedia::url($this->url)), $url);
+                        }
+
+                        break;
+                }
+
+                return $preview;
+            }
+        );
     }
 
-    /**
-     * @return string
-     */
-    public function getIconAttribute(): string
+    protected function previewType(): Attribute
     {
-        switch ($this->type) {
-            case 'image':
-                $icon = 'far fa-file-image';
-                break;
-            case 'video':
-                $icon = 'far fa-file-video';
-                break;
-            case 'pdf':
-                $icon = 'far fa-file-pdf';
-                break;
-            case 'excel':
-                $icon = 'far fa-file-excel';
-                break;
-            default:
-                $icon = 'far fa-file-alt';
-                break;
-        }
-
-        return $icon;
+        return Attribute::make(
+            get: fn () => Arr::get(config('core.media.media.preview', []), $this->type . '.type')
+        );
     }
 
-    /**
-     * @return bool
-     */
     public function canGenerateThumbnails(): bool
     {
         return RvMedia::canGenerateThumbnails($this->mime_type);
+    }
+
+    public static function createName(string $name, int|string|null $folder): string
+    {
+        $index = 1;
+        $baseName = $name;
+        while (self::query()->where('name', $name)->where('folder_id', $folder)->withTrashed()->exists()) {
+            $name = $baseName . '-' . $index++;
+        }
+
+        return $name;
+    }
+
+    public static function createSlug(string $name, string $extension, string|null $folderPath): string
+    {
+        $slug = Str::slug($name, '-', ! RvMedia::turnOffAutomaticUrlTranslationIntoLatin() ? 'en' : false);
+        $index = 1;
+        $baseSlug = $slug;
+        while (File::exists(RvMedia::getRealPath(rtrim($folderPath, '/') . '/' . $slug . '.' . $extension))) {
+            $slug = $baseSlug . '-' . $index++;
+        }
+
+        if (empty($slug)) {
+            $slug = $slug . '-' . time();
+        }
+
+        return $slug . '.' . $extension;
     }
 }

@@ -1,73 +1,56 @@
 <?php
 
+use Tec\Base\Facades\Action;
+use Tec\Base\Facades\Filter;
 use Illuminate\Support\Arr;
-use Tec\Base\Facades\ActionFacade as Action;
-use Tec\Base\Facades\FilterFacade as Filter;
 
-if (!function_exists('add_filter')) {
-    /**
-     * @param string$hook
-     * @param $callback
-     * @param int $priority
-     * @param int $arguments
-     */
-    function add_filter($hook, $callback, $priority = 20, $arguments = 1)
-    {
+if (! function_exists('add_filter')) {
+    function add_filter(
+        string|array|null $hook,
+        string|array|Closure $callback,
+        int $priority = 20,
+        int $arguments = 1
+    ): void {
         Filter::addListener($hook, $callback, $priority, $arguments);
     }
 }
 
-if (!function_exists('remove_filter')) {
-    /**
-     * @param string $hook
-     */
-    function remove_filter($hook)
+if (! function_exists('remove_filter')) {
+    function remove_filter(string $hook): void
     {
         Filter::removeListener($hook);
     }
 }
 
-if (!function_exists('add_action')) {
-    /**
-     * @param string $hook
-     * @param $callback
-     * @param int $priority
-     * @param int $arguments
-     */
-    function add_action(string $hook, $callback, int $priority = 20, int $arguments = 1)
-    {
+if (! function_exists('add_action')) {
+    function add_action(
+        string|array|null $hook,
+        string|array|Closure $callback,
+        int $priority = 20,
+        int $arguments = 1
+    ): void {
         Action::addListener($hook, $callback, $priority, $arguments);
     }
 }
 
-if (!function_exists('apply_filters')) {
-    /**
-     * @return mixed
-     */
-    function apply_filters()
+if (! function_exists('apply_filters')) {
+    function apply_filters(...$args)
     {
-        $args = func_get_args();
         return Filter::fire(array_shift($args), $args);
     }
 }
 
-if (!function_exists('do_action')) {
-    function do_action()
+if (! function_exists('do_action')) {
+    function do_action(...$args): void
     {
-        $args = func_get_args();
         Action::fire(array_shift($args), $args);
     }
 }
 
-if (!function_exists('get_hooks')) {
-    /**
-     * @param string|null $name
-     * @param bool $isFilter
-     * @return array
-     */
-    function get_hooks(?string $name = null, $isFilter = true): array
+if (! function_exists('get_hooks')) {
+    function get_hooks(string|null $name = null, bool $isFilter = true): array
     {
-        if ($isFilter == true) {
+        if ($isFilter) {
             $listeners = Filter::getListeners();
         } else {
             $listeners = Action::getListeners();
@@ -76,6 +59,7 @@ if (!function_exists('get_hooks')) {
         if (empty($name)) {
             return $listeners;
         }
+
         return Arr::get($listeners, $name, []);
     }
 }

@@ -8,56 +8,54 @@ use Tec\Base\Forms\FormAbstract;
 
 class ProfileForm extends FormAbstract
 {
-    /**
-     * {@inheritDoc}
-     */
-    public function buildForm()
+    public function buildForm(): void
     {
         $this
-            ->setupModel(new User)
+            ->setupModel(new User())
             ->setFormOption('template', 'core/base::forms.form-no-wrap')
             ->setFormOption('id', 'profile-form')
             ->setFormOption('class', 'row')
             ->setValidatorClass(UpdateProfileRequest::class)
+            ->setMethod('PUT')
             ->withCustomFields()
             ->add('first_name', 'text', [
-                'label'      => trans('core/acl::users.info.first_name'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.info.first_name'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 30,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])
             ->add('last_name', 'text', [
-                'label'      => trans('core/acl::users.info.last_name'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.info.last_name'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 30,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])
             ->add('username', 'text', [
-                'label'      => trans('core/acl::users.username'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.username'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 30,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])
             ->add('email', 'text', [
-                'label'      => trans('core/acl::users.email'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
-                    'placeholder'  => trans('core/acl::users.email_placeholder'),
+                'label' => trans('core/acl::users.email'),
+                'required' => true,
+                'attr' => [
+                    'placeholder' => trans('core/acl::users.email_placeholder'),
                     'data-counter' => 60,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])

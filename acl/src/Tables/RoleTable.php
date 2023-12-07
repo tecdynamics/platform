@@ -2,95 +2,39 @@
 
 namespace Tec\ACL\Tables;
 
-use BaseHelper;
-use Html;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
-use Tec\ACL\Repositories\Interfaces\RoleInterface;
-use Tec\ACL\Repositories\Interfaces\UserInterface;
+use Tec\ACL\Models\Role;
+use Tec\Base\Facades\BaseHelper;
 use Tec\Table\Abstracts\TableAbstract;
-use Illuminate\Contracts\Routing\UrlGenerator;
-use Yajra\DataTables\DataTables;
+use Tec\Table\Actions\DeleteAction;
+use Tec\Table\Actions\EditAction;
+use Tec\Table\BulkActions\DeleteBulkAction;
+use Tec\Table\Columns\Column;
+use Tec\Table\Columns\CreatedAtColumn;
+use Tec\Table\Columns\FormattedColumn;
+use Tec\Table\Columns\IdColumn;
+use Tec\Table\Columns\LinkableColumn;
+use Tec\Table\Columns\NameColumn;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class RoleTable extends TableAbstract
 {
-
-    /**
-     * @var bool
-     */
-    protected $hasActions = true;
-
-    /**
-     * @var bool
-     */
-    protected $hasFilter = true;
-
-    /**
-     * @var UserInterface
-     */
-    protected $userRepository;
-
-    /**
-     * RoleTable constructor.
-     * @param DataTables $table
-     * @param UrlGenerator $urlGenerator
-     * @param RoleInterface $roleRepository
-     * @param UserInterface $userRepository
-     */
-    public function __construct(
-        DataTables $table,
-        UrlGenerator $urlGenerator,
-        RoleInterface $roleRepository,
-        UserInterface $userRepository
-    ) {
-        parent::__construct($table, $urlGenerator);
-
-        $this->repository = $roleRepository;
-        $this->userRepository = $userRepository;
-
-        if (!Auth::user()->hasAnyPermission(['roles.edit', 'roles.destroy'])) {
-            $this->hasOperations = false;
-            $this->hasActions = false;
-        }
+    public function setup(): void
+    {
+        $this
+            ->model(Role::class)
+            ->addActions([
+                EditAction::make()->route('roles.edit'),
+                DeleteAction::make()->route('roles.destroy'),
+            ]);
     }
 
-
-    /**
-     * {@inheritDoc}
-     */
-    public function ajax(): JsonResponse
+    public function query(): Relation|Builder|QueryBuilder
     {
-        $data = $this->table
-            ->eloquent($this->query())
-            ->editColumn('name', function ($item) {
-                if (!Auth::user()->hasPermission('roles.edit')) {
-                    return $item->name;
-                }
-
-                return Html::link(route('roles.edit', $item->id), $item->name);
-            })
-            ->editColumn('checkbox', function ($item) {
-                return $this->getCheckbox($item->id);
-            })
-            ->editColumn('created_at', function ($item) {
-                return BaseHelper::formatDate($item->created_at);
-            })
-            ->editColumn('created_by', function ($item) {
-                return $item->author->name;
-            })
-            ->addColumn('operations', function ($item) {
-                return $this->getOperations('roles.edit', 'roles.destroy', $item);
-            });
-
-        return $this->toJson($data);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function query()
-    {
-        $query = $this->repository->getModel()
+        $query = $this
+            ->getModel()
+            ->query()
             ->with('author')
             ->select([
                 'id',
@@ -103,59 +47,50 @@ class RoleTable extends TableAbstract
         return $this->applyScopes($query);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function columns(): array
     {
         return [
-            'id'          => [
-                'title' => trans('core/base::tables.id'),
-                'width' => '20px',
-            ],
-            'name'        => [
-                'title' => trans('core/base::tables.name'),
-            ],
-            'description' => [
-                'title' => trans('core/base::tables.description'),
-                'class' => 'text-start',
-            ],
-            'created_at'  => [
-                'title' => trans('core/base::tables.created_at'),
-                'width' => '100px',
-            ],
-            'created_by'  => [
-                'title' => trans('core/acl::permissions.created_by'),
-                'width' => '100px',
-            ],
+            IdColumn::make(),
+            NameColumn::make()->route('roles.edit'),
+            FormattedColumn::make('description')
+                ->title(trans('core/base::tables.description'))
+                ->alignStart()
+                ->withEmptyState(),
+            CreatedAtColumn::make(),
+            LinkableColumn::make('created_by')
+                ->route('users.profile.view')
+                ->title(trans('core/acl::permissions.created_by'))
+                ->width(100)
+                ->getValueUsing(function (Column $column) {
+                    /**
+                     * @var Role $item
+                     */
+                    $item = $column->getItem();
+
+                    return BaseHelper::clean($item->author->name);
+                })
+                ->withEmptyState(),
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function buttons()
+    public function buttons(): array
     {
         return $this->addCreateButton(route('roles.create'), 'roles.create');
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function bulkActions(): array
     {
-        return $this->addDeleteAction(route('roles.deletes'), 'roles.destroy', parent::bulkActions());
+        return [
+            DeleteBulkAction::make()->permission('roles.destroy'),
+        ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getBulkChanges(): array
     {
         return [
             'name' => [
-                'title'    => trans('core/base::tables.name'),
-                'type'     => 'text',
+                'title' => trans('core/base::tables.name'),
+                'type' => 'text',
                 'validate' => 'required|max:120',
             ],
         ];

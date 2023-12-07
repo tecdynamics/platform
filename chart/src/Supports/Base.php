@@ -2,31 +2,25 @@
 
 namespace Tec\Chart\Supports;
 
-use Assets;
+use Tec\Base\Facades\Assets;
 use Illuminate\Support\Str;
-use Throwable;
 
 class Base
 {
-
     /**
      * Type of chart. This value is used in Javascript Morris method
      *
      * @brief Chart
-     *
-     * @var string
      */
-    protected $chartType = ChartTypes::LINE;
+    protected string $chartType = ChartTypes::LINE;
 
     /**
      * The ID of (or a reference to) the element into which to insert the graph.
      * Note: this element must have a width and height defined in its styling.
      *
      * @brief Element
-     *
-     * @var string
      */
-    protected $element = '';
+    protected string $element = '';
 
     /**
      * The data to plot. This is an array of objects, containing x and y attributes as described by the xkey and ykeys
@@ -36,39 +30,22 @@ class Base
      * returns (the same as with line charts).
      *
      * @brief Data
-     *
-     * @var array
      */
-    protected $data = [];
+    protected array $data = [];
 
-    /**
-     * @var string
-     */
-    protected $hoverCallback;
+    protected string $hoverCallback;
 
-    /**
-     * @var string
-     */
-    protected $formatter;
+    protected string $formatter;
 
-    /**
-     * @var string
-     */
-    protected $dateFormat;
+    protected string $dateFormat;
 
-    /**
-     * @var array
-     */
-    protected $functions = [
+    protected array $functions = [
         'hoverCallback',
         'formatter',
         'dateFormat',
     ];
 
-    /**
-     * @var bool
-     */
-    protected $useInlineJs = false;
+    protected bool $useInlineJs = false;
 
     /**
      * Create an instance of Morris class
@@ -79,25 +56,20 @@ class Base
      *
      * @return void
      */
-    public function __construct($chart = ChartTypes::LINE)
+    public function __construct(string $chart = ChartTypes::LINE)
     {
         $this->chartType = $chart;
         $this->element = $chart . '_' . Str::random(12);
     }
 
-    /**
-     * @param string $elementId
-     */
-    public function setElementId($elementId)
+    public function setElementId(string $elementId): Base
     {
         $this->element = $elementId;
+
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getElementId()
+    public function getElementId(): string
     {
         return $this->element;
     }
@@ -106,19 +78,17 @@ class Base
      * Return the array of this object
      *
      * @brief Array
-     *
-     * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         $return = [];
+        // @phpstan-ignore-next-line
         foreach ($this as $property => $value) {
-            if ('__' == substr($property, 0,
-                    2) || '' === $value || empty($value) || (is_array($value) && empty($value))) {
+            if (str_starts_with($property, '__') || empty($value)) {
                 continue;
             }
 
-            if (in_array($property, $this->functions) && substr($value, 0, 8) == 'function') {
+            if (in_array($property, $this->functions) && str_starts_with($value, 'function')) {
                 $value = '%' . $property . '%';
             }
 
@@ -132,10 +102,8 @@ class Base
      * Return the jSON encode of this chart
      *
      * @brief JSON
-     *
-     * @return string
      */
-    public function toJSON()
+    public function toJSON(): string
     {
         $json = json_encode($this->toArray());
 
@@ -154,12 +122,9 @@ class Base
         );
     }
 
-    /**
-     * @param string $name
-     * @return mixed|null
-     */
-    public function __get($name)
+    public function __get(string $name)
     {
+        // @phpstan-ignore-next-line
         foreach ($this as $key => $value) {
             if ($name == $key) {
                 return $this->{$key};
@@ -175,13 +140,9 @@ class Base
         return null;
     }
 
-    /**
-     * @param string $name
-     * @param array $arguments
-     * @return Base|bool
-     */
-    public function __call($name, $arguments)
+    public function __call(string $name, array $arguments)
     {
+        // @phpstan-ignore-next-line
         foreach ($this as $key => $value) {
             if ($name == $key) {
                 $this->{$key} = $arguments[0];
@@ -193,42 +154,26 @@ class Base
         return false;
     }
 
-    /**
-     * @return string
-     * @throws Throwable
-     */
-    public function renderChart()
+    public function renderChart(): string
     {
         Assets::addStyles(['morris'])
             ->addScripts(['morris', 'raphael']);
-
-        $this->init();
 
         $chart = $this;
 
         return view('core/chart::chart', compact('chart'))->render();
     }
 
-    /**
-     * @return $this
-     */
-    public function init()
+    public function init(): Base
     {
         return $this;
     }
 
-    /**
-     * @return bool
-     */
     public function isUseInlineJs(): bool
     {
         return $this->useInlineJs;
     }
 
-    /**
-     * @param bool $useInlineJs
-     * @return $this
-     */
     public function setUseInlineJs(bool $useInlineJs): self
     {
         $this->useInlineJs = $useInlineJs;

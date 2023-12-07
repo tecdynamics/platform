@@ -37,11 +37,11 @@ class Zipper
     /**
      * Constructor
      *
-     * @param Filesystem $fs
+     * @param Filesystem|null $fs
      */
     public function __construct(Filesystem $fs = null)
     {
-        $this->file = $fs ? $fs : new Filesystem;
+        $this->file = $fs ?: new Filesystem();
     }
 
     /**
@@ -55,7 +55,7 @@ class Zipper
     }
 
     /**
-     * Create a new zip Archive if the file does not exists
+     * Create a new zip Archive if the file does not exist
      * opens a zip archive if the file exists
      *
      * @param string $pathToFile The file to open
@@ -84,11 +84,11 @@ class Zipper
      */
     protected function createArchiveFile($pathToZip)
     {
-        if (!$this->file->exists($pathToZip)) {
+        if (! $this->file->exists($pathToZip)) {
             $dirname = dirname($pathToZip);
-            if (!$this->file->exists($dirname) && !$this->file->makeDirectory($dirname, 0755, true)) {
+            if (! $this->file->exists($dirname) && ! $this->file->makeDirectory($dirname, 0755, true)) {
                 throw new RuntimeException('Failed to create folder');
-            } elseif (!$this->file->isWritable($dirname)) {
+            } elseif (! $this->file->isWritable($dirname)) {
                 throw new Exception(sprintf('The path "%s" is not writeable', $pathToZip));
             }
 
@@ -110,18 +110,14 @@ class Zipper
     {
         if (is_array($pathToAdd)) {
             foreach ($pathToAdd as $key => $dir) {
-                if (!is_int($key)) {
+                if (! is_int($key)) {
                     $this->add($dir, $key);
                 } else {
                     $this->add($dir);
                 }
             }
         } elseif ($this->file->isFile($pathToAdd)) {
-            if ($fileName) {
-                $this->addFile($pathToAdd, $fileName);
-            } else {
-                $this->addFile($pathToAdd);
-            }
+            $this->addFile($pathToAdd, $fileName);
         } else {
             $this->addDir($pathToAdd);
         }
@@ -137,7 +133,7 @@ class Zipper
      */
     protected function addFile($pathToAdd, $fileName = null)
     {
-        if (!$fileName) {
+        if (! $fileName) {
             $info = pathinfo($pathToAdd);
             $fileName = isset($info['extension']) ?
                 $info['filename'] . '.' . $info['extension'] :
@@ -199,6 +195,7 @@ class Zipper
         if (null !== $this->repository) {
             $this->repository->close();
         }
+
         $this->filePath = '';
     }
 }

@@ -1,87 +1,73 @@
 <?php
 
+use Tec\Base\Facades\BaseHelper;
 use Carbon\Carbon;
 
-if (!function_exists('format_time')) {
+if (! function_exists('format_time')) {
     /**
-     * @param Carbon $timestamp
-     * @param string $format
-     * @return string
+     * @deprecated
      */
-    function format_time(Carbon $timestamp, $format = 'j M Y H:i')
+    function format_time(Carbon $timestamp, string $format = 'j M Y H:i'): string
     {
         return BaseHelper::formatTime($timestamp, $format);
     }
 }
 
-if (!function_exists('date_from_database')) {
+if (! function_exists('date_from_database')) {
     /**
-     * @param string $time
-     * @param string $format
-     * @return string
      * @deprecated
      */
-    function date_from_database($time, $format = 'Y-m-d')
+    function date_from_database(string $time, string $format = 'Y-m-d'): string
     {
         return BaseHelper::formatDate($time, $format);
     }
 }
 
-if (!function_exists('human_file_size')) {
+if (! function_exists('human_file_size')) {
     /**
-     * @param int $bytes
-     * @param int $precision
-     * @return string
+     * @deprecated
      */
-    function human_file_size($bytes, $precision = 2): string
+    function human_file_size(float $bytes, int $precision = 2): string
     {
         return BaseHelper::humanFilesize($bytes, $precision);
     }
 }
 
-if (!function_exists('get_file_data')) {
+if (! function_exists('get_file_data')) {
     /**
-     * @param string $file
-     * @param bool $toArray
-     * @return bool|mixed
+     * @deprecated
      */
-    function get_file_data($file, $toArray = true)
+    function get_file_data(string $file, bool $toArray = true): string|array|null
     {
         return BaseHelper::getFileData($file, $toArray);
     }
 }
 
-if (!function_exists('json_encode_prettify')) {
+if (! function_exists('json_encode_prettify')) {
     /**
-     * @param array $data
-     * @return string
+     * @deprecated
      */
-    function json_encode_prettify($data)
+    function json_encode_prettify(array $data): string
     {
         return BaseHelper::jsonEncodePrettify($data);
     }
 }
 
-if (!function_exists('save_file_data')) {
+if (! function_exists('save_file_data')) {
     /**
-     * @param string $path
-     * @param array|string $data
-     * @param bool $json
-     * @return bool|mixed
+     * @deprecated
      */
-    function save_file_data($path, $data, $json = true)
+    function save_file_data(string $path, array|string|null $data, bool $json = true): bool
     {
         return BaseHelper::saveFileData($path, $data, $json);
     }
 }
 
-if (!function_exists('scan_folder')) {
+if (! function_exists('scan_folder')) {
     /**
-     * @param string $path
-     * @param array $ignoreFiles
-     * @return array
+     * @deprecated
      */
-    function scan_folder($path, $ignoreFiles = [])
+    function scan_folder(string $path, array $ignoreFiles = []): array
     {
         return BaseHelper::scanFolder($path, $ignoreFiles);
     }

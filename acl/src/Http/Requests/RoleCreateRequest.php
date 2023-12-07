@@ -6,17 +6,11 @@ use Tec\Support\Http\Requests\Request;
 
 class RoleCreateRequest extends Request
 {
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'name'        => 'required|max:60|min:3',
-            'description' => 'required|max:255',
+            'name' => 'required|string|max:60|min:3',
+            'description' => 'nullable|string|max:255',
         ];
     }
 }

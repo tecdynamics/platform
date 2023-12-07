@@ -2,10 +2,11 @@
 
 namespace Tec\Setting\Repositories\Caches;
 
-use Tec\Setting\Repositories\Interfaces\SettingInterface;
-use Tec\Support\Repositories\Caches\CacheAbstractDecorator;
+use Tec\Setting\Repositories\Eloquent\SettingRepository;
 
-class SettingCacheDecorator extends CacheAbstractDecorator implements SettingInterface
+/**
+ * @deprecated
+ */
+class SettingCacheDecorator extends SettingRepository
 {
-
 }

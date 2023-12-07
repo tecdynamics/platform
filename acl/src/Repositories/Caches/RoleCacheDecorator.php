@@ -2,16 +2,11 @@
 
 namespace Tec\ACL\Repositories\Caches;
 
-use Tec\ACL\Repositories\Interfaces\RoleInterface;
-use Tec\Support\Repositories\Caches\CacheAbstractDecorator;
+use Tec\ACL\Repositories\Eloquent\RoleRepository;
 
-class RoleCacheDecorator extends CacheAbstractDecorator implements RoleInterface
+/**
+ * @deprecated
+ */
+class RoleCacheDecorator extends RoleRepository
 {
-    /**
-     * {@inheritDoc}
-     */
-    public function createSlug($name, $id)
-    {
-        return $this->flushCacheAndUpdateData(__FUNCTION__, func_get_args());
-    }
 }

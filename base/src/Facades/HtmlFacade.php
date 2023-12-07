@@ -35,7 +35,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void component($name, $view, array $signature)
  * @method static bool hasComponent($name)
  * @method static \Illuminate\Contracts\View\View|mixed componentCall(string $method, array $parameters)
- *
+ * @deprecated
  * @see \Collective\Html\HtmlBuilder
  */
 class HtmlFacade extends Facade

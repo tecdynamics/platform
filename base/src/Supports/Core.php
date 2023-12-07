@@ -29,7 +29,7 @@ use Tec\Base\Exceptions\LicenseInvalidException;
 use Tec\Base\Exceptions\LicenseIsAlreadyActivatedException;
 use Tec\Base\Exceptions\MissingCURLExtensionException;
 use Tec\Base\Exceptions\RequiresLicenseActivatedException;
-use BaseHelper;
+use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Services\ClearCacheService;
 use Tec\Base\Supports\ValueObjects\CoreProduct;
 use Tec\Setting\Facades\Setting;

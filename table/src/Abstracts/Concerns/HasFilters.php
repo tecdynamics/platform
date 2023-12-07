@@ -2,7 +2,7 @@
 
 namespace Tec\Table\Abstracts\Concerns;
 
-use BaseHelper;
+use Tec\Base\Facades\BaseHelper;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Relations\Relation as EloquentRelation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -44,7 +44,8 @@ trait HasFilters
         });
     }
 
-    public function applyFilterCondition( $query,
+    public function applyFilterCondition(
+        EloquentBuilder|QueryBuilder|EloquentRelation $query,
         string $key,
         string $operator,
         string|null $value

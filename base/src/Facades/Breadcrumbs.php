@@ -2,8 +2,8 @@
 
 namespace Tec\Base\Facades;
 
-use Illuminate\Support\Facades\Facade;
 use Tec\Base\Supports\BreadcrumbsManager;
+use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static void register(string $name, callable $callback, bool $modify = false)
@@ -26,10 +26,7 @@ use Tec\Base\Supports\BreadcrumbsManager;
  */
 class Breadcrumbs extends Facade
 {
-    /**
-     * @return string
-     */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
         return BreadcrumbsManager::class;
     }

@@ -2,8 +2,8 @@
 
 namespace Tec\Base\Facades;
 
-use Illuminate\Support\Facades\Facade;
 use Tec\Base\Supports\EmailHandler as EmailHandlerSupport;
+use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static \Tec\Base\Supports\EmailHandler setModule(string $module)

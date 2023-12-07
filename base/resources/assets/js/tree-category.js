@@ -13,11 +13,16 @@
                     .on('click', '.file-opener-i', function (e) {
                         return (
                             e.preventDefault(),
-                            $(this).hasClass('fa-plus-square')
-                                ? ($(this).addClass('fa-minus-square'), $(this).removeClass('fa-plus-square'))
-                                : ($(this).addClass('fa-plus-square'), $(this).removeClass('fa-minus-square')),
-                            $(this).parent().toggleClass('closed').toggleClass('open'),
-                            !1
+                                $(this).hasClass('fa-plus-square')
+                                    ? ($(this).addClass('fa-minus-square'),
+                                        $(this).removeClass('fa-plus-square'))
+                                    : ($(this).addClass('fa-plus-square'),
+                                        $(this).removeClass('fa-minus-square')),
+                                $(this)
+                                    .parent()
+                                    .toggleClass('closed')
+                                    .toggleClass('open'),
+                                !1
                         )
                     })
             })
@@ -130,12 +135,11 @@ $(() => {
     })
 
     function fetchData(url, $el) {
-        $formLoading.removeClass('d-none')
-        $treeWrapper.find('a.active').removeClass('active')
+        clearRefSetupDefault();
 
-        if ($el) {
+                if ($el) {
             $el.addClass('active')
-        }
+                }
 
         $httpClient
             .make()
@@ -188,14 +192,14 @@ $(() => {
                 $treeWrapper.html(data.data)
                 loadTree(activeId)
 
-                if (jQuery().tooltip) {
-                    $('[data-bs-toggle="tooltip"]').tooltip({
-                        placement: 'top',
+                    if (jQuery().tooltip) {
+                        $('[data-bs-toggle="tooltip"]').tooltip({
+                            placement: 'top',
                         boundary: 'window',
                     })
-                }
+                    }
 
-                if (callback) {
+                    if (callback) {
                     callback()
                 }
             })
@@ -235,19 +239,19 @@ $(() => {
 
                 const activeId = saveAndEdit && data.data && data.data.model ? data.data.model.id : null
 
-                reloadTree(activeId, function () {
-                    if (activeId) {
+                    reloadTree(activeId, function () {
+                        if (activeId) {
                         let fetchDataButton = $('.folder-root[data-id="' + activeId + '"] > a.fetch-data')
-                        if (fetchDataButton.length) {
+                            if (fetchDataButton.length) {
                             fetchDataButton.trigger('click')
-                        } else {
+                            } else {
                             location.reload()
-                        }
+                            }
                     } else if ($createButton.length) {
                         $createButton.trigger('click')
-                    } else {
+                        } else {
                         reloadForm(data.data?.form)
-                    }
+                        }
                 })
             })
             .finally(function () {
@@ -284,9 +288,9 @@ $(() => {
                 reloadTree()
 
                 let $createButton = $('.tree-categories-create')
-                if ($createButton.length) {
+                    if ($createButton.length) {
                     $createButton.trigger('click')
-                } else {
+                    } else {
                     reloadForm('')
                 }
                 _self.closest('.modal').modal('hide')

@@ -2,7 +2,7 @@
 
 namespace Tec\Base\Supports;
 
-use BaseHelper;
+use Tec\Base\Facades\BaseHelper;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;

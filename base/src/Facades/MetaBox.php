@@ -2,8 +2,8 @@
 
 namespace Tec\Base\Facades;
 
+use Tec\Base\Supports\MetaBox as MetaBoxSupport;
 use Illuminate\Support\Facades\Facade;
-use Tec\Base\Supports\MetaBox as MetaBoxFacade;
 
 /**
  * @method static void addMetaBox(string $id, string $title, \Closure|callable|array|string $callback, string|null $reference = null, string $context = 'advanced', string $priority = 'default', array|null $callbackArgs = null)
@@ -19,13 +19,8 @@ use Tec\Base\Supports\MetaBox as MetaBoxFacade;
  */
 class MetaBox extends Facade
 {
-
-    /**
-     * @return string
-     * @since 2.2
-     */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return MetaBoxFacade::class;
+        return MetaBoxSupport::class;
     }
 }

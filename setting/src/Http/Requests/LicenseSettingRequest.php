@@ -6,16 +6,11 @@ use Tec\Support\Http\Requests\Request;
 
 class LicenseSettingRequest extends Request
 {
-
-    /**
-     * Get the validation rules that apply to the request.
-     * @return array
-     */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'purchase_code'           => 'required',
-            'buyer'                   => 'required',
+            'purchase_code' => 'required|string|min:19|max:36|regex:/^[\pL\s\ \_\-0-9]+$/u',
+            'buyer' => 'required|string|max:40|regex:/^[\pL\s\ \_\-0-9]+$/u',
             'license_rules_agreement' => 'accepted:1',
         ];
     }

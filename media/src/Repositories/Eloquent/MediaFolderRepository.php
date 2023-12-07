@@ -2,28 +2,23 @@
 
 namespace Tec\Media\Repositories\Eloquent;
 
+use Tec\Media\Models\MediaFolder;
 use Tec\Media\Repositories\Interfaces\MediaFolderInterface;
 use Tec\Support\Repositories\Eloquent\RepositoriesAbstract;
-use Eloquent;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Str;
-use RvMedia;
 
 /**
  * @since 19/08/2015 07:45 AM
  */
 class MediaFolderRepository extends RepositoriesAbstract implements MediaFolderInterface
 {
-    /**
-     * {@inheritDoc}
-     */
-    public function getFolderByParentId($folderId, array $params = [], $withTrash = false)
+    public function getFolderByParentId(int|string|null $folderId, array $params = [], bool $withTrash = false)
     {
         $params = array_merge([
             'condition' => [],
         ], $params);
 
-        if (!$folderId) {
+        if (! $folderId) {
             $folderId = null;
         }
 
@@ -36,60 +31,19 @@ class MediaFolderRepository extends RepositoriesAbstract implements MediaFolderI
         return $this->advancedGet($params);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function createSlug($name, $parentId)
+    public function createSlug(string $name, int|string|null $parentId): string
     {
-        $slug = Str::slug($name, '-', !RvMedia::turnOffAutomaticUrlTranslationIntoLatin() ? 'en' : false);
-        $index = 1;
-        $baseSlug = $slug;
-        while ($this->checkIfExists('slug', $slug, $parentId)) {
-            $slug = $baseSlug . '-' . $index++;
-        }
-
-        return $slug;
+        return MediaFolder::createSlug($name, $parentId);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function createName($name, $parentId)
+    public function createName(string $name, int|string|null $parentId): string
     {
-        $newName = $name;
-        $index = 1;
-        $baseSlug = $newName;
-        while ($this->checkIfExists('name', $newName, $parentId)) {
-            $newName = $baseSlug . '-' . $index++;
-        }
-
-        return $newName;
+        return MediaFolder::createName($name, $parentId);
     }
 
-    /**
-     * @param string $key
-     * @param string $value
-     * @param int $parentId
-     * @return bool
-     */
-    protected function checkIfExists($key, $value, $parentId)
+    public function getBreadcrumbs(int|string|null $parentId, array $breadcrumbs = [])
     {
-        $count = $this->model->where($key, $value)->where('parent_id', $parentId)->withTrashed();
-
-        /**
-         * @var Builder $count
-         */
-        $count = $count->count();
-
-        return $count > 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getBreadcrumbs($parentId, $breadcrumbs = [])
-    {
-        if (!$parentId) {
+        if (! $parentId) {
             return $breadcrumbs;
         }
 
@@ -100,18 +54,16 @@ class MediaFolderRepository extends RepositoriesAbstract implements MediaFolderI
         }
 
         $child = $this->getBreadcrumbs($folder->parent_id, $breadcrumbs);
+
         return array_merge($child, [
             [
-                'id'   => $folder->id,
+                'id' => $folder->id,
                 'name' => $folder->name,
             ],
         ]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getTrashed($parentId, array $params = [])
+    public function getTrashed(int|string|null $parentId, array $params = [])
     {
         $params = array_merge([
             'where' => [],
@@ -125,7 +77,7 @@ class MediaFolderRepository extends RepositoriesAbstract implements MediaFolderI
         /**
          * @var Builder $data
          */
-        if (!$parentId) {
+        if (! $parentId) {
             $data->leftJoin('media_folders as mf_parent', 'mf_parent.id', '=', 'media_folders.parent_id')
                 ->where(function ($query) {
                     /**
@@ -143,10 +95,7 @@ class MediaFolderRepository extends RepositoriesAbstract implements MediaFolderI
         return $data->get();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function deleteFolder($folderId, $force = false)
+    public function deleteFolder(int|string|null $folderId, bool $force = false)
     {
         $child = $this->getFolderByParentId($folderId, [], $force);
         foreach ($child as $item) {
@@ -160,20 +109,18 @@ class MediaFolderRepository extends RepositoriesAbstract implements MediaFolderI
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getAllChildFolders($parentId, $child = [])
+    public function getAllChildFolders(int|string|null $parentId, array $child = [])
     {
-        if (!$parentId) {
+        if (! $parentId) {
             return $child;
         }
 
         $folders = $this->allBy(['parent_id' => $parentId]);
 
-        if (!empty($folders)) {
+        if (! empty($folders)) {
             foreach ($folders as $folder) {
                 $child[$parentId][] = $folder;
+
                 return $this->getAllChildFolders($folder->id, $child);
             }
         }
@@ -181,34 +128,12 @@ class MediaFolderRepository extends RepositoriesAbstract implements MediaFolderI
         return $child;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getFullPath($folderId, $path = null)
+    public function getFullPath(int|string|null $folderId, string|null $path = ''): string|null
     {
-        if (!$folderId) {
-            return $path;
-        }
-
-        $folder = $this->getFirstByWithTrash(['id' => $folderId]);
-
-        if (empty($folder)) {
-            return $path;
-        }
-
-        $parent = $this->getFullPath($folder->parent_id, $path);
-
-        if (!$parent) {
-            return $folder->slug;
-        }
-
-        return rtrim($parent, '/') . '/' . $folder->slug;
+        return MediaFolder::getFullPath($folderId, $path);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function restoreFolder($folderId)
+    public function restoreFolder(int|string|null $folderId)
     {
         $child = $this->getFolderByParentId($folderId, [], true);
         foreach ($child as $item) {
@@ -218,23 +143,10 @@ class MediaFolderRepository extends RepositoriesAbstract implements MediaFolderI
         $this->restoreBy(['id' => $folderId]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function emptyTrash()
+    public function emptyTrash(): bool
     {
-        $folders = $this->model->onlyTrashed();
+        $this->model->onlyTrashed()->each(fn (MediaFolder $folder) => $folder->forceDelete());
 
-        /**
-         * @var Builder $folders
-         */
-        $folders = $folders->get();
-        foreach ($folders as $folder) {
-            /**
-             * @var Eloquent $folder
-             */
-            $folder->forceDelete();
-        }
         return true;
     }
 }

@@ -3,42 +3,17 @@
 namespace Tec\Media\Repositories\Interfaces;
 
 use Tec\Support\Repositories\Interfaces\RepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 interface MediaFileInterface extends RepositoryInterface
 {
-    /**
-     * @param string $name
-     * @param string $folder
-     */
-    public function createName($name, $folder);
+    public function createName(string $name, int|string|null $folder): string;
 
-    /**
-     * @param string $name
-     * @param string $extension
-     * @param string $folderPath
-     */
-    public function createSlug($name, $extension, $folderPath);
+    public function createSlug(string $name, string $extension, string|null $folderPath): string;
 
-    /**
-     * @param int $folderId
-     * @param array $params
-     * @param bool $withFolders
-     * @param array $folderParams
-     * @return mixed
-     */
-    public function getFilesByFolderId($folderId, array $params = [], $withFolders = true, $folderParams = []);
+    public function getFilesByFolderId(int|string $folderId, array $params = [], bool $withFolders = true, array $folderParams = []);
 
-    /**
-     * @param int $folderId
-     * @param array $params
-     * @param bool $withFolders
-     * @param array $folderParams
-     * @return mixed
-     */
-    public function getTrashed($folderId, array $params = [], $withFolders = true, $folderParams = []);
+    public function getTrashed(int|string $folderId, array $params = [], bool $withFolders = true, array $folderParams = []): Collection;
 
-    /**
-     * @return bool
-     */
-    public function emptyTrash();
+    public function emptyTrash(): bool;
 }

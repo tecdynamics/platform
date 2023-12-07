@@ -2,8 +2,8 @@
 
 namespace Tec\Base\Facades;
 
-use Tec\Base\Supports\BreadcrumbsManager;
 use Illuminate\Support\Facades\Facade;
+use Tec\Base\Supports\BreadcrumbsManager;
 
 /**
  * @method static void register(string $name, callable $callback, bool $modify = false)
@@ -21,15 +21,13 @@ use Illuminate\Support\Facades\Facade;
  * @method static void mixin(object $mixin, bool $replace = true)
  * @method static bool hasMacro(string $name)
  * @method static void flushMacros()
+ * @deprecated
  *
  * @see \Tec\Base\Supports\BreadcrumbsManager
  */
 class BreadcrumbsFacade extends Facade
 {
-    /**
-     * @return string
-     */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
         return BreadcrumbsManager::class;
     }

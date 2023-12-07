@@ -1,57 +1,44 @@
-import {MediaConfig} from '../Config/MediaConfig';
-import {MediaService} from './MediaService';
-import {MessageService} from './MessageService';
-import {Helpers} from '../Helpers/Helpers';
+import { MediaConfig } from '../Config/MediaConfig'
+import { MediaService } from './MediaService'
+import { MessageService } from './MessageService'
+import { Helpers } from '../Helpers/Helpers'
 
 export class FolderService {
     constructor() {
-        this.MediaService = new MediaService();
+        this.MediaService = new MediaService()
 
-        $(document).on('shown.bs.modal', '#modal_add_folder', event =>  {
-            $(event.currentTarget).find('.form-add-folder input[type=text]').focus();
-        });
+        $(document).on('shown.bs.modal', '#modal_add_folder', (event) => {
+            $(event.currentTarget).find('.form-add-folder input[type=text]').focus()
+        })
     }
 
     create(folderName) {
-        let _self = this;
+        let _self = this
 
-        $.ajax({
-            url: RV_MEDIA_URL.create_folder,
-            type: 'POST',
-            data: {
+        Helpers.showAjaxLoading()
+
+        $httpClient
+            .make()
+            .post(RV_MEDIA_URL.create_folder, {
                 parent_id: Helpers.getRequestParams().folder_id,
-                name: folderName
-            },
-            dataType: 'json',
-            beforeSend: () => {
-                Helpers.showAjaxLoading();
-            },
-            success: res => {
-                if (res.error) {
-                    MessageService.showMessage('error', res.message, RV_MEDIA_CONFIG.translations.message.error_header);
-                } else {
-                    MessageService.showMessage('success', res.message, RV_MEDIA_CONFIG.translations.message.success_header);
-                    Helpers.resetPagination();
-                    _self.MediaService.getMedia(true);
-                    FolderService.closeModal();
-                }
-            },
-            complete: () => {
-                Helpers.hideAjaxLoading();
-            },
-            error: data => {
-                MessageService.handleError(data);
-            }
-        });
+                name: folderName,
+            })
+            .then(({ data }) => {
+                MessageService.showMessage('success', data.message, Helpers.trans('message.success_header'))
+                Helpers.resetPagination()
+                _self.MediaService.getMedia(true)
+                FolderService.closeModal()
+            })
+            .finally(() => Helpers.hideAjaxLoading())
     }
 
     changeFolder(folderId) {
-        MediaConfig.request_params.folder_id = folderId;
-        Helpers.storeConfig();
-        this.MediaService.getMedia(true);
+        MediaConfig.request_params.folder_id = folderId
+        Helpers.storeConfig()
+        this.MediaService.getMedia(true)
     }
 
     static closeModal() {
-        $(document).find('#modal_add_folder').modal('hide');
+        $(document).find('#modal_add_folder').modal('hide')
     }
 }

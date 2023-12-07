@@ -2,7 +2,7 @@
 
 namespace Tec\Base\Supports;
 
-use BaseHelper;
+use Tec\Base\Facades\BaseHelper;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;

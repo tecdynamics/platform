@@ -2,8 +2,9 @@
 
 namespace Tec\Base\Facades;
 
-use Tec\Base\Supports\MetaBox;
 use Illuminate\Support\Facades\Facade;
+use Tec\Base\Supports\MetaBox as MetaBoxSupport;
+
 /**
  * @method static void addMetaBox(string $id, string $title, \Closure|callable|array|string $callback, string|null $reference = null, string $context = 'advanced', string $priority = 'default', array|null $callbackArgs = null)
  * @method static void doMetaBoxes(string $context, \Illuminate\Database\Eloquent\Model|string|null $object = null)
@@ -13,18 +14,13 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Illuminate\Database\Eloquent\Model|null getMeta(\Illuminate\Database\Eloquent\Model $object, string $key, array $select = ['meta_value'])
  * @method static bool deleteMetaData(\Illuminate\Database\Eloquent\Model $object, string $key)
  * @method static array getMetaBoxes()
- *
+ * @deprecated
  * @see \Tec\Base\Supports\MetaBox
  */
 class MetaBoxFacade extends Facade
 {
-
-    /**
-     * @return string
-     * @since 2.2
-     */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return MetaBox::class;
+        return MetaBoxSupport::class;
     }
 }

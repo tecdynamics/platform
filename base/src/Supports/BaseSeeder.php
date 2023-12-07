@@ -4,7 +4,7 @@ namespace Tec\Base\Supports;
 
 use Tec\Base\Events\FinishedSeederEvent;
 use Tec\Base\Events\SeederPrepared;
-use BaseHelper;
+use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Models\MetaBox as MetaBoxModel;
 use Tec\Media\Facades\RvMedia;
 use Tec\Media\Models\MediaFile;

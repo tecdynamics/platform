@@ -4,9 +4,9 @@ namespace Tec\Table\Abstracts;
 
 use Tec\ACL\Models\User;
 use Tec\Base\Contracts\BaseModel as BaseModelContract;
-use Assets;
-use Form;
-use Html;
+use Tec\Base\Facades\Assets;
+use Tec\Base\Facades\Form;
+use Tec\Base\Facades\Html;
 use Tec\Base\Models\BaseModel;
 use Tec\Table\Abstracts\Concerns\DeprecatedFunctions;
 use Tec\Table\Abstracts\Concerns\HasActions;
@@ -63,7 +63,7 @@ abstract class TableAbstract extends DataTable
     protected array $options = [];
 
     /**
-     * @deprecated
+     * @deprecated since v6.8.0
      */
     protected $repository;
 
@@ -78,6 +78,7 @@ abstract class TableAbstract extends DataTable
     protected bool $hasColumnVisibility = true;
 
     protected string $exportClass = TableExportHandler::class;
+
     /**
      * @var \Closure(\Tec\Table\DataTables $table): \Illuminate\Http\JsonResponse
      */
@@ -87,6 +88,7 @@ abstract class TableAbstract extends DataTable
      * @var \Tec\Table\Columns\Column[]
      */
     protected array $columns = [];
+
     /**
      * @var \Closure(\Illuminate\Contracts\Database\Eloquent\Builder $query): void
      */
@@ -304,7 +306,7 @@ abstract class TableAbstract extends DataTable
     /**
      * @param BaseModel|class-string<BaseModel> $model
      */
-    public function model($model): static
+    public function model(BaseModelContract|string $model): static
     {
         if (is_string($model)) {
             throw_unless(
@@ -329,12 +331,12 @@ abstract class TableAbstract extends DataTable
         return $this;
     }
 
-    protected function getModel()
+    protected function getModel(): BaseModelContract|Model
     {
         return $this->model ?: ($this->repository ? $this->repository->getModel() : new BaseModel());
     }
 
-    public function columns(): array
+    public function columns()
     {
         return [];
     }
@@ -707,7 +709,7 @@ abstract class TableAbstract extends DataTable
                     break;
 
                 case $column instanceof Column && $column instanceof FormattedColumn:
-                    $table->editColumn($column->name, function ($item) use ($column) {
+                    $table->editColumn($column->name, function (BaseModelContract|array $item) use ($column) {
                         return $column->renderCell($item, $this);
                     });
 

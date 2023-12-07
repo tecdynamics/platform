@@ -2,7 +2,7 @@
 
 namespace Tec\Table\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use Tec\Base\Supports\ServiceProvider;
 use Tec\Base\Traits\LoadAndPublishDataTrait;
 use Tec\Table\ApiResourceDataTable;
 use Tec\Table\CollectionDataTable;

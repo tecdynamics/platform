@@ -2,7 +2,7 @@
 
 namespace Tec\Base\Supports;
 
-use BaseHelper;
+use Tec\Base\Facades\BaseHelper;
 use Illuminate\Support\Facades\File;
 
 class Language

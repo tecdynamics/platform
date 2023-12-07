@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MetaBox extends BaseModel
 {
-
     protected $table = 'meta_boxes';
 
     protected $fillable = [

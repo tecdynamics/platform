@@ -4,26 +4,23 @@ namespace Tec\ACL\Forms;
 
 use Tec\ACL\Http\Requests\UpdatePasswordRequest;
 use Tec\ACL\Models\User;
+use Tec\Base\Facades\Html;
 use Tec\Base\Forms\FormAbstract;
-use Html;
 
 class PasswordForm extends FormAbstract
 {
-
-    /**
-     * {@inheritDoc}
-     */
-    public function buildForm()
+    public function buildForm(): void
     {
         $this
-            ->setupModel(new User)
+            ->setupModel(new User())
             ->setValidatorClass(UpdatePasswordRequest::class)
             ->setFormOption('template', 'core/base::forms.form-no-wrap')
             ->setFormOption('id', 'password-form')
+            ->setMethod('PUT')
             ->add('old_password', 'password', [
-                'label'      => trans('core/acl::users.current_password'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.current_password'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 60,
                 ],
             ])
@@ -31,29 +28,29 @@ class PasswordForm extends FormAbstract
                 'html' => '<div class="row">',
             ])
             ->add('password', 'password', [
-                'label'      => trans('core/acl::users.new_password'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.new_password'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 60,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
                 'help_block' => [
                     'text' => Html::tag('span', 'Password Strength', ['class' => 'hidden'])->toHtml(),
-                    'tag'  => 'div',
+                    'tag' => 'div',
                     'attr' => [
                         'class' => 'pwstrength_viewport_progress',
                     ],
                 ],
             ])
             ->add('password_confirmation', 'password', [
-                'label'      => trans('core/acl::users.confirm_new_password'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.confirm_new_password'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 60,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])

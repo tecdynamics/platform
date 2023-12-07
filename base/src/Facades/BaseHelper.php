@@ -2,8 +2,8 @@
 
 namespace Tec\Base\Facades;
 
+use Tec\Base\Helpers\BaseHelper as BaseHelperSupport;
 use Illuminate\Support\Facades\Facade;
-use Tec\Base\Helpers\BaseHelper as BaseHelperService;
 
 /**
  * @method static string formatTime(\Carbon\Carbon $timestamp, string|null $format = 'j M Y H:i')
@@ -50,11 +50,8 @@ use Tec\Base\Helpers\BaseHelper as BaseHelperService;
  */
 class BaseHelper extends Facade
 {
-    /**
-     * @return string
-     */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return BaseHelperService::class;
+        return BaseHelperSupport::class;
     }
 }

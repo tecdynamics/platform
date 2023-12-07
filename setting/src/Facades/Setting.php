@@ -2,8 +2,8 @@
 
 namespace Tec\Setting\Facades;
 
-use Illuminate\Support\Facades\Facade;
 use Tec\Setting\Supports\SettingStore;
+use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static mixed|null get(array|string $key, mixed|null $default = null)
@@ -23,12 +23,7 @@ use Tec\Setting\Supports\SettingStore;
  */
 class Setting extends Facade
 {
-    /**
-     * Get the registered name of the component.
-     *
-     * @return string
-     */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
         return SettingStore::class;
     }

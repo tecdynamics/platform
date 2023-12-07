@@ -6,19 +6,23 @@
         "Tec cms",
         "Tec platform"
     ],
-    "homepage": "https://tecdynamics.co.uk",
+    "homepage": "https://Tec.com",
+    "support": {
+        "issues": "https://Tec.ticksy.com",
+        "document": "https://docs.Tec.com"
+    },
     "authors": [
         {
-            "name": "Tec-Dynamics LTD",
-            "email": "support@tecdynamics.co.uk"
+            "name": "Tec Technologies",
+            "email": "contact@Tec.com"
         }
     ],
     "type": "project",
     "require": {
         "ext-zip": "*",
         "ext-gd": "*",
-        "barryvdh/laravel-dompdf": "*",
-        "tecdynamics/assets": "*",
+        "barryvdh/laravel-dompdf": "^2.0",
+        "Tec/assets": "^1.0",
         "intervention/image": "^2.6",
         "kris/laravel-form-builder": "dev-master",
         "laravelcollective/html": "^6.2",
@@ -32,14 +36,14 @@
         "symfony/postmark-mailer": "^6.3",
         "symfony/mailgun-mailer": "^6.3",
         "twig/twig": "^3.0",
-        "league/flysystem-aws-s3-v3": "^3.0",
-        "guzzlehttp/guzzle": "^6.0|^7.0"
+        "league/flysystem-aws-s3-v3": "^3.0"
     },
     "autoload": {
         "psr-4": {
             "Tec\\Support\\": "support/src",
             "Tec\\ACL\\": "acl/src",
             "Tec\\Base\\": "base/src",
+            "Tec\\Base\\Tests\\": "base/tests",
             "Tec\\Dashboard\\": "dashboard/src",
             "Tec\\Media\\": "media/src",
             "Tec\\Setting\\": "setting/src",
@@ -67,21 +71,21 @@
                 "Tec\\Chart\\Providers\\ChartServiceProvider"
             ],
             "aliases": {
-                "Assets": "Tec\\Base\\Facades\\AssetsFacade",
-                "BaseHelper": "Tec\\Base\\Facades\\BaseHelperFacade",
-                "MetaBox": "Tec\\Base\\Facades\\MetaBoxFacade",
-                "Action": "Tec\\Base\\Facades\\ActionFacade",
-                "Filter": "Tec\\Base\\Facades\\FilterFacade",
-                "EmailHandler": "Tec\\Base\\Facades\\EmailHandlerFacade",
-                "Breadcrumbs": "Tec\\Base\\Facades\\BreadcrumbsFacade",
-                "JsValidator": "Tec\\JsValidation\\Facades\\JsValidatorFacade",
-                "DashboardMenu": "Tec\\Base\\Facades\\DashboardMenuFacade",
-                "Form": "Tec\\Base\\Facades\\FormFacade",
-                "Html": "Tec\\Base\\Facades\\HtmlFacade",
-                "MacroableModels": "Tec\\Base\\Facades\\MacroableModelsFacade",
-                "PageTitle": "Tec\\Base\\Facades\\PageTitleFacade",
-                "Setting": "Tec\\Setting\\Facades\\SettingFacade",
-                "RvMedia": "Tec\\Media\\Facades\\RvMediaFacade"
+                "Action": "Tec\\Base\\Facades\\Action",
+                "Assets": "Tec\\Base\\Facades\\Assets",
+                "BaseHelper": "Tec\\Base\\Facades\\BaseHelper",
+                "Breadcrumbs": "Tec\\Base\\Facades\\Breadcrumbs",
+                "DashboardMenu": "Tec\\Base\\Facades\\DashboardMenu",
+                "EmailHandler": "Tec\\Base\\Facades\\EmailHandler",
+                "Filter": "Tec\\Base\\Facades\\Filter",
+                "Form": "Tec\\Base\\Facades\\Form",
+                "Html": "Tec\\Base\\Facades\\Html",
+                "MacroableModels": "Tec\\Base\\Facades\\MacroableModels",
+                "MetaBox": "Tec\\Base\\Facades\\MetaBox",
+                "PageTitle": "Tec\\Base\\Facades\\PageTitle",
+                "JsValidator": "Tec\\JsValidation\\Facades\\JsValidator",
+                "Setting": "Tec\\Setting\\Facades\\Setting",
+                "RvMedia": "Tec\\Media\\Facades\\RvMedia"
             }
         }
     },

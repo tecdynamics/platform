@@ -4,49 +4,26 @@ namespace Tec\Media\Chunks\Handler;
 
 use Tec\Media\Chunks\Save\AbstractSave;
 use Tec\Media\Chunks\Storage\ChunkStorage;
+use Tec\Media\Facades\RvMedia;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use RvMedia;
-use Session;
+use Illuminate\Support\Facades\Session;
 
 abstract class AbstractHandler
 {
-    /**
-     * @var Request
-     */
-    protected $request;
+    protected array $config;
 
-    /**
-     * @var UploadedFile
-     */
-    protected $file;
-
-    /**
-     * @var array
-     */
-    protected $config;
-
-    /**
-     * AbstractReceiver constructor.
-     *
-     * @param Request $request
-     * @param UploadedFile $file
-     */
-    public function __construct(Request $request, $file)
+    public function __construct(protected Request $request, protected UploadedFile $file)
     {
-        $this->request = $request;
-        $this->file = $file;
-        $this->config = RvMedia::getConfig('chunk');
+        $this->config = RvMedia::getConfig('chunk', []);
     }
 
     /**
      * Checks the current setup if session driver was booted - if not, it will generate random hash.
-     *
-     * @return bool
      */
-    public static function canUseSession()
+    public static function canUseSession(): bool
     {
-        // Get the session driver and check if it was started - fully inited by laravel
+        // Get the session driver and check if it was started - fully init by laravel
         $session = session();
         $driver = $session->getDefaultDriver();
         $drivers = $session->getDrivers();
@@ -64,8 +41,8 @@ abstract class AbstractHandler
      * provide custom additional name at the end of the generated file name. All chunk
      * files has .part extension.
      *
-     * @param string|null $additionalName Make the name more unique (example: use id from request)
-     * @param string|null $currentChunkIndex Add the chunk index for parallel upload
+     * @param int|string|null $additionalName Make the name more unique (example: use id from request)
+     * @param int|string|null $currentChunkIndex Add the chunk index for parallel upload
      *
      * @return string
      *
@@ -136,7 +113,7 @@ abstract class AbstractHandler
     abstract public function getChunkFileName();
 
     /**
-     * Checks if the request has first chunk.
+     * Checks if the request has first chunked.
      *
      * @return bool
      */
@@ -159,7 +136,7 @@ abstract class AbstractHandler
     /**
      * Returns the percentage of the upload file.
      *
-     * @return int
+     * @return float
      */
     abstract public function getPercentageDone();
 }

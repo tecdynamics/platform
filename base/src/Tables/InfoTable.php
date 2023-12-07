@@ -2,106 +2,49 @@
 
 namespace Tec\Base\Tables;
 
-use Illuminate\Http\JsonResponse;
 use Tec\Base\Supports\SystemManagement;
 use Tec\Table\Abstracts\TableAbstract;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Support\Collection;
+use Tec\Table\Columns\Column;
+use Illuminate\Http\JsonResponse;
 
 class InfoTable extends TableAbstract
 {
-    /**
-     * @var string
-     */
-    protected $view = 'core/table::simple-table';
-
-    /**
-     * @var bool
-     */
-    protected $hasCheckbox = false;
-
-    /**
-     * @var bool
-     */
-    protected $hasOperations = false;
-
-    /**
-     * {@inheritDoc}
-     */
-    public function ajax(): JsonResponse
+    public function setup(): void
     {
-        return $this->toJson($this->table
-            ->of($this->query())
-            ->editColumn('name', function ($item) {
-                return view('core/base::system.partials.info-package-line', compact('item'))->render();
-            })
-            ->editColumn('dependencies', function ($item) {
-                return view('core/base::system.partials.info-dependencies-line', compact('item'))->render();
-            }));
+        parent::setup();
+
+        $this->view = $this->simpleTableView();
     }
 
-    /**
-     * @return Collection
-     * @throws FileNotFoundException
-     */
-    public function query()
+    public function ajax(): JsonResponse
     {
         $composerArray = SystemManagement::getComposerArray();
         $packages = SystemManagement::getPackagesAndDependencies($composerArray['require']);
 
-        return collect($packages);
+        return $this
+            ->toJson($this->table->of(collect($packages))
+            ->editColumn('name', function (array $item) {
+                return view('core/base::system.partials.info-package-line', compact('item'))->render();
+            })
+            ->editColumn('dependencies', function (array $item) {
+                return view('core/base::system.partials.info-dependencies-line', compact('item'))->render();
+            }));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function columns(): array
     {
         return [
-            'name'         => [
-                'name'  => 'name',
-                'title' => trans('core/base::system.package_name') . ' : ' . trans('core/base::system.version'),
-                'class' => 'text-start',
-            ],
-            'dependencies' => [
-                'name'  => 'dependencies',
-                'title' => trans('core/base::system.dependency_name') . ' : ' . trans('core/base::system.version'),
-                'class' => 'text-start',
-            ],
+            Column::make('name')
+                ->title(trans('core/base::system.package_name') . ' : ' . trans('core/base::system.version'))
+                ->alignStart(),
+            Column::make('dependencies')
+                ->title(trans('core/base::system.dependency_name') . ' : ' . trans('core/base::system.version'))
+                ->alignStart(),
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function buttons()
+    protected function getDom(): string|null
     {
-        return [];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getBuilderParameters(): array
-    {
-        return [
-            'stateSave' => true,
-        ];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function actions(): array
-    {
-        return [];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    protected function getDom(): ?string
-    {
-        return "rt<'datatables__info_wrap'pli<'clearfix'>>";
+        return $this->simpleDom();
     }
 }

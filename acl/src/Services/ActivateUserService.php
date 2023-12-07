@@ -4,38 +4,16 @@ namespace Tec\ACL\Services;
 
 use Tec\ACL\Models\User;
 use Tec\ACL\Repositories\Interfaces\ActivationInterface;
-use InvalidArgumentException;
 
 class ActivateUserService
 {
-    /**
-     * @var ActivationInterface
-     */
-    protected $activationRepository;
-
-    /**
-     * ActivateUserService constructor.
-     * @param ActivationInterface $activationRepository
-     */
-    public function __construct(ActivationInterface $activationRepository)
+    public function __construct(protected ActivationInterface $activationRepository)
     {
-        $this->activationRepository = $activationRepository;
     }
 
-    /**
-     * Activates the given user.
-     *
-     * @param User $user
-     * @return bool
-     * @throws InvalidArgumentException
-     */
-    public function activate($user)
+    public function activate(User $user): bool
     {
-        if (!$user instanceof User) {
-            throw new InvalidArgumentException('No valid user was provided.');
-        }
-
-        if ($this->activationRepository->completed($user)) {
+        if ($user->activated) {
             return false;
         }
 
@@ -46,5 +24,20 @@ class ActivateUserService
         event('acl.activated', [$user, $activation]);
 
         return $this->activationRepository->complete($user, $activation->code);
+    }
+
+    public function remove(User $user): bool|null
+    {
+        if (! $user->activated) {
+            return false;
+        }
+
+        event('acl.deactivating', $user);
+
+        $removed = $this->activationRepository->remove($user);
+
+        event('acl.deactivated', $user);
+
+        return $removed;
     }
 }

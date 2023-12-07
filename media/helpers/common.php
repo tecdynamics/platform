@@ -1,59 +1,48 @@
 <?php
 
-if (!function_exists('is_image')) {
+use Tec\Media\Facades\RvMedia;
+use Illuminate\Http\UploadedFile;
+
+if (! function_exists('is_image')) {
     /**
-     * Is the mime type an image
-     *
-     * @param string $mimeType
-     * @return bool
      * @deprecated since 5.7
      */
-    function is_image($mimeType)
+    function is_image(string $mimeType): bool
     {
         return RvMedia::isImage($mimeType);
     }
 }
 
-if (!function_exists('get_image_url')) {
+if (! function_exists('get_image_url')) {
     /**
-     * @param string $url
-     * @param string $size
-     * @param bool $relativePath
-     * @param null $default
-     * @return string
      * @deprecated since 5.7
      */
-    function get_image_url($url, $size = null, $relativePath = false, $default = null)
-    {
+    function get_image_url(
+        string $url,
+        string|null $size = null,
+        bool $relativePath = false,
+        $default = null
+    ): string|null {
         return RvMedia::getImageUrl($url, $size, $relativePath, $default);
     }
 }
 
-if (!function_exists('get_object_image')) {
+if (! function_exists('get_object_image')) {
     /**
-     * @param string $image
-     * @param null $size
-     * @param bool $relativePath
-     * @return \Illuminate\Contracts\Routing\UrlGenerator|string
      * @deprecated since 5.7
      */
-    function get_object_image($image, $size = null, $relativePath = false)
+    function get_object_image(string $image, string|null $size = null, bool $relativePath = false): string|null
     {
         return RvMedia::getImageUrl($image, $size, $relativePath, RvMedia::getDefaultImage());
     }
 }
 
-if (!function_exists('rv_media_handle_upload')) {
+if (! function_exists('rv_media_handle_upload')) {
     /**
-     * @param \Illuminate\Http\UploadedFile $fileUpload
-     * @param int $folderId
-     * @param string $path
-     * @return array|\Illuminate\Http\JsonResponse
      * @deprecated since 5.7
      */
-    function rv_media_handle_upload($fileUpload, $folderId = 0, $path = '')
+    function rv_media_handle_upload(?UploadedFile $fileUpload, int|string $folderId = 0, string $path = ''): array
     {
         return RvMedia::handleUpload($fileUpload, $folderId, $path);
     }
 }
-

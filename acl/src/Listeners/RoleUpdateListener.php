@@ -2,21 +2,12 @@
 
 namespace Tec\ACL\Listeners;
 
-use Exception;
-use Illuminate\Support\Facades\Auth;
 use Tec\ACL\Events\RoleUpdateEvent;
+use Illuminate\Support\Facades\Auth;
 
 class RoleUpdateListener
 {
-    /**
-     * Handle the event.
-     *
-     * @param RoleUpdateEvent $event
-     * @return void
-     *
-     * @throws Exception
-     */
-    public function handle(RoleUpdateEvent $event)
+    public function handle(RoleUpdateEvent $event): void
     {
         $permissions = $event->role->permissions;
         foreach ($event->role->users()->get() as $user) {
@@ -27,6 +18,6 @@ class RoleUpdateListener
             $user->save();
         }
 
-        cache()->forget(md5('cache-dashboard-menu-' . Auth::id()));
+        cache()->forget(md5('cache-dashboard-menu-' . Auth::guard()->id()));
     }
 }

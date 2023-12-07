@@ -3,74 +3,36 @@
 namespace Tec\ACL\Services;
 
 use Tec\ACL\Events\RoleAssignmentEvent;
+use Tec\ACL\Models\Role;
 use Tec\ACL\Models\User;
-use Tec\ACL\Repositories\Interfaces\RoleInterface;
-use Tec\ACL\Repositories\Interfaces\UserInterface;
 use Tec\Support\Services\ProduceServiceInterface;
-use Hash;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class CreateUserService implements ProduceServiceInterface
 {
-    /**
-     * @var UserInterface
-     */
-    protected $userRepository;
-
-    /**
-     * @var RoleInterface
-     */
-    protected $roleRepository;
-
-    /**
-     * @var ActivateUserService
-     */
-    protected $activateUserService;
-
-    /**
-     * CreateUserService constructor.
-     * @param UserInterface $userRepository
-     * @param RoleInterface $roleRepository
-     * @param ActivateUserService $activateUserService
-     */
-    public function __construct(
-        UserInterface $userRepository,
-        RoleInterface $roleRepository,
-        ActivateUserService $activateUserService
-    ) {
-        $this->userRepository = $userRepository;
-        $this->roleRepository = $roleRepository;
-        $this->activateUserService = $activateUserService;
+    public function __construct(protected ActivateUserService $activateUserService)
+    {
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return User|false|Model|mixed
-     */
-    public function execute(Request $request)
+    public function execute(Request $request): User
     {
-        /**
-         * @var User $user
-         */
-        $user = $this->userRepository->createOrUpdate($request->input());
+        $user = new User();
+        $user->fill($request->input());
+        $user->password = Hash::make($request->input('password'));
+        $user->save();
 
-        if ($request->has('username') && $request->has('password')) {
-            $this->userRepository->update(['id' => $user->id], [
-                'username' => $request->input('username'),
-                'password' => Hash::make($request->input('password')),
-            ]);
+        if (
+            $this->activateUserService->activate($user) &&
+            ($roleId = $request->input('role_id')) &&
+            $role = Role::query()->find($roleId)
+        ) {
+            /**
+             * @var Role $role
+             */
+            $role->users()->attach($user->getKey());
 
-            if ($this->activateUserService->activate($user) && $request->input('role_id')) {
-                $role = $this->roleRepository->findById($request->input('role_id'));
-
-                if (!empty($role)) {
-                    $role->users()->attach($user->id);
-
-                    event(new RoleAssignmentEvent($role, $user));
-                }
-            }
+            event(new RoleAssignmentEvent($role, $user));
         }
 
         return $user;

@@ -2,54 +2,29 @@
 
 namespace Tec\ACL\Http\Controllers\Auth;
 
-use Assets;
+use Tec\ACL\Http\Requests\ForgotPasswordRequest;
+use Tec\ACL\Traits\SendsPasswordResetEmails;
+use Tec\Base\Facades\Assets;
+use Tec\Base\Facades\PageTitle;
 use Tec\Base\Http\Controllers\BaseController;
 use Tec\Base\Http\Responses\BaseHttpResponse;
-use Illuminate\Contracts\View\Factory;
-use Tec\ACL\Traits\SendsPasswordResetEmails;
+use Tec\JsValidation\Facades\JsValidator;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class ForgotPasswordController extends BaseController
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Password Reset Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller is responsible for handling password reset emails and
-    | includes a trait which assists in sending these notifications from
-    | your application to your users. Feel free to explore this trait.
-    |
-    */
-
     use SendsPasswordResetEmails;
 
-    /**
-     * @var BaseHttpResponse
-     */
-    protected $response;
-
-    /**
-     * Create a new controller instance.
-     *
-     * @param BaseHttpResponse $response
-     */
-    public function __construct(BaseHttpResponse $response)
+    public function __construct(protected BaseHttpResponse $response)
     {
         $this->middleware('guest');
-        $this->response = $response;
     }
 
-    /**
-     * @return Factory|View
-     */
     public function showLinkRequestForm()
     {
-        page_title()->setTitle(trans('core/acl::auth.forgot_password.title'));
+        PageTitle::setTitle(trans('core/acl::auth.forgot_password.title'));
 
-        Assets::addScripts(['jquery-validation'])
-            ->addScriptsDirectly('vendor/core/core/acl/js/login.js')
+        Assets::addScripts(['jquery-validation', 'form-validation'])
             ->addStylesDirectly('vendor/core/core/acl/css/animate.min.css')
             ->addStylesDirectly('vendor/core/core/acl/css/login.css')
             ->removeStyles([
@@ -66,16 +41,11 @@ class ForgotPasswordController extends BaseController
                 'cookie',
             ]);
 
-        return view('core/acl::auth.forgot-password');
+        $jsValidator = JsValidator::formRequest(ForgotPasswordRequest::class);
+
+        return view('core/acl::auth.forgot-password', compact('jsValidator'));
     }
 
-    /**
-     * Get the response for a successful password reset link.
-     *
-     * @param Request $request
-     * @param string $response
-     * @return BaseHttpResponse
-     */
     protected function sendResetLinkResponse(Request $request, $response)
     {
         return $this->response->setMessage(trans($response))->toResponse($request);

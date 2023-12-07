@@ -3,7 +3,6 @@
 namespace Tec\Base\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Tec\Base\Supports\Action as ActionFacade;
 
 /**
  * @method static void fire(string $action, array $args)
@@ -15,13 +14,8 @@ use Tec\Base\Supports\Action as ActionFacade;
  */
 class Action extends Facade
 {
-
-    /**
-     * @return string
-     * @since 2.1
-     */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return ActionFacade::class;
+        return 'core:action';
     }
 }

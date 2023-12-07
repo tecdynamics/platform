@@ -2,44 +2,32 @@
 
 namespace Tec\Setting\Supports;
 
+use Tec\Base\Models\BaseModel;
 use Tec\Base\Supports\Helper;
 use Tec\Setting\Models\Setting;
-use Exception;
-use File;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Filesystem\Filesystem;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use UnexpectedValueException;
 
 class DatabaseSettingStore extends SettingStore
 {
-    /**
-     * @var bool
-     */
-    protected $connectedDatabase = false;
+    protected bool $connectedDatabase = false;
 
-    /**
-     * {@inheritDoc}
-     */
-    public function forget($key): SettingStore
+    public function forget(string $key, bool $force = false): SettingStore
     {
         parent::forget($key);
 
-        // because the database store cannot store empty arrays, remove empty
-        // arrays to keep data consistent before and after saving
         $segments = explode('.', $key);
         array_pop($segments);
 
         while ($segments) {
             $segment = implode('.', $segments);
 
-            // non-empty array - exit out of the loop
             if ($this->get($segment)) {
                 break;
             }
 
-            // remove the empty array and move on to the next segment
             $this->forget($segment);
             array_pop($segments);
         }
@@ -47,114 +35,66 @@ class DatabaseSettingStore extends SettingStore
         return $this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    protected function write(array $data)
+    public function newQuery(): Builder
     {
-        $keys = Setting::pluck('key');
+        return Setting::query();
+    }
+
+    protected function write(array $data): void
+    {
+        $keys = $this->newQuery()->pluck('key');
 
         $insertData = Arr::dot($data);
         $updateData = [];
-        $deleteKeys = [];
 
         foreach ($keys as $key) {
             if (isset($insertData[$key])) {
                 $updateData[$key] = $insertData[$key];
-            } else {
-                $deleteKeys[] = $key;
             }
             unset($insertData[$key]);
         }
 
         foreach ($updateData as $key => $value) {
-            Setting::where('key', $key)
+            $this->newQuery()
+                ->where('key', $key)
                 ->update(['value' => $value]);
         }
 
         if ($insertData) {
-            Setting::insert($this->prepareInsertData($insertData));
-        }
-
-        // if ($deleteKeys) {
-            // Setting::whereIn('key', $deleteKeys)->delete();
-        // }
-
-        if (config('core.setting.general.cache.enabled')) {
-            try {
-                $jsonSettingStore = new JsonSettingStore(new Filesystem);
-                $jsonSettingStore->write($data);
-            } catch (Exception $exception) {
-                info($exception->getMessage());
-            }
+            $this->newQuery()->insert($this->prepareInsertData($insertData));
         }
     }
 
-    /**
-     * Transforms settings data into an array ready to be inserted into the
-     * database. Call array_dot on a multidimensional array before passing it
-     * into this method!
-     *
-     * @param array $data Call array_dot on a multidimensional array before passing it into this method!
-     *
-     * @return array
-     */
-    protected function prepareInsertData(array $data)
+    protected function prepareInsertData(array $data): array
     {
         $dbData = [];
 
         foreach ($data as $key => $value) {
-            $dbData[] = compact('key', 'value');
+            $data = compact('key', 'value');
+            if (BaseModel::getTypeOfId() !== 'BIGINT') {
+                $data['id'] = (new BaseModel())->newUniqueId();
+            }
+
+            $dbData[] = $data;
         }
 
         return apply_filters(SETTINGS_PREPARE_INSERT_DATA, $dbData);
     }
 
-    /**
-     * {@inheritDoc}
-     * @throws FileNotFoundException
-     */
-    protected function read()
+    protected function read(): array
     {
-        if (!$this->connectedDatabase) {
+        if (! $this->connectedDatabase) {
             $this->connectedDatabase = Helper::isConnectedDatabase();
         }
 
-        if (!$this->connectedDatabase) {
+        if (! $this->connectedDatabase) {
             return [];
         }
 
-        if (config('core.setting.general.cache.enabled')) {
-            $jsonSettingStore = new JsonSettingStore(new Filesystem);
-            if (File::exists($jsonSettingStore->getPath())) {
-                $data = $jsonSettingStore->read();
-                if (!empty($data)) {
-                    return $data;
-                }
-            }
-        }
-
-        $data = $this->parseReadData(Setting::get());
-
-        if (config('core.setting.general.cache.enabled')) {
-            if (!isset($jsonSettingStore)) {
-                $jsonSettingStore = new JsonSettingStore(new Filesystem);
-            }
-
-            $jsonSettingStore->write($data);
-        }
-
-        return $data;
+        return $this->parseReadData($this->newQuery()->get());
     }
 
-    /**
-     * Parse data coming from the database.
-     *
-     * @param Collection $data
-     *
-     * @return array
-     */
-    public function parseReadData($data)
+    public function parseReadData(Collection|array $data): array
     {
         $results = [];
 
@@ -167,6 +107,7 @@ class DatabaseSettingStore extends SettingStore
                 $value = $row->value;
             } else {
                 $msg = 'Expected array or object, got ' . gettype($row);
+
                 throw new UnexpectedValueException($msg);
             }
 
@@ -174,5 +115,39 @@ class DatabaseSettingStore extends SettingStore
         }
 
         return $results;
+    }
+
+    public function delete(array|string $keys = [], array $except = [], bool $force = false)
+    {
+        if (! $keys && ! $except) {
+            return false;
+        }
+
+        if (! is_array($keys)) {
+            $keys = [$keys];
+        }
+
+        foreach ($keys as $k => $v) {
+            if (! $force && in_array($k, $this->guard)) {
+                unset($keys[$k]);
+            }
+        }
+
+        $query = $this->newQuery();
+
+        if ($keys) {
+            $query = $query->whereIn('key', $keys);
+        }
+
+        if ($except) {
+            $query = $query->whereNotIn('key', $keys);
+        }
+
+        return $query->delete();
+    }
+
+    public function forceDelete(array|string $keys = [], array $except = [])
+    {
+        return $this->delete($keys, $except, true);
     }
 }

@@ -1,4 +1,4 @@
-@foreach ($menus = DashboardMenu::getAll() as $menu)
+@foreach ($menus = \Tec\Base\Facades\DashboardMenu::getAll() as $menu)
     @php $menu = apply_filters(BASE_FILTER_DASHBOARD_MENU, $menu); @endphp
     <li
         class="nav-item @if ($menu['active']) active @endif"

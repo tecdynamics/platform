@@ -3,11 +3,11 @@
 namespace Tec\ACL\Providers;
 
 use Tec\ACL\Commands\UserCreateCommand;
-use Illuminate\Support\ServiceProvider;
+use Tec\Base\Supports\ServiceProvider;
 
 class CommandServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([

@@ -2,8 +2,8 @@
 
 namespace Tec\Base\Facades;
 
+use Tec\Base\Supports\Assets as BaseAssets;
 use Illuminate\Support\Facades\Facade;
-use Tec\Base\Supports\Assets as AssetsFacade;
 
 /**
  * @method static void setConfig(array $config)
@@ -30,12 +30,8 @@ use Tec\Base\Supports\Assets as AssetsFacade;
  */
 class Assets extends Facade
 {
-
-    /**
-     * @return string
-     */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return AssetsFacade::class;
+        return BaseAssets::class;
     }
 }

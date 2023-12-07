@@ -2,7 +2,7 @@
 
 namespace Tec\Table\Columns;
 
-use Tec\Base\Models\BaseModel;
+use Tec\Base\Contracts\BaseModel;
 use Tec\Base\Supports\Renderable;
 use Tec\Table\Abstracts\TableAbstract;
 use Tec\Table\Columns\Concerns\HasEmptyState;

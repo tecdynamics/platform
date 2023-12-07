@@ -2,13 +2,12 @@
 
 namespace Tec\Support\Providers;
 
-use File;
-use Illuminate\Support\ServiceProvider;
+use Tec\Base\Supports\ServiceProvider;
 
 class SupportServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
-        File::requireOnce(core_path('support/helpers/common.php'));
+        $this->app['files']->requireOnce(core_path('support/helpers/common.php'));
     }
 }

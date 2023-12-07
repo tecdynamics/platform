@@ -3,35 +3,21 @@
 namespace Tec\ACL\Models;
 
 use Tec\ACL\Traits\PermissionTrait;
+use Tec\Base\Casts\SafeContent;
+use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Models\BaseModel;
-use Exception;
+use Tec\Base\Models\Concerns\HasSlug;
+use Tec\Base\Supports\Helper;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Role extends BaseModel
 {
+    use HasSlug;
     use PermissionTrait;
 
-    /**
-     * The database table used by the model.
-     *
-     * @var string
-     */
     protected $table = 'roles';
 
-    /**
-     * The date fields for the model.clear
-     *
-     * @var array
-     */
-    protected $dates = [
-        'created_at',
-        'updated_at',
-    ];
-
-    /**
-     * @var array
-     */
     protected $fillable = [
         'name',
         'slug',
@@ -42,41 +28,14 @@ class Role extends BaseModel
         'updated_by',
     ];
 
-    /**
-     * @var array
-     */
     protected $casts = [
         'permissions' => 'json',
+        'name' => SafeContent::class,
+        'description' => SafeContent::class,
+        'is_default' => 'bool',
     ];
 
-    /**
-     * @param string $value
-     * @return array
-     */
-    public function getPermissionsAttribute($value)
-    {
-        try {
-            return json_decode($value, true) ?: [];
-        } catch (Exception $exception) {
-            return [];
-        }
-    }
-
-    /**
-     * Set mutator for the "permissions" attribute.
-     *
-     * @param array $permissions
-     * @return void
-     */
-    public function setPermissionsAttribute(array $permissions)
-    {
-        $this->attributes['permissions'] = $permissions ? json_encode($permissions) : '';
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function delete()
+    public function delete(): bool|null
     {
         if ($this->exists) {
             $this->users()->detach();
@@ -85,19 +44,48 @@ class Role extends BaseModel
         return parent::delete();
     }
 
-    /**
-     * @return BelongsToMany
-     */
-    public function users()
+    public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'role_users', 'role_id', 'user_id')->withTimestamps();
+        return $this
+            ->belongsToMany(User::class, 'role_users', 'role_id', 'user_id')
+            ->withTimestamps();
     }
 
-    /**
-     * @return BelongsTo
-     */
-    public function author()
+    public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by')->withDefault();
+    }
+
+    public function getAvailablePermissions(): array
+    {
+        $permissions = [];
+
+        $types = ['core', 'packages', 'plugins'];
+
+        foreach ($types as $type) {
+            foreach (BaseHelper::scanFolder(platform_path($type)) as $module) {
+                $configuration = config(strtolower($type . '.' . $module . '.permissions'));
+                if (! empty($configuration)) {
+                    foreach ($configuration as $config) {
+                        $permissions[$config['flag']] = $config;
+                    }
+                }
+            }
+        }
+
+        return $permissions;
+    }
+
+    protected static function booted(): void
+    {
+        self::saving(function (self $model) {
+            $model->slug = self::createSlug($model->slug ?: $model->name, $model->getKey());
+        });
+
+        self::deleted(function (self $model) {
+            $model->users()->detach();
+
+            Helper::clearCache();
+        });
     }
 }

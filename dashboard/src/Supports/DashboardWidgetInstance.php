@@ -2,97 +2,47 @@
 
 namespace Tec\Dashboard\Supports;
 
-use Tec\Dashboard\Repositories\Interfaces\DashboardWidgetInterface;
-use Tec\Dashboard\Repositories\Interfaces\DashboardWidgetSettingInterface;
+use Tec\Dashboard\Models\DashboardWidget;
+use Tec\Dashboard\Models\DashboardWidgetSetting;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Throwable;
 
 class DashboardWidgetInstance
 {
-    /**
-     * @var string
-     */
-    public $type = 'widget';
+    protected string $type = 'widget';
 
-    /**
-     * @var string
-     */
-    public $key;
+    protected string $key;
 
-    /**
-     * @var string
-     */
-    public $title;
+    protected string $title;
 
-    /**
-     * @var string
-     */
-    public $icon;
+    protected string $icon;
 
-    /**
-     * @var string
-     */
-    public $color;
+    protected string $color;
 
-    /**
-     * @var string
-     */
-    public $route;
+    protected string $route;
 
-    /**
-     * @var string
-     */
-    public $bodyClass;
+    protected string $bodyClass;
 
-    /**
-     * @var bool
-     */
-    public $isEqualHeight = true;
+    protected bool $isEqualHeight = true;
 
-    /**
-     * @var string
-     */
-    public $column;
+    protected string|null $column = null;
 
-    /**
-     * @var string
-     */
-    public $permission;
+    protected string $permission;
 
-    /**
-     * @var int
-     */
-    public $statsTotal = 0;
+    protected int $statsTotal = 0;
 
-    /**
-     * @var bool
-     */
-    public $hasLoadCallback = false;
+    protected bool $hasLoadCallback = false;
 
-    /**
-     * @var array
-     */
-    public $settings = [];
+    protected array $settings = [];
 
-    /**
-     * @var array
-     */
-    public $predefinedRanges = [];
+    protected array $predefinedRanges = [];
 
-    /**
-     * @return string
-     */
     public function getType(): string
     {
         return $this->type;
     }
 
-    /**
-     * @param string $type
-     * @return DashboardWidgetInstance
-     */
     public function setType(string $type): self
     {
         $this->type = $type;
@@ -100,18 +50,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getKey(): string
     {
         return $this->key;
     }
 
-    /**
-     * @param string $key
-     * @return DashboardWidgetInstance
-     */
     public function setKey(string $key): self
     {
         $this->key = $key;
@@ -119,18 +62,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getTitle(): string
     {
         return $this->title;
     }
 
-    /**
-     * @param string $title
-     * @return DashboardWidgetInstance
-     */
     public function setTitle(string $title): self
     {
         $this->title = $title;
@@ -138,18 +74,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getIcon(): string
     {
         return $this->icon;
     }
 
-    /**
-     * @param string $icon
-     * @return DashboardWidgetInstance
-     */
     public function setIcon(string $icon): self
     {
         $this->icon = $icon;
@@ -157,18 +86,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getColor(): string
     {
         return $this->color;
     }
 
-    /**
-     * @param string $color
-     * @return DashboardWidgetInstance
-     */
     public function setColor(string $color): self
     {
         $this->color = $color;
@@ -176,18 +98,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getRoute(): string
     {
         return $this->route;
     }
 
-    /**
-     * @param string $route
-     * @return DashboardWidgetInstance
-     */
     public function setRoute(string $route): self
     {
         $this->route = $route;
@@ -195,18 +110,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getBodyClass(): string
     {
         return $this->bodyClass;
     }
 
-    /**
-     * @param string $bodyClass
-     * @return DashboardWidgetInstance
-     */
     public function setBodyClass(string $bodyClass): self
     {
         $this->bodyClass = $bodyClass;
@@ -214,18 +122,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return bool
-     */
     public function isEqualHeight(): bool
     {
         return $this->isEqualHeight;
     }
 
-    /**
-     * @param bool $isEqualHeight
-     * @return DashboardWidgetInstance
-     */
     public function setIsEqualHeight(bool $isEqualHeight): self
     {
         $this->isEqualHeight = $isEqualHeight;
@@ -233,18 +134,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getColumn(): string
     {
         return $this->column;
     }
 
-    /**
-     * @param string $column
-     * @return DashboardWidgetInstance
-     */
     public function setColumn(string $column): self
     {
         $this->column = $column;
@@ -252,18 +146,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getPermission(): string
     {
         return $this->permission;
     }
 
-    /**
-     * @param string $permission
-     * @return DashboardWidgetInstance
-     */
     public function setPermission(string $permission): self
     {
         $this->permission = $permission;
@@ -271,18 +158,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getStatsTotal(): int
     {
         return $this->statsTotal;
     }
 
-    /**
-     * @param int $statsTotal
-     * @return DashboardWidgetInstance
-     */
     public function setStatsTotal(int $statsTotal): self
     {
         $this->statsTotal = $statsTotal;
@@ -290,18 +170,11 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return bool
-     */
-    public function isHasLoadCallback(): int
+    public function isHasLoadCallback(): bool
     {
         return $this->hasLoadCallback;
     }
 
-    /**
-     * @param bool $hasLoadCallback
-     * @return DashboardWidgetInstance
-     */
     public function setHasLoadCallback(bool $hasLoadCallback): self
     {
         $this->hasLoadCallback = $hasLoadCallback;
@@ -309,10 +182,6 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @param array $settings
-     * @return DashboardWidgetInstance
-     */
     public function setSettings(array $settings): self
     {
         $this->settings = $settings;
@@ -320,24 +189,17 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @param array $widgets
-     * @param Collection $widgetSettings
-     * @return array
-     * @throws Throwable
-     */
-    public function init($widgets, $widgetSettings)
+    public function init(array $widgets, Collection $widgetSettings): array
     {
-        if (!Auth::user()->hasPermission($this->permission)) {
+        if (! Auth::guard()->user()->hasPermission($this->permission)) {
             return $widgets;
         }
 
         $widget = $widgetSettings->where('name', $this->key)->first();
         $widgetSetting = $widget ? $widget->settings->first() : null;
 
-        if (!$widget) {
-            $widget = app(DashboardWidgetInterface::class)
-                ->firstOrCreate(['name' => $this->key]);
+        if (! $widget) {
+            $widget = DashboardWidget::query()->firstOrCreate(['name' => $this->key]);
         }
 
         $widget->title = $this->title;
@@ -348,15 +210,19 @@ class DashboardWidgetInstance
             $widget->bodyClass = $this->bodyClass;
             $widget->column = $this->column;
 
-            $settings = array_merge($widgetSetting && $widgetSetting->settings ? $widgetSetting->settings : [],
-                $this->settings);
+            $settings = array_merge(
+                $widgetSetting && $widgetSetting->settings ? $widgetSetting->settings : [],
+                $this->settings
+            );
             $predefinedRanges = $this->getPredefinedRanges();
 
             $data = [
-                'id'   => $widget->id,
+                'id' => $widget->id,
                 'type' => $this->type,
-                'view' => view('core/dashboard::widgets.base',
-                    compact('widget', 'widgetSetting', 'settings', 'predefinedRanges'))->render(),
+                'view' => view(
+                    'core/dashboard::widgets.base',
+                    compact('widget', 'widgetSetting', 'settings', 'predefinedRanges')
+                )->render(),
             ];
 
             if (empty($widgetSetting) || array_key_exists($widgetSetting->order, $widgets)) {
@@ -371,7 +237,7 @@ class DashboardWidgetInstance
         $widget->statsTotal = $this->statsTotal;
 
         $widgets[$this->key] = [
-            'id'   => $widget->id,
+            'id' => $widget->id,
             'type' => $this->type,
             'view' => view('core/dashboard::widgets.stats', compact('widget', 'widgetSetting'))->render(),
         ];
@@ -379,18 +245,11 @@ class DashboardWidgetInstance
         return $widgets;
     }
 
-    /**
-     * @return array
-     */
     public function getPredefinedRanges(): array
     {
         return $this->predefinedRanges ?: $this->getPredefinedRangesDefault();
     }
 
-    /**
-     * @param array $predefinedRanges
-     * @return DashboardWidgetInstance
-     */
     public function setPredefinedRanges(array $predefinedRanges): self
     {
         $this->predefinedRanges = $predefinedRanges;
@@ -398,69 +257,62 @@ class DashboardWidgetInstance
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getPredefinedRangesDefault(): array
     {
-        $endDate = today()->endOfDay();
+        $endDate = Carbon::today()->endOfDay();
 
         return [
             [
-                'key'       => 'today',
-                'label'     => trans('core/dashboard::dashboard.predefined_ranges.today'),
-                'startDate' => today()->startOfDay(),
-                'endDate'   => $endDate,
+                'key' => 'today',
+                'label' => trans('core/dashboard::dashboard.predefined_ranges.today'),
+                'startDate' => Carbon::today()->startOfDay(),
+                'endDate' => $endDate,
             ],
             [
-                'key'       => 'yesterday',
-                'label'     => trans('core/dashboard::dashboard.predefined_ranges.yesterday'),
+                'key' => 'yesterday',
+                'label' => trans('core/dashboard::dashboard.predefined_ranges.yesterday'),
                 'startDate' => Carbon::yesterday()->startOfDay(),
-                'endDate'   => Carbon::yesterday()->endOfDay(),
+                'endDate' => Carbon::yesterday()->endOfDay(),
             ],
             [
-                'key'       => 'this_week',
-                'label'     => trans('core/dashboard::dashboard.predefined_ranges.this_week'),
-                'startDate' => now()->startOfWeek(),
-                'endDate'   => now()->endOfWeek(),
+                'key' => 'this_week',
+                'label' => trans('core/dashboard::dashboard.predefined_ranges.this_week'),
+                'startDate' => Carbon::now()->startOfWeek(),
+                'endDate' => Carbon::now()->endOfWeek(),
             ],
             [
-                'key'       => 'last_7_days',
-                'label'     => trans('core/dashboard::dashboard.predefined_ranges.last_7_days'),
-                'startDate' => now()->subDays(7)->startOfDay(),
-                'endDate'   => $endDate,
+                'key' => 'last_7_days',
+                'label' => trans('core/dashboard::dashboard.predefined_ranges.last_7_days'),
+                'startDate' => Carbon::now()->subDays(7)->startOfDay(),
+                'endDate' => $endDate,
             ],
             [
-                'key'       => 'this_month',
-                'label'     => trans('core/dashboard::dashboard.predefined_ranges.this_month'),
-                'startDate' => now()->startOfMonth(),
-                'endDate'   => $endDate,
+                'key' => 'this_month',
+                'label' => trans('core/dashboard::dashboard.predefined_ranges.this_month'),
+                'startDate' => Carbon::now()->startOfMonth(),
+                'endDate' => $endDate,
             ],
             [
-                'key'       => 'last_30_days',
-                'label'     => trans('core/dashboard::dashboard.predefined_ranges.last_30_days'),
-                'startDate' => now()->subDays(29)->startOfDay(),
-                'endDate'   => $endDate,
+                'key' => 'last_30_days',
+                'label' => trans('core/dashboard::dashboard.predefined_ranges.last_30_days'),
+                'startDate' => Carbon::now()->subDays(29)->startOfDay(),
+                'endDate' => $endDate,
             ],
             [
-                'key'       => 'this_year',
-                'label'     => trans('core/dashboard::dashboard.predefined_ranges.this_year'),
-                'startDate' => now()->startOfYear(),
-                'endDate'   => $endDate,
+                'key' => 'this_year',
+                'label' => trans('core/dashboard::dashboard.predefined_ranges.this_year'),
+                'startDate' => Carbon::now()->startOfYear(),
+                'endDate' => $endDate,
             ],
         ];
     }
 
-    /**
-     * @param string $filterRangeInput
-     * @return mixed
-     */
-    public function getFilterRange(?string $filterRangeInput)
+    public function getFilterRange(string|null $filterRangeInput)
     {
         $predefinedRanges = $this->getPredefinedRanges();
         $predefinedRanges = collect($predefinedRanges);
 
-        if (!$filterRangeInput) {
+        if (! $filterRangeInput) {
             return $predefinedRanges->first();
         }
 
@@ -473,22 +325,17 @@ class DashboardWidgetInstance
         return $predefinedRanges->first();
     }
 
-    /**
-     * @param string $widgetName
-     * @param array $settings
-     * @return bool
-     */
-    public function saveSettings($widgetName, array $settings)
+    public function saveSettings(string $widgetName, array $settings): bool
     {
-        $widget = app(DashboardWidgetInterface::class)->getFirstBy(['name' => $widgetName]);
+        $widget = DashboardWidget::query()->where('name', $widgetName)->first();
 
-        if (!$widget) {
+        if (! $widget) {
             return false;
         }
 
-        $widgetSetting = app(DashboardWidgetSettingInterface::class)->firstOrCreate([
+        $widgetSetting = DashboardWidgetSetting::query()->firstOrCreate([
             'widget_id' => $widget->id,
-            'user_id'   => Auth::user()->getKey(),
+            'user_id' => Auth::guard()->id(),
         ]);
 
         $widgetSetting->settings = array_merge((array)$widgetSetting->settings, $settings);

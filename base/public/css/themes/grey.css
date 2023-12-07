@@ -702,14 +702,6 @@
   margin: 0;
   padding: 0;
 }
-.widget-main #wrap-widget-1 li {
-  width: 49%;
-  float: left;
-  margin-bottom: 20px;
-}
-.widget-main #wrap-widget-1 li:nth-child(2n) {
-  margin-left: 2%;
-}
 .widget-main #wrap-widget-1 li .widget-content {
   display: none;
 }
@@ -1301,9 +1293,14 @@ Customized Bootstrap Modal
   float: none;
 }
 
-.page-logo .logo-default {
+.page-header.navbar .page-logo > a {
+  max-width: 180px;
+}
+.page-header.navbar .page-logo > a .logo-default {
   height: 35px;
+  width: auto;
   margin: 7px 0 0 !important;
+  max-width: 100%;
 }
 
 .mCSB_container {
@@ -1631,7 +1628,7 @@ small.charcounter {
 
 .breadcrumb > li:first-child:before {
   content: "\f015";
-  font: normal normal normal 14px/1 Font Awesome\ 5 Free;
+  font: normal normal normal 14px/1 'Font Awesome 6 Free';
   font-weight: 900;
   display: inline-block;
   padding-right: 4px;

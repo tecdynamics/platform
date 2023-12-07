@@ -3,45 +3,67 @@
 @section('content')
     <div class="user-profile row">
         <div class="col-md-3 col-sm-5 crop-avatar">
-            <!-- Profile links -->
-            <div class="block">
-                <div class="block mt-element-card mt-card-round mt-element-overlay">
-                    <div class="thumbnail">
-                        <div class="thumb">
-                            <div class="profile-userpic mt-card-item">
-                                <div class="avatar-view mt-card-avatar mt-overlay-1">
-                                     <img  loading="lazy" src="{{ $user->avatar_url }}" class="img-fluid" alt="avatar">
-                                    @if ($canChangeProfile)
-                                        <div class="mt-overlay">
-                                            <ul class="mt-info">
-                                                <li>
-                                                    <a class="btn default btn-outline" href="javascript:;">
-                                                        <i class="icon-note"></i>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    @endif
+            <div class="mt-element-card mt-card-round mt-element-overlay">
+                <div class="profile-userpic mt-card-item">
+                    <div>
+                        <div class="avatar-view mt-card-avatar mt-overlay-1">
+                            <img
+                                src="{{ $user->avatar_url }}"
+                                alt="avatar"
+                            >
+                            @if ($canChangeProfile)
+                                <div class="mt-overlay">
+                                    <ul class="mt-info">
+                                        <li>
+                                            <a
+                                                class="btn default btn-outline"
+                                                href="javascript:;"
+                                            >
+                                                <i class="icon-note"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </div>
-                                <div class="mt-card-content">
-                                    <h3 class="mt-card-name">{{ $user->name }}</h3>
-                                </div>
-                            </div>
+                            @endif
                         </div>
                     </div>
+                    <div class="mt-card-content">
+                        <h3 class="mt-card-name">{{ $user->name }}</h3>
+                    </div>
+                    <div class="clearfix"></div>
                 </div>
             </div>
             <!-- /profile links -->
 
             @if ($canChangeProfile)
-                <div class="modal fade" id="avatar-modal" tabindex="-1" role="dialog" aria-labelledby="avatar-modal-label"
-                     aria-hidden="true">
+                <div
+                    class="modal fade"
+                    id="avatar-modal"
+                    role="dialog"
+                    aria-labelledby="avatar-modal-label"
+                    aria-hidden="true"
+                    tabindex="-1"
+                >
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
-                            <form class="avatar-form" method="post" action="{{ route('users.profile.image', $user->id) }}" enctype="multipart/form-data">
+                            <form
+                                class="avatar-form"
+                                method="post"
+                                action="{{ route('users.profile.image', $user->id) }}"
+                                enctype="multipart/form-data"
+                            >
                                 <div class="modal-header">
-                                    <h4 class="modal-title" id="avatar-modal-label"><i class="til_img"></i><strong>{{ trans('core/acl::users.change_profile_image') }}</strong></h4>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true">
+                                    <h4
+                                        class="modal-title"
+                                        id="avatar-modal-label"
+                                    ><i class="til_img"></i><strong>{{ trans('core/acl::users.change_profile_image') }}</strong>
+                                    </h4>
+                                    <button
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        type="button"
+                                        aria-hidden="true"
+                                    >
 
                                     </button>
                                 </div>
@@ -51,15 +73,37 @@
 
                                         <!-- Upload image and data -->
                                         <div class="avatar-upload">
-                                            <input class="avatar-src" name="avatar_src" type="hidden">
-                                            <input class="avatar-data" name="avatar_data" type="hidden">
-                                            <input type="hidden" name="user_id" value="{{ $user->id }}"/>
+                                            <input
+                                                class="avatar-src"
+                                                name="avatar_src"
+                                                type="hidden"
+                                            >
+                                            <input
+                                                class="avatar-data"
+                                                name="avatar_data"
+                                                type="hidden"
+                                            >
+                                            <input
+                                                name="user_id"
+                                                type="hidden"
+                                                value="{{ $user->id }}"
+                                            />
                                             {!! Form::token() !!}
                                             <label for="avatarInput">{{ trans('core/acl::users.new_image') }}</label>
-                                            <input class="avatar-input" id="avatarInput" name="avatar_file" type="file">
+                                            <input
+                                                class="avatar-input"
+                                                id="avatarInput"
+                                                name="avatar_file"
+                                                type="file"
+                                            >
                                         </div>
 
-                                        <div class="loading" tabindex="-1" role="img" aria-label="{{ trans('core/acl::users.loading') }}"></div>
+                                        <div
+                                            class="loading"
+                                            role="img"
+                                            aria-label="{{ trans('core/acl::users.loading') }}"
+                                            tabindex="-1"
+                                        ></div>
 
                                         <!-- Crop and preview -->
                                         <div class="row">
@@ -75,8 +119,15 @@
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">{{ trans('core/acl::users.close') }}</button>
-                                    <button class="btn btn-primary avatar-save" type="submit">{{ trans('core/acl::users.save') }}</button>
+                                    <button
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                        type="button"
+                                    >{{ trans('core/acl::users.close') }}</button>
+                                    <button
+                                        class="btn btn-primary avatar-save"
+                                        type="submit"
+                                    >{{ trans('core/acl::users.save') }}</button>
                                 </div>
                             </form>
                         </div>
@@ -90,33 +141,60 @@
                 <div class="tabbable-custom">
                     <ul class="nav nav-tabs">
                         <li class="nav-item">
-                            <a href="#tab_1_1" class="nav-link active" data-bs-toggle="tab" aria-expanded="true">{{ trans('core/acl::users.info.title') }}</a>
+                            <a
+                                class="nav-link active"
+                                data-bs-toggle="tab"
+                                href="#tab_1_1"
+                                aria-expanded="true"
+                            >{{ trans('core/acl::users.info.title') }}</a>
                         </li>
                         @if ($canChangeProfile)
                             <li class="nav-item">
-                                <a href="#tab_1_3" class="nav-link" data-bs-toggle="tab" aria-expanded="false">{{ trans('core/acl::users.change_password') }}</a>
+                                <a
+                                    class="nav-link"
+                                    data-bs-toggle="tab"
+                                    href="#tab_1_3"
+                                    aria-expanded="false"
+                                >{{ trans('core/acl::users.change_password') }}</a>
                             </li>
                         @endif
                         {!! apply_filters(ACL_FILTER_PROFILE_FORM_TABS, null) !!}
                     </ul>
                     <div class="tab-content">
-                    <!-- PERSONAL INFO TAB -->
-                    <div class="tab-pane active" id="tab_1_1">
-                        {!! $form !!}
-                    </div>
-                    <!-- END PERSONAL INFO TAB -->
-                    <!-- CHANGE PASSWORD TAB -->
-                    @if ($canChangeProfile)
-                        <div class="tab-pane" id="tab_1_3">
-                            {!! $passwordForm !!}
+                        <!-- PERSONAL INFO TAB -->
+                        <div
+                            class="tab-pane active"
+                            id="tab_1_1"
+                        >
+                            {!! $form !!}
                         </div>
-                    @endif
-                    <!-- END CHANGE PASSWORD TAB -->
-                    {!! apply_filters(ACL_FILTER_PROFILE_FORM_TAB_CONTENTS, null) !!}
-                </div>
+                        <!-- END PERSONAL INFO TAB -->
+                        <!-- CHANGE PASSWORD TAB -->
+                        @if ($canChangeProfile)
+                            <div
+                                class="tab-pane"
+                                id="tab_1_3"
+                            >
+                                {!! $passwordForm !!}
+                            </div>
+                        @endif
+                        <!-- END CHANGE PASSWORD TAB -->
+                        {!! apply_filters(ACL_FILTER_PROFILE_FORM_TAB_CONTENTS, null) !!}
+                    </div>
                 </div>
             </div>
         </div>
         <div class="clearfix"></div>
     </div>
 @stop
+
+@if ($canChangeProfile)
+    @push('footer')
+        <script
+            type="text/javascript"
+            src="{{ asset('vendor/core/core/js-validation/js/js-validation.js') }}"
+        ></script>
+        {!! JsValidator::formRequest(\Tec\ACL\Http\Requests\UpdateProfileRequest::class, '#profile-form') !!}
+        {!! JsValidator::formRequest(\Tec\ACL\Http\Requests\UpdatePasswordRequest::class, '#password-form') !!}
+    @endpush
+@endif

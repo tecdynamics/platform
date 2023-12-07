@@ -1,4 +1,3 @@
-let resizeHandlers = []
 
 export class App {
     constructor() {

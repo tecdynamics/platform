@@ -3,23 +3,21 @@
 namespace Tec\Media\Chunks\Storage;
 
 use Tec\Media\Chunks\ChunkFile;
+use Tec\Media\Facades\RvMedia;
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Collection;
-use League\Flysystem\Adapter\Local;
-use League\Flysystem\FilesystemInterface;
+use Illuminate\Support\Facades\Storage;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use RuntimeException;
-use RvMedia;
-use Storage;
+use Throwable;
 
 class ChunkStorage
 {
-    const CHUNK_EXTENSION = 'part';
+    public const CHUNK_EXTENSION = 'part';
 
-    /**
-     * @var array
-     */
-    protected $config;
+    protected array $config;
 
     /**
      * The disk that holds the chunk files.
@@ -29,16 +27,14 @@ class ChunkStorage
     protected $disk;
 
     /**
-     * @var Local
+     * @var LocalFilesystemAdapter|FilesystemAdapter
      */
     protected $diskAdapter;
 
     /**
      * Is provided disk a local drive.
-     *
-     * @var bool
      */
-    protected $isLocalDisk;
+    protected bool $isLocalDisk;
 
     /**
      * ChunkStorage constructor.
@@ -50,59 +46,33 @@ class ChunkStorage
         // Cache the storage path
         $this->disk = Storage::disk($this->config['storage']['disk']);
 
-        $driver = $this->driver();
-        if (!method_exists($driver, 'adapter') && !method_exists($driver, 'getAdapter')) {
-            $this->isLocalDisk = 'Local';
-        }else {
+        $driver = $this->disk;
 
-            // Try to get the adapter
-            if (!method_exists($driver, 'getAdapter')) {
-                throw new RuntimeException('FileSystem driver must have an adapter implemented');
-            }
-
-            // Get the disk adapter
-            $this->diskAdapter = $driver->getAdapter();
-
-            // Check if its local adapter
-            $this->isLocalDisk = $this->diskAdapter instanceof Local;
-            //  dd(get_class_methods($driver));
-            // Try to get the adapter
-            // if (!method_exists($driver, 'adapter')) {
-//        if (!method_exists($driver, 'getAdapter')) {
-            //        throw new RuntimeException('FileSystem driver must have an adapter implemented');
-            //     }
-
-            // Get the disk adapter
-//        $this->diskAdapter = $driver->getAdapter();
-
-            // Check if its local adapter
+        // Try to get the adapter
+        if (! method_exists($driver, 'getAdapter')) {
+            throw new RuntimeException('FileSystem driver must have an adapter implemented');
         }
-    }
 
-    /**
-     * Returns the driver.
-     *
-     * @return FilesystemInterface
-     */
-    public function driver()
-    {
-        return $this->disk()->getDriver();
+        // Get the disk adapter
+        // @phpstan-ignore-next-line
+        $this->diskAdapter = $driver->getAdapter();
+
+        // Check if its local adapter
+        $this->isLocalDisk = $this->diskAdapter instanceof LocalFilesystemAdapter;
     }
 
     /**
      * @return FilesystemAdapter
      */
-    public function disk()
+    public function disk(): FilesystemAdapter
     {
         return $this->disk;
     }
 
     /**
      * Returns the application instance of the chunk storage.
-     *
-     * @return ChunkStorage
      */
-    public static function storage()
+    public static function storage(): self
     {
         return app(self::class);
     }
@@ -114,10 +84,10 @@ class ChunkStorage
      *
      * @throws RuntimeException when the adapter is not local
      */
-    public function getDiskPathPrefix()
+    public function getDiskPathPrefix(): string
     {
         if ($this->isLocalDisk) {
-            return $this->diskAdapter->getPathPrefix();
+            return $this->disk->path('');
         }
 
         throw new RuntimeException('The full path is not supported on current disk - local adapter supported only');
@@ -128,7 +98,7 @@ class ChunkStorage
      *
      * @return Collection<ChunkFile> collection of a ChunkFile objects
      */
-    public function oldChunkFiles()
+    public function oldChunkFiles(): Collection
     {
         $files = $this->files();
         // If there are no files, lets return the empty collection
@@ -138,13 +108,17 @@ class ChunkStorage
 
         // Build the timestamp
         $timeToCheck = strtotime($this->config['clear']['timestamp']);
-        $collection = new Collection;
+        $collection = new Collection();
 
         // Filter the collection with files that are not correct chunk file
         // Loop all current files and filter them by the time
         $files->each(function ($file) use ($timeToCheck, $collection) {
             // get the last modified time to check if the chunk is not new
-            $modified = $this->disk()->lastModified($file);
+            try {
+                $modified = $this->disk()->lastModified($file);
+            } catch (Throwable) {
+                $modified = Carbon::now()->getTimestamp();
+            }
 
             // Delete only old chunk
             if ($modified < $timeToCheck) {
@@ -156,20 +130,20 @@ class ChunkStorage
     }
 
     /**
-     * Returns an array of files in the chunks directory.
+     * Returns an array of files in the chunk's directory.
      *
      * @param Closure|null $rejectClosure
      * @return Collection
      * @see FilesystemAdapter::files()
      */
-    public function files($rejectClosure = null)
+    public function files(?Closure $rejectClosure = null): Collection
     {
         // We need to filter files we don't support, lets use the collection
         $filesCollection = new Collection($this->disk->files($this->directory(), false));
 
         return $filesCollection->reject(function ($file) use ($rejectClosure) {
             // Ensure the file ends with allowed extension
-            $shouldReject = !preg_match('/.' . self::CHUNK_EXTENSION . '$/', $file);
+            $shouldReject = ! preg_match('/.' . self::CHUNK_EXTENSION . '$/', $file);
             if ($shouldReject) {
                 return true;
             }
@@ -183,11 +157,9 @@ class ChunkStorage
     }
 
     /**
-     * The current chunks directory.
-     *
-     * @return string
+     * The current chunk's directory.
      */
-    public function directory()
+    public function directory(): string
     {
         return $this->config['storage']['chunks'] . '/';
     }

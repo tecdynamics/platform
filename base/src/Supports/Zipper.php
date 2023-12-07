@@ -2,7 +2,7 @@
 
 namespace Tec\Base\Supports;
 
-use BaseHelper;
+use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Supports\PclZip as Zip;
 use Illuminate\Support\Facades\File;
 use ZipArchive;

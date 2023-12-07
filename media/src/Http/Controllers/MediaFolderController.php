@@ -2,58 +2,30 @@
 
 namespace Tec\Media\Http\Controllers;
 
+use Tec\Media\Facades\RvMedia;
 use Tec\Media\Http\Requests\MediaFolderRequest;
-use Tec\Media\Repositories\Interfaces\MediaFileInterface;
-use Tec\Media\Repositories\Interfaces\MediaFolderInterface;
+use Tec\Media\Models\MediaFolder;
 use Exception;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
-use RvMedia;
 
 /**
  * @since 19/08/2015 07:55 AM
  */
 class MediaFolderController extends Controller
 {
-    /**
-     * @var MediaFolderInterface
-     */
-    protected $folderRepository;
-
-    /**
-     * @var MediaFileInterface
-     */
-    protected $fileRepository;
-
-    /**
-     * FolderController constructor.
-     * @param MediaFolderInterface $folderRepository
-     * @param MediaFileInterface $fileRepository
-     */
-    public function __construct(MediaFolderInterface $folderRepository, MediaFileInterface $fileRepository)
-    {
-        $this->folderRepository = $folderRepository;
-        $this->fileRepository = $fileRepository;
-    }
-
-    /**
-     * @param MediaFolderRequest $request
-     * @return JsonResponse
-     */
     public function store(MediaFolderRequest $request)
     {
-        $name = $request->input('name');
-
         try {
+            $name = $request->input('name');
             $parentId = $request->input('parent_id');
 
-            $folder = $this->folderRepository->getModel();
-            $folder->user_id = Auth::id();
-            $folder->name = $this->folderRepository->createName($name, $parentId);
-            $folder->slug = $this->folderRepository->createSlug($name, $parentId);
-            $folder->parent_id = $parentId;
-            $this->folderRepository->createOrUpdate($folder);
+            MediaFolder::query()->create([
+                'name' => MediaFolder::createName($name, $parentId),
+                'slug' => MediaFolder::createSlug($name, $parentId),
+                'parent_id' => $parentId,
+                'user_id' => Auth::guard()->id(),
+            ]);
 
             return RvMedia::responseSuccess([], trans('core/media::media.folder_created'));
         } catch (Exception $exception) {

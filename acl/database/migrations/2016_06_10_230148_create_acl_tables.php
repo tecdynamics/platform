@@ -2,25 +2,21 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
+return new class () extends Migration {
+    public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('name');
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->string('first_name')->nullable();
-            $table->string('last_name')->nullable();
+            $table->string('first_name', 120)->nullable();
+            $table->string('last_name', 120)->nullable();
             $table->string('username', 60)->unique()->nullable();
-            $table->string('password')->nullable()->change();
-            $table->integer('avatar_id')->unsigned()->nullable();
+            $table->string('password', 120)->nullable()->change();
+            $table->foreignId('avatar_id')->nullable();
             $table->boolean('super_user')->default(0);
             $table->boolean('manage_supers')->default(0);
             $table->text('permissions')->nullable();
@@ -29,7 +25,7 @@ return new class extends Migration {
 
         Schema::create('activations', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id')->unsigned()->references('id')->on('users')->index();
+            $table->foreignId('user_id')->index();
             $table->string('code', 120);
             $table->boolean('completed')->default(0);
             $table->timestamp('completed_at')->nullable();
@@ -43,33 +39,28 @@ return new class extends Migration {
             $table->text('permissions')->nullable();
             $table->string('description', 255)->nullable();
             $table->tinyInteger('is_default')->unsigned()->default(0);
-            $table->integer('created_by')->unsigned()->references('id')->on('users')->index();
-            $table->integer('updated_by')->unsigned()->references('id')->on('users')->index();
+            $table->foreignId('created_by')->index();
+            $table->foreignId('updated_by')->index();
             $table->timestamps();
         });
 
         Schema::create('role_users', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id')->unsigned()->references('id')->on('users')->index();
-            $table->integer('role_id')->unsigned()->references('id')->on('roles')->index();
+            $table->foreignId('user_id')->index();
+            $table->foreignId('role_id')->index();
             $table->nullableTimestamps();
         });
 
         Schema::create('user_meta', function (Blueprint $table) {
             $table->id();
-            $table->string('key')->nullable();
-            $table->string('value')->nullable();
-            $table->integer('user_id')->unsigned()->references('id')->on('users')->index();
+            $table->string('key', 120)->nullable();
+            $table->string('value', 255)->nullable();
+            $table->foreignId('user_id')->index();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('activations');
         Schema::dropIfExists('roles');

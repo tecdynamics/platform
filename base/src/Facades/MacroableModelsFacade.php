@@ -2,8 +2,9 @@
 
 namespace Tec\Base\Facades;
 
-use Tec\Base\Supports\MacroableModels;
 use Illuminate\Support\Facades\Facade;
+use Tec\Base\Supports\MacroableModels as MacroableModelsSupport;
+
 /**
  * @method static array getAllMacros()
  * @method static mixed getMacro(string $name)
@@ -12,15 +13,12 @@ use Illuminate\Support\Facades\Facade;
  * @method static array macrosForModel(string $model)
  *
  * @see \Tec\Base\Supports\MacroableModels
+ * @deprecated
  */
 class MacroableModelsFacade extends Facade
 {
-
-    /**
-     * @return string
-     */
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return MacroableModels::class;
+        return MacroableModelsSupport::class;
     }
 }

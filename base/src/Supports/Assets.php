@@ -8,9 +8,6 @@ use Illuminate\Config\Repository;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-/**
- * @since 22/07/2015 11:23 PM
- */
 class Assets extends BaseAssets
 {
     public function __construct(Repository $config, HtmlBuilder $htmlBuilder)

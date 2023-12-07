@@ -2,16 +2,14 @@
 
 namespace Tec\Dashboard\Repositories\Eloquent;
 
-use Illuminate\Support\Facades\Auth;
 use Tec\Dashboard\Repositories\Interfaces\DashboardWidgetSettingInterface;
 use Tec\Support\Repositories\Eloquent\RepositoriesAbstract;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardWidgetSettingRepository extends RepositoriesAbstract implements DashboardWidgetSettingInterface
 {
-    /**
-     * {@inheritDoc}
-     */
-    public function getListWidget()
+    public function getListWidget(): Collection
     {
         $data = $this->model
             ->select([
@@ -22,7 +20,7 @@ class DashboardWidgetSettingRepository extends RepositoriesAbstract implements D
             ])
             ->with('widget')
             ->orderBy('order')
-            ->where('user_id', Auth::id())
+            ->where('user_id', Auth::guard()->id())
             ->get();
 
         $this->resetModel();

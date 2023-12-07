@@ -3,7 +3,6 @@
 namespace Tec\Base\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Tec\Base\Supports\Filter as FilterFacade;
 
 /**
  * @method static mixed fire(string $action, array $args)
@@ -15,10 +14,8 @@ use Tec\Base\Supports\Filter as FilterFacade;
  */
 class Filter extends Facade
 {
-
-
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return FilterFacade::class;
+        return 'core:filter';
     }
 }

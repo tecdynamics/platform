@@ -1,83 +1,64 @@
 <?php
 
+use Tec\Base\Facades\MetaBox;
 use Illuminate\Database\Eloquent\Model;
 
-if (!function_exists('add_meta_box')) {
+if (! function_exists('add_meta_box')) {
     /**
-     * @param string $id
-     * @param string $title
-     * @param callable $callback
-     * @param null $screen
-     * @param string $context
-     * @param string $priority
-     * @param null $callbackArgs
      * @deprecated since 5.7
      */
     function add_meta_box(
         string $id,
-        $title,
-        $callback,
-        $screen = null,
-        $context = 'advanced',
-        $priority = 'default',
+        string $title,
+        callable $callback,
+        string|null $screen = null,
+        string $context = 'advanced',
+        string $priority = 'default',
         $callbackArgs = null
-    ) {
+    ): void {
         MetaBox::addMetaBox($id, $title, $callback, $screen, $context, $priority, $callbackArgs);
     }
 }
 
-if (!function_exists('get_meta_data')) {
+if (! function_exists('get_meta_data')) {
     /**
-     * @param Model $object
-     * @param string $key
-     * @param boolean $single
-     * @param array $select
-     * @return mixed
      * @deprecated since 5.7
      */
-    function get_meta_data($object, $key, $single = false, $select = ['meta_value'])
-    {
+    function get_meta_data(
+        $object,
+        string $key,
+        bool $single = false,
+        array $select = ['meta_value']
+    ): string|array|null {
         return MetaBox::getMetaData($object, $key, $single, $select);
     }
 }
 
-if (!function_exists('get_meta')) {
+if (! function_exists('get_meta')) {
     /**
-     * @param Model $object
-     * @param string $key
-     * @param array $select
-     * @return mixed
      * @deprecated since 5.7
      */
-    function get_meta($object, $key, $select = ['meta_value'])
+    function get_meta($object, string $key, array $select = ['meta_value']): Model|null
     {
         return MetaBox::getMeta($object, $key, $select);
     }
 }
 
-if (!function_exists('save_meta_data')) {
+if (! function_exists('save_meta_data')) {
     /**
-     * @param Model $object
-     * @param string $key
-     * @param string $value
-     * @param null|array $options
-     * @return mixed
      * @deprecated since 5.7
      */
-    function save_meta_data($object, $key, $value, $options = null)
+    function save_meta_data($object, string $key, string $value, array $options = null): void
     {
-        return MetaBox::saveMetaBoxData($object, $key, $value, $options);
+        MetaBox::saveMetaBoxData($object, $key, $value, $options);
     }
 }
 
-if (!function_exists('delete_meta_data')) {
+if (! function_exists('delete_meta_data')) {
     /**
-     * @param Model $object
-     * @param string $key
-     * @return mixed
      * @deprecated since 5.7
      */
-    function delete_meta_data($object, $key)
+    function delete_meta_data($object, string $key): bool
     {
         return MetaBox::deleteMetaData($object, $key);
     }

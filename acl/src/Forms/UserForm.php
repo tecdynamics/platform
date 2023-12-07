@@ -3,60 +3,42 @@
 namespace Tec\ACL\Forms;
 
 use Tec\ACL\Http\Requests\CreateUserRequest;
+use Tec\ACL\Models\Role;
 use Tec\ACL\Models\User;
-use Tec\ACL\Repositories\Interfaces\RoleInterface;
 use Tec\Base\Forms\FormAbstract;
 
 class UserForm extends FormAbstract
 {
-    /**
-     * @var RoleInterface
-     */
-    protected $roleRepository;
-
-    /**
-     * UserForm constructor.
-     * @param RoleInterface $roleRepository
-     */
-    public function __construct(RoleInterface $roleRepository)
+    public function buildForm(): void
     {
-        $this->roleRepository = $roleRepository;
-        parent::__construct();
-    }
+        $roles = Role::query()->pluck('name', 'id');
 
-    /**
-     * {@inheritDoc}
-     */
-    public function buildForm()
-    {
-        $roles = $this->roleRepository->pluck('name', 'id');
-
-        $defaultRole = $this->roleRepository->getFirstBy(['is_default' => 1]);
+        $defaultRole = $roles->where('is_default', 1)->first();
 
         $this
-            ->setupModel(new User)
+            ->setupModel(new User())
             ->setValidatorClass(CreateUserRequest::class)
             ->withCustomFields()
             ->add('rowOpen1', 'html', [
                 'html' => '<div class="row">',
             ])
             ->add('first_name', 'text', [
-                'label'      => trans('core/acl::users.info.first_name'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.info.first_name'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 30,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])
             ->add('last_name', 'text', [
-                'label'      => trans('core/acl::users.info.last_name'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.info.last_name'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 30,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])
@@ -67,23 +49,23 @@ class UserForm extends FormAbstract
                 'html' => '<div class="row">',
             ])
             ->add('username', 'text', [
-                'label'      => trans('core/acl::users.username'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.username'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 30,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])
             ->add('email', 'text', [
-                'label'      => trans('core/acl::users.email'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
-                    'placeholder'  => trans('core/acl::users.email_placeholder'),
+                'label' => trans('core/acl::users.email'),
+                'required' => true,
+                'attr' => [
+                    'placeholder' => trans('core/acl::users.email_placeholder'),
                     'data-counter' => 60,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])
@@ -94,22 +76,22 @@ class UserForm extends FormAbstract
                 'html' => '<div class="row">',
             ])
             ->add('password', 'password', [
-                'label'      => trans('core/acl::users.password'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.password'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 60,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])
             ->add('password_confirmation', 'password', [
-                'label'      => trans('core/acl::users.password_confirmation'),
-                'label_attr' => ['class' => 'control-label required'],
-                'attr'       => [
+                'label' => trans('core/acl::users.password_confirmation'),
+                'required' => true,
+                'attr' => [
                     'data-counter' => 60,
                 ],
-                'wrapper'    => [
+                'wrapper' => [
                     'class' => $this->formHelper->getConfig('defaults.wrapper_class') . ' col-md-6',
                 ],
             ])
@@ -117,12 +99,11 @@ class UserForm extends FormAbstract
                 'html' => '</div>',
             ])
             ->add('role_id', 'customSelect', [
-                'label'         => trans('core/acl::users.role'),
-                'label_attr'    => ['class' => 'control-label'],
-                'attr'          => [
+                'label' => trans('core/acl::users.role'),
+                'attr' => [
                     'class' => 'form-control roles-list',
                 ],
-                'choices'       => ['' => trans('core/acl::users.select_role')] + $roles,
+                'choices' => ['' => trans('core/acl::users.select_role')] + $roles->all(),
                 'default_value' => $defaultRole ? $defaultRole->id : null,
             ])
             ->setBreakFieldPoint('role_id');

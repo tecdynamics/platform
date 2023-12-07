@@ -3,7 +3,7 @@
 namespace Tec\Base\Supports;
 
 use BadMethodCallException;
-use BaseHelper;
+use Tec\Base\Facades\BaseHelper;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Log;

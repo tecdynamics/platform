@@ -2,48 +2,48 @@
 
 namespace Tec\ACL\Services;
 
-use Illuminate\Support\Facades\Auth;
-use Tec\ACL\Repositories\Interfaces\UserInterface;
+use Tec\ACL\Models\User;
+use Tec\Base\Facades\BaseHelper;
 use Tec\Support\Services\ProduceServiceInterface;
 use Exception;
-use Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Throwable;
 
 class ChangePasswordService implements ProduceServiceInterface
 {
-    /**
-     * @var UserInterface
-     */
-    protected $userRepository;
-
-    /**
-     * ChangePasswordService constructor.
-     * @param UserInterface $userRepository
-     */
-    public function __construct(UserInterface $userRepository)
+    public function execute(Request $request): bool|User
     {
-        $this->userRepository = $userRepository;
-    }
+        $currentUser = $request->user();
 
-    /**
-     * @param Request $request
-     * @return bool|Exception
-     */
-    public function execute(Request $request)
-    {
-        if (!$request->user()->isSuperUser()) {
-            if (!Hash::check($request->input('old_password'), $request->user()->getAuthPassword())) {
-                return new Exception(trans('core/acl::users.current_password_not_valid'));
+        if (! $currentUser->isSuperUser()) {
+            if (! Hash::check($request->input('old_password'), $currentUser->getAuthPassword())) {
+                throw new Exception(trans('core/acl::users.current_password_not_valid'));
             }
         }
 
-        $user = $this->userRepository->findOrFail($request->input('id', $request->user()->getKey()));
+        if (($userId = $request->input('id')) && $userId === $currentUser->getKey()) {
+            $user = $currentUser;
+        } else {
+            $user = User::query()->findOrFail($userId);
+        }
 
-        $user->password = Hash::make($request->input('password'));
-        $this->userRepository->createOrUpdate($user);
+        $password = $request->input('password');
 
-        if ($user->id != $request->user()->id) {
-            Auth::setUser($user)->logoutOtherDevices($request->input('password'));
+        $user->password = Hash::make($password);
+        $user->save();
+
+        /**
+         * @var User $user
+         */
+        if ($user->getKey() != $currentUser->getKey()) {
+            try {
+                Auth::setUser($user);
+                Auth::logoutOtherDevices($password);
+            } catch (Throwable $exception) {
+                BaseHelper::logError($exception);
+            }
         }
 
         do_action(USER_ACTION_AFTER_UPDATE_PASSWORD, USER_MODULE_SCREEN_NAME, $request, $user);

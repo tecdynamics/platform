@@ -2,51 +2,17 @@
 
 namespace Tec\Base\Http\Middleware;
 
-use Tec\Base\Http\Responses\BaseHttpResponse;
+use Tec\Base\Exceptions\DisabledInDemoModeException;
+use Tec\Base\Facades\BaseHelper;
 use Closure;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 
 class DisableInDemoModeMiddleware
 {
-
-    /**
-     * @var \Illuminate\Foundation\Application|mixed
-     */
-    protected $app;
-
-    /**
-     * @var BaseHttpResponse
-     */
-    protected $httpResponse;
-
-    /**
-     * DisableInDemoModeMiddleware constructor.
-     * @param Application $application
-     * @param BaseHttpResponse $response
-     */
-    public function __construct(Application $application, BaseHttpResponse $response)
+    public function handle(Request $request, Closure $next)
     {
-        $this->app = $application;
-        $this->httpResponse = $response;
-    }
-
-    /**
-     * Handle an incoming request.
-     *
-     * @param Request $request
-     * @param Closure $next
-     * @return mixed
-     * @since 2.1
-     */
-    public function handle($request, Closure $next)
-    {
-        if ($this->app->environment('demo')) {
-            return $this->httpResponse
-                ->setError()
-                ->withInput()
-                ->setMessage(trans('core/base::system.disabled_in_demo_mode'))
-                ->toResponse($request);
+        if (BaseHelper::hasDemoModeEnabled()) {
+            throw new DisabledInDemoModeException();
         }
 
         return $next($request);

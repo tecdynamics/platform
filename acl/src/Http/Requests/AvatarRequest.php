@@ -2,21 +2,16 @@
 
 namespace Tec\ACL\Http\Requests;
 
+use Tec\Media\Facades\RvMedia;
 use Tec\Support\Http\Requests\Request;
-use RvMedia;
 
 class AvatarRequest extends Request
 {
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
-    public function rules()
+    public function rules(): array
     {
         return [
             'avatar_file' => RvMedia::imageValidationRule(),
-            'avatar_data' => 'required',
+            'avatar_data' => 'required|string',
         ];
     }
 }

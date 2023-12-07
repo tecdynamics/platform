@@ -20,7 +20,7 @@ class AdminDuplicate  {
             '<input class="modal_name_imput form-control form-control-sm" placeholder="Enter Here"/>'+
             '<span class="modal_valid">Max 100 Characters</span></div>'+
             '<div class="modal-footer narr_footer">'+
-            '<button type="button" class="btn btn-primary ok_btn" id="ok_action" _url="'+jQuery(event.currentTarget).attr("url")+'"   data-dismiss="modal">Create</button>'+
+            '<button type="button" class="btn btn-primary ok_btn" id="ok_action" _url="'+jQuery(event.currentTarget).attr("href")+'"   data-dismiss="modal">Create</button>'+
             '</div></div> </div></div>');
 
         $('#duplicateModal').modal('show')
@@ -31,7 +31,7 @@ class AdminDuplicate  {
 
 jQuery(document).ready(function(){
     jQuery('body').on('click','#duplicate',function(event){
-        event.preventDefault
+        event.preventDefault()
         let mn = new AdminDuplicate()
         mn.presentAlert(event)
     })

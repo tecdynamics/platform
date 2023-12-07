@@ -2,10 +2,9 @@
 
 namespace Tec\Base\Traits;
 
-use Illuminate\Support\Facades\File;
 use Tec\Base\Supports\Helper;
-use Exception;
-use Illuminate\Support\ServiceProvider;
+use Tec\Base\Supports\ServiceProvider;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use ReflectionClass;
 
@@ -14,21 +13,7 @@ use ReflectionClass;
  */
 trait LoadAndPublishDataTrait
 {
-    /**
-     * @var string
-     */
-
     protected string|null $namespace = null;
-
-    /**
-     * @var string
-     */
-    protected $basePath = null;
-
-    /**
-     * @param string $namespace
-     * @return $this
-     */
 
     protected function setNamespace(string $namespace): self
     {
@@ -39,18 +24,28 @@ trait LoadAndPublishDataTrait
         return $this;
     }
 
-    /**
-     * Publish the given configuration file name (without extension) and the given module
-     * @param array|string $fileNames
-     * @return $this
-     */
-    public function loadAndPublishConfigurations($fileNames): self
+    protected function getPath(string $path = null): string
     {
-        if (!is_array($fileNames)) {
+        $reflection = new ReflectionClass($this);
+
+        $modulePath = str_replace('/src/Providers', '', File::dirname($reflection->getFilename()));
+
+        if (! Str::contains($modulePath, base_path('platform/plugins'))) {
+            $modulePath = base_path('platform/' . $this->getDashedNamespace());
+        }
+
+        return $modulePath . ($path ? '/' . ltrim($path, '/') : '');
+    }
+
+    protected function loadAndPublishConfigurations(array|string $fileNames): self
+    {
+        if (! is_array($fileNames)) {
             $fileNames = [$fileNames];
         }
+
         foreach ($fileNames as $fileName) {
             $this->mergeConfigFrom($this->getConfigFilePath($fileName), $this->getDotedNamespace() . '.' . $fileName);
+
             if ($this->app->runningInConsole()) {
                 $this->publishes([
                     $this->getConfigFilePath($fileName) => config_path($this->getDashedNamespace() . '/' . $fileName . '.php'),
@@ -60,6 +55,7 @@ trait LoadAndPublishDataTrait
 
         return $this;
     }
+
     protected function getConfigFilePath(string $file): string
     {
         return $this->getPath('config/' . $file . '.php');
@@ -74,35 +70,38 @@ trait LoadAndPublishDataTrait
     {
         return str_replace('/', '.', $this->namespace);
     }
-    /**
-     * @return string
-     */
-    public function getBasePath(): string
-    {
-        return $this->basePath ?? platform_path();
-    }
 
-    /**
-     * @param string $path
-     * @return $this
-     */
-    public function setBasePath($path): self
+    protected function loadRoutes(array|string $fileNames = ['web']): self
     {
-        $this->basePath = $path;
+        if (! is_array($fileNames)) {
+            $fileNames = [$fileNames];
+        }
+
+        foreach ($fileNames as $fileName) {
+            $this->loadRoutesFrom($this->getRouteFilePath($fileName));
+        }
 
         return $this;
     }
-    protected function getAssetsPath(): string
+
+    protected function getRouteFilePath(string $file): string
     {
-        return $this->getPath('public');
+        return $this->getPath('routes/' . $file . '.php');
     }
 
-    protected function loadHelpers(): self
+    protected function loadAndPublishViews(): self
     {
-        \Tec\Base\Supports\Helper::autoload($this->getPath('/helpers'));
+        $this->loadViewsFrom($this->getViewsPath(), $this->getDashedNamespace());
+        if ($this->app->runningInConsole()) {
+            $this->publishes(
+                [$this->getViewsPath() => resource_path('views/vendor/' . $this->getDashedNamespace())],
+                'cms-views'
+            );
+        }
 
         return $this;
     }
+
     protected function getViewsPath(): string
     {
         return $this->getPath('/resources/views');
@@ -147,58 +146,16 @@ trait LoadAndPublishDataTrait
         return $this;
     }
 
-    /**
-     * Publish the given configuration file name (without extension) and the given module
-     * @param array|string $fileNames
-     * @return $this
-     */
-       protected function loadRoutes(array|string $fileNames = ['web']): self
+    protected function getAssetsPath(): string
     {
-        if (! is_array($fileNames)) {
-            $fileNames = [$fileNames];
-        }
+        return $this->getPath('public');
+    }
 
-        foreach ($fileNames as $fileName) {
-            $this->loadRoutesFrom($this->getRouteFilePath($fileName));
-        }
+    protected function loadHelpers(): self
+    {
+        Helper::autoload($this->getPath('/helpers'));
 
         return $this;
-    }
-
-    protected function getRouteFilePath(string $file): string
-    {
-        return $this->getPath('routes/' . $file . '.php');
-    }
-
-    protected function loadAndPublishViews(): self
-    {
-        $this->loadViewsFrom($this->getViewsPath(), $this->getDashedNamespace());
-        if ($this->app->runningInConsole()) {
-            $this->publishes(
-                [$this->getViewsPath() => resource_path('views/vendor/' . $this->getDashedNamespace())],
-                'cms-views'
-            );
-        }
-
-        return $this;
-    }
-
-    /**
-     * @throws Exception
-     */
-    protected function throwInvalidPluginError()
-    {
-        $reflection = new ReflectionClass($this);
-
-        $from = str_replace('/src/Providers', '', dirname($reflection->getFilename()));
-        $from = str_replace(base_path(), '', $from);
-
-        $to = $this->getBasePath() . $this->getDashedNamespace();
-        $to = str_replace(base_path(), '', $to);
-
-        if ($from != $to) {
-            throw new Exception(sprintf('Plugin folder is invalid. Need to rename folder %s to %s', $from, $to));
-        }
     }
 
     protected function loadAnonymousComponents(): self
@@ -210,24 +167,4 @@ trait LoadAndPublishDataTrait
 
         return $this;
     }
-    protected function getPath(string $path = null): string
-    {
-        $reflection = new ReflectionClass($this);
-
-        $modulePath = str_replace('/src/Providers', '', File::dirname($reflection->getFilename()));
-
-        if (! Str::contains($modulePath, base_path('platform/plugins'))) {
-            $modulePath = base_path('platform/' . $this->getDashedNamespace());
-        }
-
-        return $modulePath . ($path ? '/' . ltrim($path, '/') : '');
-    }
-
-
-
-
-
-
-
-
 }

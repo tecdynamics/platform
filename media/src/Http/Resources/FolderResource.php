@@ -2,21 +2,20 @@
 
 namespace Tec\Media\Http\Resources;
 
-use BaseHelper;
-use Illuminate\Http\Request;
+use Tec\Base\Facades\BaseHelper;
+use Tec\Media\Models\MediaFolder;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin MediaFolder
+ */
 class FolderResource extends JsonResource
 {
-    /**
-     * @param Request $request
-     * @return array
-     */
-    public function toArray($request)
+    public function toArray($request): array
     {
         return [
-            'id'         => $this->id,
-            'name'       => $this->name,
+            'id' => $this->id,
+            'name' => $this->name,
             'created_at' => BaseHelper::formatDate($this->created_at, 'Y-m-d H:i:s'),
             'updated_at' => BaseHelper::formatDate($this->updated_at, 'Y-m-d H:i:s'),
         ];

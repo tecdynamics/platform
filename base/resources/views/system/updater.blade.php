@@ -1,5 +1,5 @@
 @php
-    use Botble\Base\Enums\SystemUpdaterStepEnum;
+    use Tec\Base\Enums\SystemUpdaterStepEnum;
 @endphp
 
 @extends(BaseHelper::getAdminMasterLayoutTemplate())

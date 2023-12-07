@@ -5,46 +5,41 @@
 </template>
 
 <script>
-    import {HalfCircleSpinner} from 'epic-spinners'
-
-    export default {
-        components: {
-            HalfCircleSpinner
+export default {
+    props: {
+        checkUpdateUrl: {
+            type: String,
+            default: () => null,
+            required: true,
         },
-
-        props: {
-            checkUpdateUrl: {
-                type: String,
-                default: () => null,
-                required: true
-            },
-            settingUrl: {
-                type: String,
-                default: () => null,
-                required: true
-            },
+        settingUrl: {
+            type: String,
+            default: () => null,
+            required: true,
         },
+    },
 
-        data() {
-            return {
-                hasNewVersion: false,
-                message: null,
-            };
-        },
-        mounted() {
-            this.checkUpdate();
-        },
-
-        methods: {
-            checkUpdate() {
-                axios.get(this.checkUpdateUrl)
-                    .then(res =>  {
-                        if (!res.data.error && res.data.data.has_new_version) {
-                            this.hasNewVersion = true;
-                            this.message = res.data.message;
-                        }
-                    });
-            },
+    data() {
+        return {
+            hasNewVersion: false,
+            message: null,
         }
-    }
+    },
+    mounted() {
+        this.checkUpdate()
+    },
+
+    methods: {
+        checkUpdate() {
+            axios
+                .get(this.checkUpdateUrl).then((res) => {
+                    if (!res.data.error && res.data.data.has_new_version) {
+                        this.hasNewVersion = true
+                        this.message = res.data.message
+                    }
+                })
+                .catch(() => {})
+        },
+    },
+}
 </script>

@@ -2,7 +2,7 @@
 
 namespace Tec\Base\Models\Concerns;
 
-use Tec\Base\Facades\MetaBoxFacade as MetaBoxSupport;
+use Tec\Base\Facades\MetaBox as MetaBoxSupport;
 use Tec\Base\Models\MetaBox;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 

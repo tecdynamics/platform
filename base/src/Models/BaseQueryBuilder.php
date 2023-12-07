@@ -2,16 +2,12 @@
 
 namespace Tec\Base\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Tec\Base\Enums\BaseStatusEnum;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class BaseQueryBuilder extends Builder
 {
-    /**
-     * @param string $column
-     * @param string|null $term
-     * @return BaseQueryBuilder
-     */
     public function addSearch(string $column, string|null $term, bool $isPartial = true, bool $or = true): static
     {
         if (! $isPartial) {
@@ -35,17 +31,15 @@ class BaseQueryBuilder extends Builder
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    protected function getBackslashByPdo()
+    protected function getBackslashByPdo(): string
     {
-        if (config('database.default') === 'sqlite') {
+        if (DB::getDefaultConnection() === 'sqlite') {
             return '\\\\';
         }
 
         return '\\\\\\';
     }
+
     public function wherePublished($column = 'status'): static
     {
         $this->where($column, BaseStatusEnum::PUBLISHED);

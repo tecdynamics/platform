@@ -4,29 +4,23 @@ namespace Tec\Base\Traits;
 
 use Tec\Base\Events\DeletedContentEvent;
 use Tec\Base\Http\Responses\BaseHttpResponse;
+use Tec\Base\Models\BaseModel;
 use Tec\Support\Repositories\Interfaces\RepositoryInterface;
-use Exception;
 use Illuminate\Http\Request;
+
 /**
- * @deprecated
+ * @deprecated since v6.8.0
  */
 trait HasDeleteManyItemsTrait
 {
-    /**
-     * @param Request $request
-     * @param BaseHttpResponse $response
-     * @param RepositoryInterface $repository
-     * @param string $screen
-     * @return BaseHttpResponse
-     * @throws Exception
-     */
     protected function executeDeleteItems(
         Request $request,
         BaseHttpResponse $response,
-        RepositoryInterface $repository,
+        RepositoryInterface|BaseModel $repository,
         string $screen
-    ) {
+    ): BaseHttpResponse {
         $ids = $request->input('ids');
+
         if (empty($ids)) {
             return $response
                 ->setError()
@@ -35,11 +29,12 @@ trait HasDeleteManyItemsTrait
 
         foreach ($ids as $id) {
             $item = $repository->findOrFail($id);
-            if (!$item) {
+            if (! $item) {
                 continue;
             }
 
-            $repository->delete($item);
+            $item->delete();
+
             event(new DeletedContentEvent($screen, $request, $item));
         }
 
