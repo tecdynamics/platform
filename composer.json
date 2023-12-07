@@ -6,15 +6,12 @@
         "Tec cms",
         "Tec platform"
     ],
-    "homepage": "https://Tec.com",
-    "support": {
-        "issues": "https://Tec.ticksy.com",
-        "document": "https://docs.Tec.com"
-    },
+    "homepage": "https://tecdynamics.co.uk",
+
     "authors": [
         {
-            "name": "Tec Technologies",
-            "email": "contact@Tec.com"
+            "name": "Tec-Dynamics",
+            "email": "contact@tecdynamics.co.uk"
         }
     ],
     "type": "project",
@@ -37,6 +34,9 @@
         "symfony/mailgun-mailer": "^6.3",
         "twig/twig": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.0"
+    } ,
+    "require-dev": {
+        "roave/security-advisories": "dev-latest"
     },
     "autoload": {
         "psr-4": {
