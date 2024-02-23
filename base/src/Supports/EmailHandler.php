@@ -138,6 +138,7 @@ class EmailHandler
 
         Arr::set($this->templates, $type . '.' . $module, $data);
 
+
         foreach ($data['templates'] as $key => &$template) {
             if (! isset($template['variables'])) {
                 $this->templates[$type][$module]['templates'][$key]['variables'] = Arr::get($data, 'variables', []);
@@ -197,9 +198,11 @@ class EmailHandler
         return true;
     }
 
-    public function templateEnabled(string $template, string $type = 'plugins'): bool
+    public function templateEnabled(string $template, string $type = 'plugins', $template_lang=null): bool
     {
-        return (bool)get_setting_email_status($type, $this->module, $template);
+        if($template_lang==null) $template_lang= \Language::getCurrentLocale();
+        return (bool)get_setting_email_status($type, $this->module, $template, $template_lang);
+       // return (bool)get_setting_email_status($type, $this->module, $template);
     }
 
     public function send(
@@ -232,15 +235,17 @@ class EmailHandler
         }
     }
 
-    public function prepareData(string $content): string
+    public function prepareData(string $content, $variables = []): string
     {
         $this->initVariableValues();
 
         if (! empty($content)) {
+            if(empty($variables)){
             $variables = $this->getCoreVariables();
 
             if ($this->module && $this->template) {
                 $variables = $this->getVariables($this->type ?: 'plugins', $this->module, $this->template);
+               }
             }
 
             $content = $this->replaceVariableValue(array_keys($variables), $this->module, $content);

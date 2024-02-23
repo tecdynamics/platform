@@ -85,6 +85,26 @@ class BaseHttpResponse extends Response implements Responsable
 
         return $this;
     }
+    public function withCreatedSuccessMessage(): static
+    {
+        return $this->setMessage(
+            trans('core/base::notices.create_success_message')
+        );
+    }
+
+    public function withUpdatedSuccessMessage(): static
+    {
+        return $this->setMessage(
+            trans('core/base::notices.update_success_message')
+        );
+    }
+
+    public function withDeletedSuccessMessage(): static
+    {
+        return $this->setMessage(
+            trans('core/base::notices.delete_success_message')
+        );
+    }
 
     public function isError(): bool
     {
@@ -165,5 +185,19 @@ class BaseHttpResponse extends Response implements Responsable
     protected function getSubmitterValue(): string
     {
         return (string)request()->input('submitter');
+    }
+    public function toArray(): array
+    {
+        $data = [
+            'error' => $this->error,
+            'data' => $this->data,
+            'message' => $this->message,
+        ];
+
+        if ($this->additional) {
+            $data = array_merge($data, ['additional' => $this->additional]);
+        }
+
+        return $data;
     }
 }

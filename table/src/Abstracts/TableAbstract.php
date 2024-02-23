@@ -2,12 +2,15 @@
 
 namespace Tec\Table\Abstracts;
 
+use Tec\Base\Contracts\Builders\Extensible as ExtensibleContract;
 use Tec\ACL\Models\User;
 use Tec\Base\Contracts\BaseModel as BaseModelContract;
 use Tec\Base\Facades\Assets;
 use Tec\Base\Facades\Form;
 use Tec\Base\Facades\Html;
 use Tec\Base\Models\BaseModel;
+use Tec\Base\Supports\Builders\Extensible;
+use Tec\Base\Supports\Builders\RenderingExtensible;
 use Tec\Table\Abstracts\Concerns\DeprecatedFunctions;
 use Tec\Table\Abstracts\Concerns\HasActions;
 use Tec\Table\Abstracts\Concerns\HasBulkActions;
@@ -38,13 +41,18 @@ use Symfony\Component\HttpFoundation\Response;
 use Yajra\DataTables\DataTableAbstract;
 use Yajra\DataTables\DataTables;
 use Yajra\DataTables\Services\DataTable;
+use Illuminate\Support\Traits\Conditionable;
 
-abstract class TableAbstract extends DataTable
+abstract class TableAbstract extends DataTable implements ExtensibleContract
 {
     use DeprecatedFunctions;
+    use Extensible;
+    use HasHeaderActions;
     use HasActions;
     use HasBulkActions;
     use HasFilters;
+    use RenderingExtensible;
+    use Conditionable;
 
     public const TABLE_TYPE_ADVANCED = 'advanced';
 
@@ -109,7 +117,7 @@ abstract class TableAbstract extends DataTable
         }
 
         $this->setup();
-
+        $this->setupExtended();
         $this->booted();
     }
 
@@ -392,7 +400,6 @@ abstract class TableAbstract extends DataTable
         $buttons = array_merge($this->getButtons(), $this->getActionsButton());
 
         $buttons = array_merge($buttons, array_unique($this->getDefaultButtons(), SORT_REGULAR));
-
         if (! $buttons) {
             return $params;
         }
@@ -538,6 +545,7 @@ abstract class TableAbstract extends DataTable
 
     public function renderTable(array $data = [], array $mergeData = []): View|Factory|Response
     {
+
         return $this->render($this->view, $data, $mergeData);
     }
 
@@ -695,6 +703,29 @@ abstract class TableAbstract extends DataTable
         return $buttons;
     }
 
+    protected function setupFormattedColumns(DataTableAbstract $table): void
+    {
+        foreach ($this->getColumnsFromBuilder() as $column) {
+            switch (true) {
+                case $column instanceof RowActionsColumn:
+                    $table->addColumn($column->name, function ($item) use ($column) {
+                        return $column
+                            ->setRowActions($this->getRowActions())
+                            ->renderCell($item, $this);
+                    });
+
+                break;
+
+                case $column instanceof Column && $column instanceof FormattedColumn:
+                    $table->editColumn($column->name, function (BaseModelContract|array $item) use ($column) {
+                        return $column->renderCell($item, $this);
+                    });
+
+                break;
+            }
+        }
+    }
+
     protected function setupEditedColumns(DataTableAbstract $table): void
     {
         foreach ($this->getColumnsFromBuilder() as $column) {
@@ -812,5 +843,47 @@ abstract class TableAbstract extends DataTable
     public function isExportingToCSV(): bool
     {
         return $this->request()->input('action') === 'csv';
+    }
+    protected function setupExtended(): void
+    {
+        if (static::hasGlobalExtend()) {
+            do_action(static::globalExtendFilterName(), $this);
+        }
+
+        do_action(static::getFilterPrefix() . '_extended', $this);
+    }
+    public static function getFilterPrefix(): string
+    {
+        return sprintf('base_table_%s', Str::of(static::class)->snake()->lower()->replace('\\', '')->toString());
+    }
+
+    public static function getGlobalClassName(): string
+    {
+        return TableAbstract::class;
+    }
+
+    public static function hasGlobalExtend(): bool
+    {
+        return true;
+    }
+
+    public static function globalExtendFilterName(): string
+    {
+        return TableAbstract::getFilterPrefix() . '_extended';
+    }
+
+    public static function hasGlobalRendering(): bool
+    {
+        return true;
+    }
+
+    public static function globalBeforeRenderingFilterName(): string
+    {
+        return TableAbstract::getFilterPrefix() . '_before_rendering';
+    }
+
+    public static function globalAfterRenderingFilterName(): string
+    {
+        return TableAbstract::getFilterPrefix() . '_after_rendering';
     }
 }

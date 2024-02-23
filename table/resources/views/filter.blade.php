@@ -6,12 +6,19 @@
         type="hidden"
         value="{{ isset($table) ? $table->getFilterInputUrl() : route('tables.get-filter-input') }}"
     >
+    @php
+  $columns = array_map(function($a){
+      if(!is_array($a)){
+          return $a->toArray();
+      }
+      return (array)$a;  },$columns) ;
+ @endphp
 
     <div class="sample-filter-item-wrap hidden">
         <div class="filter-item form-filter">
             {!! Form::customSelect(
                 'filter_columns[]',
-                array_combine(array_keys($columns), array_column($columns, 'title')),
+                  array_combine(array_keys($columns), array_column($columns, 'title')),
                 null,
                 ['class' => 'filter-column-key', 'wrapper_class' => 'mb-0'],
             ) !!}
@@ -63,7 +70,7 @@
                 {!! Form::customSelect(
                     'filter_columns[]',
                     ['' => trans('core/table::table.select_field')] +
-                        array_combine(array_keys($columns), array_column($columns, 'title')),
+                    array_combine(array_keys($columns), array_column($columns, 'title')),
                     $filterItem['column'],
                     ['class' => 'filter-column-key', 'wrapper_class' => 'mb-0'],
                 ) !!}

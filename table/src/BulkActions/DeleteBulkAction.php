@@ -24,6 +24,7 @@ class DeleteBulkAction extends TableBulkActionAbstract
             });
     }
 
+
     public function dispatch(BaseModel|Model $model, array $ids): BaseHttpResponse
     {
         $model->newQuery()->whereIn('id', $ids)->each(function (BaseModel $item) {

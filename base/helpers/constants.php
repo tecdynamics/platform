@@ -4,6 +4,18 @@
 if (! defined('MAIN_SEARCH_INPUT')) {
     define('MAIN_SEARCH_INPUT', 'main_search_input');
 }
+if (! defined('BASE_FILTER_EXTENDED_FORM')) {
+    define('BASE_FILTER_EXTENDED_FORM', 'filter_extended_form');
+}
+if (! defined('BASE_FILTER_AFTER_RENDER_FORM')) {
+    define('BASE_FILTER_AFTER_RENDER_FORM', 'filter_after_render_form');
+}
+if (! defined('BASE_FILTER_BEFORE_SAVE_FORM')) {
+    define('BASE_FILTER_BEFORE_SAVE_FORM', 'filter_before_save_form');
+}
+if (! defined('BASE_FILTER_AFTER_SAVE_FORM')) {
+    define('BASE_FILTER_AFTER_SAVE_FORM', 'filter_after_save_form');
+}
 if (! defined('AFTER_CART_TOTAL')) {
     define('AFTER_CART_TOTAL', 'after_cart_total');
 }

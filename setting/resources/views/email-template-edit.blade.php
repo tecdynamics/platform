@@ -118,7 +118,8 @@
                 >{{ trans('core/setting::setting.email.back') }}</a>
                 <a
                     class="btn btn-success"
-                    href="{{ route('setting.email.preview', ['type' => $pluginData['type'], 'module' => $pluginData['name'], 'template' => $pluginData['template_file']]) }}"
+                    href="{{ route('setting.email.preview', ['type' => $pluginData['type'], 'module' => $pluginData['name'],
+             'template' => $pluginData['template_file'], 'template_lang'=>$template_lang??'']) }}"
                     target="_blank"
                 >
                     {{ trans('core/setting::setting.preview') }}
@@ -128,6 +129,7 @@
                     class="btn btn-warning btn-trigger-reset-to-default"
                     data-target="{{ route('setting.email.template.reset-to-default', ['ref_lang' => BaseHelper::stringify(request()->input('ref_lang'))]) }}"
                 >{{ trans('core/setting::setting.email.reset_to_default') }}</a>
+                <input type="hidden" name="template_lang" value="{{$template_lang}}">
                 <button
                     class="btn btn-info"
                     name="submitter"

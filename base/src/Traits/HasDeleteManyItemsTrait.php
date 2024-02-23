@@ -8,9 +8,6 @@ use Tec\Base\Models\BaseModel;
 use Tec\Support\Repositories\Interfaces\RepositoryInterface;
 use Illuminate\Http\Request;
 
-/**
- * @deprecated since v6.8.0
- */
 trait HasDeleteManyItemsTrait
 {
     protected function executeDeleteItems(

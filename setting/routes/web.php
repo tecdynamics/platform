@@ -70,12 +70,12 @@ Route::group(['namespace' => 'Tec\Setting\Http\Controllers', 'middleware' => ['w
                     'uses' => 'SettingController@getEmailConfig',
                 ]);
 
-                Route::match(['POST', 'GET'], 'templates/preview/{type}/{module}/{template}', [
+                Route::match(['POST', 'GET'], 'templates/preview/{type}/{module}/{template}/{template_lang?}', [
                     'as' => 'setting.email.preview',
                     'uses' => 'SettingController@previewEmailTemplate',
                 ]);
 
-                Route::get('templates/preview/{type}/{module}/{template}/iframe', [
+                Route::get('templates/preview/{type}/{module}/{template}/iframe/{template_lang?}', [
                     'as' => 'setting.email.preview.iframe',
                     'uses' => 'SettingController@previewEmailTemplateIframe',
                 ]);
@@ -85,7 +85,7 @@ Route::group(['namespace' => 'Tec\Setting\Http\Controllers', 'middleware' => ['w
                     'uses' => 'SettingController@postEditEmailConfig',
                 ]);
 
-                Route::get('templates/edit/{type}/{module}/{template}', [
+                Route::get('templates/edit/{type}/{module}/{template}/{template_lang?}', [
                     'as' => 'setting.email.template.edit',
                     'uses' => 'SettingController@getEditEmailTemplate',
                 ]);

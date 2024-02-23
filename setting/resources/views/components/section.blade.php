@@ -21,6 +21,7 @@
         {!! $extraDescription ?: null !!}
     </div>
 
+
     <div class="flexbox-annotated-section-content">
         <div class="wrapper-content pd-all-20">
             {{ $slot }}

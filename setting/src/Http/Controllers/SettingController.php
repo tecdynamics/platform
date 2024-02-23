@@ -136,7 +136,7 @@ class SettingController extends BaseController
             ->setMessage(trans('core/base::notices.update_success_message'));
     }
 
-    public function getEditEmailTemplate(string $type, string $module, string $template)
+    public function getEditEmailTemplate(string $type, string $module, string $template,$template_lang='')
     {
         PageTitle::setTitle(trans(config($type . '.' . $module . '.email.templates.' . $template . '.title', '')));
 
@@ -154,15 +154,16 @@ class SettingController extends BaseController
                 'vendor/core/core/setting/js/setting.js',
             ]);
 
-        $emailContent = get_setting_email_template_content($type, $module, $template);
-        $emailSubject = get_setting_email_subject($type, $module, $template);
+        $emailContent = get_setting_email_template_content($type, $module, $template,$template_lang);
+        $emailSubject = get_setting_email_subject($type, $module, $template,$template_lang);
         $pluginData = [
             'type' => $type,
             'name' => $module,
             'template_file' => $template,
+            'template_lang' => $template_lang,
         ];
 
-        return view('core/setting::email-template-edit', compact('emailContent', 'emailSubject', 'pluginData'));
+        return view('core/setting::email-template-edit', compact('emailContent', 'template_lang','emailSubject', 'pluginData'));
     }
 
     public function postStoreEmailTemplate(EmailTemplateRequest $request, BaseHttpResponse $response)
@@ -182,7 +183,9 @@ class SettingController extends BaseController
 
     public function postResetToDefault(ResetEmailTemplateRequest $request, BaseHttpResponse $response)
     {
-        Setting::delete([$request->input('email_subject_key')]);
+
+
+        Setting::delete([$request->input('template_lang') . '_' .$request->input('email_subject_key')]);
 
         $templatePath = get_setting_email_template_path($request->input('module'), $request->input('template_file'));
 
@@ -304,7 +307,7 @@ class SettingController extends BaseController
 
             return $response
                 ->setError()
-                ->setMessage(sprintf('Envato username must not a URL. Please try with username "%s".', $username));
+                ->setMessage(sprintf('Please try with username "%s".', $username));
         }
 
         $purchasedCode = $request->input('purchase_code');
@@ -392,8 +395,9 @@ class SettingController extends BaseController
         return $response->setMessage(trans('core/setting::setting.generate_thumbnails_success', ['count' => count($files)]));
     }
 
-    public function previewEmailTemplate(Request $request, string $type, string $module, string $template)
+    public function previewEmailTemplate(Request $request, string $type, string $module, string $template,$template_lang='')
     {
+
         $emailHandler = EmailHandler::setModule($module)
             ->setType($type)
             ->setTemplate($template);
@@ -412,7 +416,7 @@ class SettingController extends BaseController
             }
         }
 
-        $routeParams = [$type, $module, $template];
+        $routeParams = [$type, $module, $template,$template_lang];
 
         $backUrl = route('setting.email.template.edit', $routeParams);
 
@@ -420,11 +424,11 @@ class SettingController extends BaseController
 
         return view(
             'core/setting::preview-email',
-            compact('variables', 'inputData', 'backUrl', 'iframeUrl')
+            compact('variables', 'inputData', 'backUrl', 'iframeUrl','template_lang')
         );
     }
 
-    public function previewEmailTemplateIframe(Request $request, string $type, string $module, string $template)
+    public function previewEmailTemplateIframe(Request $request, string $type, string $module, string $template,$template_lang='')
     {
         $emailHandler = EmailHandler::setModule($module)
             ->setType($type)
@@ -448,7 +452,7 @@ class SettingController extends BaseController
 
         $emailHandler->setVariableValues($inputData);
 
-        $content = get_setting_email_template_content($type, $module, $template);
+        $content = get_setting_email_template_content($type, $module, $template,$template_lang);
 
         $content = $emailHandler->prepareData($content);
 

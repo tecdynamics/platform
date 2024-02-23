@@ -4,13 +4,16 @@
     </a>
     <div class="dropdown-content">
         @foreach ($bulk_changes as $key => $bulk_change)
+{{--            @php--}}
+{{--            if(!is_array($bulk_change))  $bulk_change= $bulk_change->toArray();--}}
+{{-- @endphp--}}
             <a
                 class="bulk-change-item"
                 data-key="{{ $key }}"
                 data-class-item="{{ $class }}"
                 data-save-url="{{ $url }}"
                 href="#"
-            >{{ $bulk_change['title'] }}</a>
+            >{{  $bulk_change['title']}}</a>
         @endforeach
     </div>
 </div>

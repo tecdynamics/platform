@@ -53,8 +53,7 @@
         </div>
     </div>
 </div>
-@include('core/table::modal')
-
 @push('footer')
+@include('core/table::modal')
     {!! $dataTable->scripts() !!}
 @endpush

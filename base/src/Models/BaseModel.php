@@ -2,6 +2,7 @@
 
 namespace Tec\Base\Models;
 
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Tec\Base\Contracts\BaseModel as BaseModelContract;
 use Tec\Base\Facades\MacroableModels;
 use Tec\Base\Models\Concerns\HasBaseEloquentBuilder;
@@ -38,6 +39,22 @@ class BaseModel extends Model implements BaseModelContract
         return new BaseQueryBuilder($query);
     }
 
+    protected function asJson($value)
+    {
+        return json_encode($value, JSON_UNESCAPED_UNICODE);
+    }
+    /**
+     * @return MorphMany
+     */
+    public function metadata(): MorphMany {
+        return $this->morphMany(MetaBox::class, 'reference')
+            ->select([
+                'reference_id',
+                'reference_type',
+                'meta_key',
+                'meta_value',
+            ]);
+    }
     public function initializeFilable($field) {
         if (!in_array($field,$this->fillable)){
             $this->fillable[] = $field;

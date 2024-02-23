@@ -108,7 +108,22 @@ class User extends BaseModel implements
             },
         );
     }
+    /**
+     * @return string
+     * @deprecated
+     */
+    public function getFullName()
+    {
+        return $this->name;
+    }
 
+    /**
+     * @return string
+     */
+    public function getNameAttribute()
+    {
+        return ucfirst($this->first_name) . ' ' . ucfirst($this->last_name);
+    }
     public function avatar(): BelongsTo
     {
         return $this->belongsTo(MediaFile::class)->withDefault();
