@@ -133,7 +133,13 @@ $(() => {
         }
         $this.toggleClass('open-tree')
     })
-
+    function clearRefSetupDefault() {
+        let data = $.ajaxSetup().data;
+        if (data) {
+            delete data.ref_from;
+            delete data.ref_lang;
+        }
+    }
     function fetchData(url, $el) {
         clearRefSetupDefault();
 
