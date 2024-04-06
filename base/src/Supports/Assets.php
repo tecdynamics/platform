@@ -8,9 +8,6 @@ use Tec\Base\Facades\AdminHelper;
 use Tec\Base\Facades\BaseHelper;
 use Illuminate\Config\Repository;
 
-/**
- * @since 22/07/2015 11:23 PM
- */
 class Assets extends BaseAssets
 {
     protected bool $hasVueJs = false;
@@ -31,9 +28,6 @@ class Assets extends BaseAssets
         $this->config = $config;
     }
 
-    /**
-     * @deprecated v7.0
-     */
     public function getThemes(): array
     {
         return [];
@@ -81,9 +75,6 @@ class Assets extends BaseAssets
         return $this->hasVueJs;
     }
 
-    /**
-     * @deprecated since v5.13
-     */
     public function getAdminLocales(): array
     {
         return Language::getAvailableLocales();

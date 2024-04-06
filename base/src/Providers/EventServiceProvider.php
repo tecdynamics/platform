@@ -40,6 +40,7 @@ use Tec\Base\Listeners\SendMailListener;
 use Tec\Base\Listeners\UpdatedContentListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Tec\Support\Http\Middleware\BaseMiddleware;
+use Throwable;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -82,6 +83,7 @@ class EventServiceProvider extends ServiceProvider
             $this->app['files']->delete(storage_path('cache_keys.json'));
         });
         $events = $this->app['events'];
+
         $events->listen(RouteMatched::class, function () {
             /**
              * @var Router $router
@@ -101,10 +103,10 @@ class EventServiceProvider extends ServiceProvider
             });
 
             add_filter(BASE_FILTER_TOP_HEADER_LAYOUT, function ($options) {
+                $countNotificationUnread = 0;
                 try {
                     $countNotificationUnread = AdminNotification::countUnread();
                 } catch (Throwable) {
-                    $countNotificationUnread = 0;
                 }
 
                 return $options . view('core/base::notification.nav-item', compact('countNotificationUnread'));
@@ -114,8 +116,8 @@ class EventServiceProvider extends ServiceProvider
                 if (! Auth::guard()->check()) {
                     return $html;
                 }
-
-                return $html . view('core/base::notification.notification');
+                $countNotificationUnread = 0;
+                return $html . view('core/base::notification.notification', compact('countNotificationUnread'));
             }, 99);
 
             add_action(BASE_ACTION_META_BOXES, [MetaBox::class, 'doMetaBoxes'], 8, 2);

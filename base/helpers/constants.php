@@ -148,6 +148,14 @@ if (! defined('BASE_FILTER_FORM_EDITOR_BUTTONS')) {
     define('BASE_FILTER_FORM_EDITOR_BUTTONS', 'base_filter_form_editor_buttons');
 }
 
+if (! defined('BASE_FILTER_FORM_EDITOR_BUTTONS_HEADER')) {
+    define('BASE_FILTER_FORM_EDITOR_BUTTONS_HEADER', 'base_filter_form_editor_buttons_header');
+}
+
+if (! defined('BASE_FILTER_FORM_EDITOR_BUTTONS_FOOTER')) {
+    define('BASE_FILTER_FORM_EDITOR_BUTTONS_FOOTER', 'base_filter_form_editor_buttons_footer');
+}
+
 if (! defined('BASE_ACTION_INIT')) {
     define('BASE_ACTION_INIT', 'init');
 }
@@ -178,6 +186,9 @@ if (! defined('BASE_FILTER_ADMIN_LANGUAGE_DIRECTION')) {
 
 if (! defined('BASE_FILTER_FOOTER_LAYOUT_TEMPLATE')) {
     define('BASE_FILTER_FOOTER_LAYOUT_TEMPLATE', 'base_filter_footer_layout_template');
+}
+if (! defined('BASE_FILTER_HEAD_LAYOUT_TEMPLATE')) {
+    define('BASE_FILTER_HEAD_LAYOUT_TEMPLATE', 'base_filter_head_layout_template');
 }
 
 if (! defined('BASE_FILTER_HEADER_LAYOUT_TEMPLATE')) {

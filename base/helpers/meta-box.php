@@ -4,10 +4,7 @@ use Tec\Base\Facades\MetaBox;
 use Illuminate\Database\Eloquent\Model;
 
 if (! function_exists('add_meta_box')) {
-    /**
-     * @deprecated since 5.7
-     */
-    function add_meta_box(
+       function add_meta_box(
         string $id,
         string $title,
         callable $callback,
@@ -21,9 +18,6 @@ if (! function_exists('add_meta_box')) {
 }
 
 if (! function_exists('get_meta_data')) {
-    /**
-     * @deprecated since 5.7
-     */
     function get_meta_data(
         $object,
         string $key,
@@ -35,9 +29,7 @@ if (! function_exists('get_meta_data')) {
 }
 
 if (! function_exists('get_meta')) {
-    /**
-     * @deprecated since 5.7
-     */
+
     function get_meta($object, string $key, array $select = ['meta_value']): Model|null
     {
         return MetaBox::getMeta($object, $key, $select);
@@ -45,9 +37,6 @@ if (! function_exists('get_meta')) {
 }
 
 if (! function_exists('save_meta_data')) {
-    /**
-     * @deprecated since 5.7
-     */
     function save_meta_data($object, string $key, string $value, array $options = null): void
     {
         MetaBox::saveMetaBoxData($object, $key, $value, $options);
@@ -55,9 +44,6 @@ if (! function_exists('save_meta_data')) {
 }
 
 if (! function_exists('delete_meta_data')) {
-    /**
-     * @deprecated since 5.7
-     */
     function delete_meta_data($object, string $key): bool
     {
         return MetaBox::deleteMetaData($object, $key);

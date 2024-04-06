@@ -2,7 +2,6 @@
 
 namespace Tec\Base\Providers;
 
-use App\Http\Middleware\VerifyCsrfToken;
 use Tec\Base\GlobalSearch\GlobalSearchableManager;
 use Tec\Base\Contracts\PanelSections\Manager;
 use Tec\Base\PanelSections\System\SystemPanelSection;
@@ -10,25 +9,14 @@ use Tec\Base\Facades\AdminAppearance;
 use Tec\Base\Facades\AdminHelper;
 use Tec\Base\Facades\Breadcrumb as BreadcrumbFacade;
 use Tec\Base\PanelSections\Manager as PanelSectionManager;
+use Tec\Base\Facades\PanelSectionManager as PanelSectionManagerFacade;
 use Illuminate\Config\Repository;
 use Tec\Base\Exceptions\Handler;
 use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Facades\DashboardMenu;
-use Tec\Base\Facades\MetaBox;
 use Tec\Base\Supports\Breadcrumb;
-use Tec\Base\Facades\PageTitle;
-use Tec\Base\Forms\Form;
-use Tec\Base\Forms\FormBuilder;
-use Tec\Base\Forms\FormHelper;
 use Tec\Base\Contracts\GlobalSearchableManager as GlobalSearchableManagerContract;
-use Tec\Base\Hooks\EmailSettingHooks;
-use Tec\Base\Http\Middleware\CoreMiddleware;
-use Tec\Base\Http\Middleware\DisableInDemoModeMiddleware;
-use Tec\Base\Http\Middleware\HttpsProtocolMiddleware;
-use Tec\Base\Http\Middleware\LocaleMiddleware;
-use Tec\Base\Models\AdminNotification;
 use Tec\Base\Models\BaseModel;
-use Tec\Base\Models\MetaBox as MetaBoxModel;
 use Tec\Base\Repositories\Eloquent\MetaBoxRepository;
 use Tec\Base\Repositories\Interfaces\MetaBoxInterface;
 use Tec\Base\Supports\Action;
@@ -45,27 +33,17 @@ use Tec\Base\Widgets\AdminWidget;
 use Tec\Base\Widgets\Contracts\AdminWidget as AdminWidgetContract;
 use Tec\Setting\Providers\SettingServiceProvider;
 use Tec\Setting\Supports\SettingStore;
-use Tec\Support\Http\Middleware\BaseMiddleware;
 use DateTimeZone;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Builder;
-use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Foundation\AliasLoader;
-use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Routing\ResourceRegistrar;
 use Illuminate\Routing\Route;
-use Illuminate\Routing\Router;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
-use Throwable;
 
 class BaseServiceProvider extends ServiceProvider
 {
@@ -119,14 +97,6 @@ class BaseServiceProvider extends ServiceProvider
 
         $this->app->singleton('core.google-fonts', GoogleFonts::class);
 
-//        $aliasLoader = AliasLoader::getInstance();
-//
-//        if (! class_exists('BaseHelper')) {
-//            $aliasLoader->alias('BaseHelper', BaseHelper::class);
-//            $aliasLoader->alias('DashboardMenu', DashboardMenu::class);
-//            $aliasLoader->alias('PageTitle', PageTitle::class);
-//            $aliasLoader->alias('Form', \Tec\Base\Facades\Form::class);
-//        }
         $this->registerRouteMacros();
 
         $this->prepareAliasesIfMissing();
@@ -150,125 +120,20 @@ class BaseServiceProvider extends ServiceProvider
 
         $this->app['blade.compiler']->anonymousComponentPath($this->getViewsPath() . '/components', 'core');
 
-        $config = $this->app['config'];
+        $this->overridePackagesConfigs();
 
-        if (BaseHelper::hasDemoModeEnabled() || $config->get('core.base.general.disable_verify_csrf_token', false)) {
-            $this->app->instance(VerifyCsrfToken::class, new BaseMiddleware());
-        }
-
-        $this->app->booted(function () use ($config) {
+        $this->app->booted(function () {
             do_action(BASE_ACTION_INIT);
-            add_action(BASE_ACTION_META_BOXES, [MetaBox::class, 'doMetaBoxes'], 8, 2);
-
-            add_filter(
-                BASE_FILTER_AFTER_SETTING_EMAIL_CONTENT,
-                [EmailSettingHooks::class, 'addEmailTemplateSettings'],
-                99
-            );
-            $this->registerDashboardMenus();
-
-            $this->registerPanelSections();
-
-            Paginator::useBootstrap();
-
-            $this->forceSSL();
-
-            $this->configureIni();
-
-            add_filter(BASE_FILTER_TOP_HEADER_LAYOUT, function ($options) {
-                try {
-                    $countNotificationUnread = AdminNotification::countUnread();
-                } catch (Throwable) {
-                    $countNotificationUnread = 0;
-                }
-
-                return $options . view('core/base::notification.notification', compact('countNotificationUnread'));
-            }, 99);
-
-            add_filter(BASE_FILTER_FOOTER_LAYOUT_TEMPLATE, function ($html) {
-                if (! Auth::guard()->check()) {
-                    return $html;
-                }
-
-                return $html . view('core/base::notification.notification-content');
-            }, 99);
-
-            $setting = $this->app[SettingStore::class];
-            $timezone = $setting->get('time_zone', $config->get('app.timezone'));
-            $locale = $setting->get('locale', $config->get('core.base.general.locale', $config->get('app.locale')));
-
-            $config->set([
-                'app.locale' => $locale,
-                'app.timezone' => $timezone,
-            ]);
-
-            $this->app->setLocale($locale);
-
-            if (in_array($timezone, DateTimeZone::listIdentifiers())) {
-                date_default_timezone_set($timezone);
-            }
         });
+        $this->registerDashboardMenus();
 
-        $this->app['events']->listen(RouteMatched::class, function () {
-            $this->registerDefaultMenus();
-
-            /**
-             * @var Router $router
-             */
-            $router = $this->app['router'];
-
-            $router->pushMiddlewareToGroup('web', LocaleMiddleware::class);
-            $router->pushMiddlewareToGroup('web', HttpsProtocolMiddleware::class);
-            $router->aliasMiddleware('preventDemo', DisableInDemoModeMiddleware::class);
-            $router->middlewareGroup('core', [CoreMiddleware::class]);
-        });
+        $this->registerPanelSections();
 
         Paginator::useBootstrap();
 
-        $baseConfig = $config->get('core.base.general', []);
-
-        $forceUrl = Arr::get($baseConfig, 'force_root_url');
-        if (! empty($forceUrl)) {
-            URL::forceRootUrl($forceUrl);
-        }
-
-        $forceSchema = Arr::get($baseConfig, 'force_schema');
-        if (! empty($forceSchema)) {
-            $this->app['request']->server->set('HTTPS', 'on');
-
-            URL::forceScheme($forceSchema);
-        }
+        $this->forceSSL();
 
         $this->configureIni();
-
-        $config->set([
-            'purifier.settings' => array_merge(
-                $config->get('purifier.settings', []),
-                Arr::get($baseConfig, 'purifier', [])
-            ),
-            'laravel-form-builder.defaults.wrapper_class' => 'form-group mb-3',
-            'database.connections.mysql.strict' => Arr::get($baseConfig, 'db_strict_mode'),
-        ]);
-
-        if (
-            ! $config->has('logging.channels.deprecations')
-            && $this->app->isLocal()
-            && $this->app->hasDebugModeEnabled()
-        ) {
-            $config->set([
-                'logging.channels.deprecations' => [
-                    'driver' => 'single',
-                    'path' => storage_path('logs/php-deprecation-warnings.log'),
-                ],
-            ]);
-        }
-
-        if ($this->app->runningInConsole()) {
-            AboutCommand::add('Core Information', fn () => [
-                'CMS Version' => get_cms_version(),
-                'Core Version' => get_core_version(),
-            ]);
-        }
 
         $this->app->extend('db.schema', function (Builder $schema) {
             $schema->blueprintResolver(function ($table, $callback, $prefix) {
@@ -277,16 +142,6 @@ class BaseServiceProvider extends ServiceProvider
 
             return $schema;
         });
-
-        if ($this->app->environment('local')) {
-            DB::listen(function (QueryExecuted $queryExecuted) {
-                if ($queryExecuted->time < 500) {
-                    return;
-                }
-
-                Log::warning(sprintf('DB query exceeded %s ms. SQL: %s', $queryExecuted->time, $queryExecuted->sql));
-            });
-        }
     }
 
     protected function registerDashboardMenus(): void
