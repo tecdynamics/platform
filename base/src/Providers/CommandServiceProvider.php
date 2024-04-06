@@ -2,6 +2,7 @@
 
 namespace Tec\Base\Providers;
 
+use Illuminate\Foundation\Console\AboutCommand;
 use Tec\Base\Commands\ActivateLicenseCommand;
 use Tec\Base\Commands\CleanupSystemCommand;
 use Tec\Base\Commands\ClearExpiredCacheCommand;
@@ -18,6 +19,10 @@ class CommandServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
         $this->commands([
             ActivateLicenseCommand::class,
             CleanupSystemCommand::class,
@@ -30,6 +35,10 @@ class CommandServiceProvider extends ServiceProvider
             UpdateCommand::class,
         ]);
 
+        AboutCommand::add('Core Information', fn () => [
+            'CMS Version' => get_cms_version(),
+            'Core Version' => get_core_version(),
+        ]);
         $this->app->afterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command(ClearExpiredCacheCommand::class)->everyFiveMinutes();
         });

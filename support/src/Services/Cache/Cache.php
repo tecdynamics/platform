@@ -1,8 +1,10 @@
 <?php
-
 namespace Tec\Support\Services\Cache;
 
 use Tec\Base\Facades\BaseHelper;
+use Closure;
+use DateInterval;
+use DateTimeInterface;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
@@ -20,7 +22,7 @@ class Cache implements CacheInterface
         ];
     }
 
-    public function get(string $key)
+    public function get(string $key): mixed
     {
         if (! file_exists($this->config['stored_keys'])) {
             return null;
@@ -31,22 +33,49 @@ class Cache implements CacheInterface
 
     public function generateCacheKey(string $key): string
     {
-        return md5($this->cacheGroup) . $key;
+        return md5($this->cacheGroup) . '@' . $key;
     }
 
-    public function put(string $key, $value, $minutes = false): bool
+    public function put(string $key, $value,  $ttl = null): bool
     {
-        if (! $minutes) {
-            $minutes = $this->config['cache_time'];
+        if (! $ttl) {
+            $ttl = $this->config['cache_time'];
+        }
+
+        if ($ttl === -1) {
+            $ttl = null;
         }
 
         $key = $this->generateCacheKey($key);
 
         $this->storeCacheKey($key);
 
-        $this->cache->put($key, $value, $minutes);
+        $this->cache->put($key, $value, $ttl);
 
         return true;
+    }
+
+    public function forever(string $key, mixed $value): bool
+    {
+        return $this->put($key, $value, -1);
+    }
+
+    public function remember(string $key,  $ttl, Closure $callback): mixed
+    {
+        if ($this->has($key)) {
+            return $this->get($key);
+        }
+
+        $value = value($callback);
+
+        $this->put($key, $value, $ttl);
+
+        return $value;
+    }
+
+    public function rememberForever(string $key, Closure $callback): mixed
+    {
+        return $this->remember($key, -1, $callback);
     }
 
     public function storeCacheKey(string $key): bool
@@ -77,6 +106,11 @@ class Cache implements CacheInterface
         return $this->cache->has($key);
     }
 
+    public function forget(string $key): bool
+    {
+        return $this->cache->forget($key);
+    }
+
     public function flush(): bool
     {
         $cacheKeys = [];
@@ -101,3 +135,4 @@ class Cache implements CacheInterface
         return true;
     }
 }
+

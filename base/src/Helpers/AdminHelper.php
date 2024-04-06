@@ -2,7 +2,6 @@
 
 namespace Tec\Base\Helpers;
 
-use Tec\ACL\Models\UserMeta;
 use Tec\Base\Facades\BaseHelper;
 use Closure;
 use Illuminate\Routing\RouteRegistrar;
@@ -41,6 +40,6 @@ class AdminHelper
             return $default;
         }
 
-        return UserMeta::getMeta('theme_mode', $default);
+        return Auth::user()->getMeta('theme_mode', $default);
     }
 }

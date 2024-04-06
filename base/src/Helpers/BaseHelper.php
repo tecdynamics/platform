@@ -2,17 +2,24 @@
 
 namespace Tec\Base\Helpers;
 
+use Tec\Base\Facades\AdminAppearance;
 use Tec\Base\Facades\Html;
+use Tec\Base\View\Components\BadgeComponent;
+use Tec\Icon\Facades\Icon as IconFacade;
+use Tec\Icon\View\Components\Icon;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 use Throwable;
 
 class BaseHelper
 {
-    public function formatTime(Carbon $timestamp, string|null $format = 'j M Y H:i'): string
+    public function formatTime(CarbonInterface $timestamp, string|null $format = 'j M Y H:i'): string
     {
         $first = Carbon::create(0000, 0, 0, 00, 00, 00);
 
@@ -23,7 +30,7 @@ class BaseHelper
         return $timestamp->format($format);
     }
 
-    public function formatDate(string|null $date, string|null $format = null): string|null
+    public function formatDate(CarbonInterface|int|string|null $date, string|null $format = null): string|null
     {
         if (empty($format)) {
             $format = $this->getDateFormat();
@@ -33,10 +40,14 @@ class BaseHelper
             return $date;
         }
 
+        if ($date instanceof CarbonInterface) {
+            return $this->formatTime($date, $format);
+        }
+
         return $this->formatTime(Carbon::parse($date), $format);
     }
 
-    public function formatDateTime(string|null $date, string $format = null): string|null
+    public function formatDateTime(CarbonInterface|int|string|null $date, string $format = null): string|null
     {
         if (empty($format)) {
             $format = $this->getDateTimeFormat();
@@ -46,7 +57,7 @@ class BaseHelper
             return $date;
         }
 
-        return $this->formatTime(Carbon::parse($date), $format);
+        return $this->formatDate($date, $format);
     }
 
     public function humanFilesize(float $bytes, int $precision = 2): string
@@ -148,9 +159,7 @@ class BaseHelper
 
     public function adminLanguageDirection(): string
     {
-        $direction = session('admin_locale_direction', setting('admin_locale_direction', 'ltr'));
-
-        return apply_filters(BASE_FILTER_ADMIN_LANGUAGE_DIRECTION, $direction);
+        return apply_filters(BASE_FILTER_ADMIN_LANGUAGE_DIRECTION, AdminAppearance::forCurrentUser()->getLocaleDirection());
     }
 
     public function isHomepage(int|string|null $pageId = null): bool
@@ -235,9 +244,15 @@ class BaseHelper
         return htmlentities($this->clean($value));
     }
 
-    public function getPhoneValidationRule(): string
+    public function getPhoneValidationRule(bool $asArray = false): string|array
     {
-        return config('core.base.general.phone_validation_rule');
+        $rule = config('core.base.general.phone_validation_rule');
+
+        if ($asArray) {
+            return explode('|', $rule);
+        }
+
+        return $rule;
     }
 
     public function sortSearchResults(array|Collection $collection, string $searchTerms, string $column): Collection
@@ -318,6 +333,18 @@ class BaseHelper
 
     public function hexToRgb(string $color): array
     {
+        $color = Str::lower($color);
+
+        if (Str::startsWith($color, 'rgb')) {
+            $color = str_replace('rgb(', '', $color);
+            $color = str_replace(')', '', $color);
+            $color = str_replace(' ', '', $color);
+
+            [$red, $green, $blue] = explode(',', $color);
+
+            return compact('red', 'green', 'blue');
+        }
+
         [$red, $green, $blue] = sscanf($color, '#%02x%02x%02x');
 
         $blue = $blue === null ? 0 : $blue;
@@ -463,5 +490,51 @@ class BaseHelper
     public function getDateTimeFormat(): string
     {
         return config('core.base.general.date_format.date_time');
+    }
+
+    public function joinPaths(array $paths): string
+    {
+        return implode(DIRECTORY_SEPARATOR, $paths);
+    }
+
+    public function hasIcon(string|null $name): bool
+    {
+        if (! $name) {
+            return false;
+        }
+
+        return IconFacade::has($name);
+    }
+
+    public function renderIcon(string $name, string $size = null, array $attributes = [], bool $safe = false): string
+    {
+        if ($safe && ! $this->hasIcon($name)) {
+            return '';
+        }
+
+        return Blade::renderComponent(
+            (new Icon($name, $size))->withAttributes($attributes)
+        );
+    }
+
+    public function renderBadge(string $label, string $color = 'primary', array $attributes = [], string|null $icon = null): string
+    {
+        return Blade::renderComponent(
+            (new BadgeComponent($label, $color, $icon))->withAttributes($attributes)
+        );
+    }
+
+    public function cleanToastMessage(string $message): string
+    {
+        if (Str::startsWith($message, ['http://', 'https://'])) {
+            return $message;
+        }
+
+        return addslashes($message);
+    }
+
+    public function getHomepageUrl()
+    {
+        return apply_filters('cms_homepage_url', rescue(fn () => route('public.index'), report: false));
     }
 }

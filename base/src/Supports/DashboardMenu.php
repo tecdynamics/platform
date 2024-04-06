@@ -2,19 +2,20 @@
 
 namespace Tec\Base\Supports;
 
+use Tec\ACL\Contracts\HasPermissions;
+use Tec\Base\Events\DashboardMenuRetrieved;
+use Tec\Base\Events\DashboardMenuRetrieving;
+use Tec\Base\Facades\BaseHelper;
+use Tec\Support\Services\Cache\Cache;
+use Carbon\Carbon;
+use Closure;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
-use Tec\Support\Services\Cache\Cache;
-use Closure;
-use Illuminate\Support\Traits\Tappable;
-use Tec\Base\Facades\BaseHelper;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Conditionable;
+use Illuminate\Support\Traits\Tappable;
 use RuntimeException;
 
 class DashboardMenu
@@ -23,6 +24,8 @@ class DashboardMenu
     use Tappable;
 
     protected array $links = [];
+
+    protected array $removedItems = [];
 
     protected string $groupId = 'admin';
 
@@ -33,18 +36,38 @@ class DashboardMenu
     protected bool $cacheEnabled;
 
     protected Cache $cache;
+
     public function __construct(
         protected Application $app,
         protected Request $request,
         CacheManager $cache
     ) {
         $this->cacheEnabled = (bool) setting('cache_admin_menu_enable', false);
-        $this->cache = new \Tec\Support\Services\Cache\Cache($cache, static::class);
+        $this->cache = new Cache($cache, static::class);
     }
-    public function make(): self
+
+    public function make(): static
     {
         return $this;
     }
+
+    public function setGroupId(string $id): static
+    {
+        $this->groupId = $id;
+
+        return $this;
+    }
+
+    public function for(string $id): static
+    {
+        return $this->setGroupId($id);
+    }
+
+    public function default(): static
+    {
+        return $this->for('admin');
+    }
+
     public function group(string $id, Closure $callback): static
     {
         $this->for($id);
@@ -60,9 +83,10 @@ class DashboardMenu
     {
         return $this->groupId;
     }
-    public function registerItem(array $options): self
+
+    public function registerItem(array $options): static
     {
-        if (! is_in_admin(true)) {
+        if ($this->hasCache()) {
             return $this;
         }
 
@@ -77,156 +101,101 @@ class DashboardMenu
             'name' => '',
             'icon' => null,
             'url' => '',
+            'route' => '',
             'children' => [],
             'permissions' => [],
             'active' => false,
         ];
 
-        $options = array_merge($defaultOptions, $options);
+        $options = [...$defaultOptions, ...$options];
+
+        if (! $options['url'] && $options['route']) {
+            $options['url'] = fn () => route($options['route']);
+
+            if (! $options['permissions'] && $options['permissions'] !== false) {
+                $options['permissions'] = [$options['route']];
+            }
+        }
+
         $id = $options['id'];
 
-        if (! $id && ! app()->runningInConsole() && app()->isLocal()) {
-            $calledClass = isset(debug_backtrace()[1]) ?
-                debug_backtrace()[1]['class'] . '@' . debug_backtrace()[1]['function']
-                :
-                null;
+        throw_if(
+            ! $id && $this->isLocal(),
+            new RuntimeException(sprintf('Menu id not specified on class %s', $this->getPreviousCalledClass()))
+        );
 
-            throw new RuntimeException('Menu id not specified: ' . $calledClass);
-        }
+        throw_if(
+            isset($this->links[$this->groupId][$id])
+            && empty($this->links[$this->groupId][$id]['name'])
+            && $this->isLocal(),
+            new RuntimeException(sprintf('Menu id already exists: %s on class %s', $id, $this->getPreviousCalledClass()))
+        );
 
-        if (isset($this->links[$id]) && $this->links[$id]['name'] && ! app()->runningInConsole() && app()->isLocal()) {
-            $calledClass = isset(debug_backtrace()[1]) ?
-                debug_backtrace()[1]['class'] . '@' . debug_backtrace()[1]['function']
-                :
-                null;
+        $this->links[$this->groupId][$id] = $options;
 
-            throw new RuntimeException('Menu id already exists: ' . $id . ' on class ' . $calledClass);
-        }
+        return $this;
+    }
 
-        if (isset($this->links[$id])) {
-            $options['children'] = array_merge($options['children'], $this->links[$id]['children']);
-            $options['permissions'] = array_merge($options['permissions'], $this->links[$id]['permissions']);
-
-            $this->links[$id] = array_replace($this->links[$id], $options);
+    public function removeItem(string|array $id): static
+    {
+        if (is_array($id)) {
+            foreach ($id as $item) {
+                $this->removeItem($item);
+            }
 
             return $this;
         }
 
-        if ($options['parent_id']) {
-            if (! isset($this->links[$options['parent_id']])) {
-                $this->links[$options['parent_id']] = ['id' => $options['parent_id']] + $defaultOptions;
-            }
+        if (($args = func_get_args()) && count($args) > 1) {
+            return $this->removeItem($args);
+        }
 
-            $this->links[$options['parent_id']]['children'][] = $options;
+        $this->removedItems[$this->groupId][] = $id;
 
-            $permissions = array_merge($this->links[$options['parent_id']]['permissions'], $options['permissions']);
-            $this->links[$options['parent_id']]['permissions'] = $permissions;
+        return $this;
+    }
+
+    public function hasItem(string $id): bool
+    {
+        return isset($this->links[$this->groupId][$id]);
+    }
+
+    public function getAll(string $id = null): Collection
+    {
+        if ($id !== null) {
+            $this->setGroupId($id);
+        }
+
+        DashboardMenuRetrieving::dispatch($this);
+
+        do_action('render_dashboard_menu', $this, $id);
+
+        $value = function () {
+            $this->dispatchBeforeRetrieving();
+
+            $items = $this->getItemsByGroup();
+
+            return tap(
+                apply_filters('dashboard_menu', $items, $this),
+                function ($menu) {
+                    $this->dispatchAfterRetrieved($menu);
+                }
+            );
+        };
+
+        if ($this->cacheEnabled) {
+            $items = $this->cache->remember($this->cacheKey(), Carbon::now()->addHours(3), $value);
         } else {
-            $this->links[$id] = $options;
+            $items = value($value);
         }
 
-        return $this;
-    }
+        return tap($this->applyActive($items), function (Collection $items) {
+            DashboardMenuRetrieved::dispatch($this, $items);
 
-    public function removeItem(string|array $id, $parentId = null): self
-    {
-        if ($parentId && ! isset($this->links[$parentId])) {
-            return $this;
-        }
+            do_action('rendered_dashboard_menu', $this, $items);
 
-        $id = is_array($id) ? $id : func_get_args();
-        foreach ($id as $item) {
-            if (! $parentId) {
-                Arr::forget($this->links, $item);
-
-                break;
-            }
-
-            foreach ($this->links[$parentId]['children'] as $key => $child) {
-                if ($child['id'] === $item) {
-                    Arr::forget($this->links[$parentId]['children'], $key);
-
-                    break;
-                }
-            }
-        }
-
-        return $this;
-    }
-
-    public function hasItem(string $id, string|null $parentId = null): bool
-    {
-        if ($parentId) {
-            if (! isset($this->links[$parentId])) {
-                return false;
-            }
-
-            $id = $parentId . '.children.' . $id;
-        }
-
-        return Arr::has($this->links, $id . '.name');
-    }
-
-    public function getAll(): Collection
-    {
-        do_action('render_dashboard_menu');
-
-        $currentUrl = URL::full();
-
-        $prefix = request()->route()->getPrefix();
-        if (! $prefix || $prefix === BaseHelper::getAdminPrefix()) {
-            $uri = explode('/', request()->route()->uri());
-            $prefix = end($uri);
-        }
-
-        $routePrefix = '/' . $prefix;
-
-        $links = $this->links;
-
-        $protocol = request()->getScheme() . '://' . BaseHelper::getAdminPrefix();
-
-        foreach ($links as $key => &$link) {
-            if ($link['permissions'] && ! Auth::guard()->user()->hasAnyPermission($link['permissions'])) {
-                Arr::forget($links, $key);
-
-                continue;
-            }
-
-            $link['active'] = $currentUrl == $link['url'] ||
-                            (Str::contains((string) $link['url'], $routePrefix) &&
-                                ! in_array($routePrefix, ['//', '/' . BaseHelper::getAdminPrefix()]) &&
-                                ! Str::startsWith((string) $link['url'], $protocol));
-            if (! count($link['children'])) {
-                continue;
-            }
-
-            $link['children'] = collect($link['children'])
-                ->unique(fn ($item) => $item['id'])
-                ->sortBy('priority')
-                ->toArray();
-
-            foreach ($link['children'] as $subKey => $subMenu) {
-                if ($subMenu['permissions'] && ! Auth::guard()->user()->hasAnyPermission($subMenu['permissions'])) {
-                    Arr::forget($link['children'], $subKey);
-
-                    continue;
-                }
-
-                if ($currentUrl == $subMenu['url'] || Str::contains($currentUrl, (string) $subMenu['url'])) {
-                    $link['children'][$subKey]['active'] = true;
-                    $link['active'] = true;
-                }
-            }
-        }
-
-        return collect($links)->sortBy('priority');
-    }
-
-    public function tap(callable $callback = null): self
-    {
-        $callback($this);
-
-        return $this;
+            $this->default();
+        });
     }
 
     public function getItemById(string $itemId): array|null
@@ -235,18 +204,24 @@ class DashboardMenu
             return null;
         }
 
-        return tap($this->links[$this->groupId][$itemId], fn () => $this->default());
+        return tap(
+            $this->links[$this->groupId][$itemId],
+            fn () => $this->default()
+        );
     }
 
     public function getItemsByParentId(string $parentId): Collection|null
     {
         return collect($this->links[$this->groupId] ?? [])
-            ->filter(fn ($item) => $item['parent_id'] === $parentId);
+            ->filter(fn ($item) => $item['parent_id'] === $parentId)
+            ->tap(fn () => $this->default());
     }
 
     public function beforeRetrieving(Closure $callback): static
     {
         $this->beforeRetrieving[$this->groupId][] = $callback;
+
+        $this->default();
 
         return $this;
     }
@@ -266,12 +241,16 @@ class DashboardMenu
     {
         $this->afterRetrieved[$this->groupId][] = $callback;
 
+        $this->default();
+
         return $this;
     }
 
     public function clearCachesForCurrentUser(): void
     {
         $this->cache->forget($this->cacheKey());
+
+        $this->default();
     }
 
     public function clearCaches(): void
@@ -319,13 +298,14 @@ class DashboardMenu
     {
         $userType = 'undefined';
         $userKey = 'guest';
+        $locale = $this->app->getLocale();
 
         if ($user = $this->request->user()) {
             $userType = $user::class;
             $userKey = $user->getKey();
         }
 
-        return sprintf('dashboard_menu:%s:%s:%s', $this->groupId, $userType, $userKey);
+        return sprintf('dashboard_menu:%s:%s:%s:%s', $this->groupId, $userType, $userKey, $locale);
     }
 
     public function hasCache(): bool
@@ -346,8 +326,18 @@ class DashboardMenu
 
     protected function getGroupedItemsByGroup(): Collection
     {
+        $removedItems = $this->removedItems[$this->groupId] ?? [];
+
         $items = collect($this->links[$this->groupId] ?? [])
             ->values()
+            ->reject(
+                fn ($link) =>
+                    isset($link['id'])
+                    && (
+                        in_array($link['id'], $removedItems)
+                        || in_array($link['parent_id'], $removedItems)
+                    )
+            )
             ->filter(function ($link) {
                 $user = $this->request->user();
 
@@ -387,8 +377,8 @@ class DashboardMenu
         return $items
             ->reject(function ($item) use ($groupedItems): bool {
                 return (
-                        empty($item['url']) || $item['url'] === '#' || Str::startsWith($item['url'], 'javascript:void(0)')
-                    ) && ! $groupedItems->get($item['id']);
+                    empty($item['url']) || $item['url'] === '#' || Str::startsWith($item['url'], 'javascript:void(0)')
+                ) && ! $groupedItems->get($item['id']);
             })
             ->mapWithKeys(function ($item) use ($groupedItems) {
                 $groupedItem = $groupedItems->get($item['id']);
@@ -408,15 +398,21 @@ class DashboardMenu
 
     protected function applyActive(Collection $menu): Collection
     {
-        return $menu->mapWithKeys(function ($item, $key): array {
-            return [$key => $this->applyActiveRecursive($item)];
-        });
+        foreach ($menu as $key => $item) {
+            $menu[$key] = $this->applyActiveRecursive($item);
+
+            if ($menu[$key]['active']) {
+                break;
+            }
+        }
+
+        return $menu;
     }
 
     protected function applyActiveRecursive(array $item): array
     {
         $currentUrl = $this->request->fullUrl();
-        $adminPrefix = \Tec\Base\Facades\BaseHelper::getAdminPrefix();
+        $adminPrefix = BaseHelper::getAdminPrefix();
         $url = $item['url'];
 
         $item['active'] = $currentUrl === $item['url']

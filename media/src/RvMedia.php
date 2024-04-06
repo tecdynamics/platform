@@ -15,17 +15,21 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
+use Intervention\Image\Encoders\AutoEncoder;
+use Intervention\Image\ImageManager;
+use League\Flysystem\UnableToRetrieveMetadata;
 use League\Flysystem\UnableToWriteFile;
-use Mimey\MimeTypes;
+use Symfony\Component\Mime\MimeTypes;
 use Throwable;
-
 class RvMedia
 {
     protected array $permissions = [];
@@ -66,7 +70,34 @@ class RvMedia
 
     public function renderContent(): string
     {
-        return view('core/media::content')->render();
+        $sorts = [
+            'name-asc' => [
+                'label' => trans('core/media::media.file_name_asc'),
+                'icon' => 'ti ti-sort-ascending-letters',
+            ],
+            'name-desc' => [
+                'label' => trans('core/media::media.file_name_desc'),
+                'icon' => 'ti ti-sort-descending-letters',
+            ],
+            'created_at-asc' => [
+                'label' => trans('core/media::media.uploaded_date_asc'),
+                'icon' => 'ti ti-sort-ascending-numbers',
+            ],
+            'created_at-desc' => [
+                'label' => trans('core/media::media.uploaded_date_desc'),
+                'icon' => 'ti ti-sort-descending-numbers',
+            ],
+            'size-asc' => [
+                'label' => trans('core/media::media.size_asc'),
+                'icon' => 'ti ti-sort-ascending-2',
+            ],
+            'size-desc' => [
+                'label' => trans('core/media::media.size_desc'),
+                'icon' => 'ti ti-sort-descending-2',
+            ],
+        ];
+
+        return view('core/media::content', compact('sorts'))->render();
     }
 
     public function responseSuccess(array $data, string|null $message = null): JsonResponse
@@ -136,9 +167,9 @@ class RvMedia
 
     public function getImageUrl(
         string|null $url,
-        $size = null,
+                    $size = null,
         bool $relativePath = false,
-        $default = null
+                    $default = null
     ): string|null {
         if (empty($url)) {
             return $default;
@@ -150,6 +181,10 @@ class RvMedia
             return $default;
         }
 
+        if (Str::startsWith($url, ['data:image/png;base64,', 'data:image/jpeg;base64,'])) {
+            return $url;
+        }
+
         if (empty($size) || $url == '__value__') {
             if ($relativePath) {
                 return $url;
@@ -158,12 +193,13 @@ class RvMedia
             return $this->url($url);
         }
 
-        if ($url == $this->getDefaultImage()) {
+        if ($url == $this->getDefaultImage(false, $size)) {
             return url($url);
         }
 
-        if (array_key_exists($size, $this->getSizes()) &&
-            $this->canGenerateThumbnails($this->getMimeType($url))
+        if (
+            array_key_exists($size, $this->getSizes()) &&
+            $this->canGenerateThumbnails($this->getMimeType($this->getRealPath($url)))
         ) {
             $fileName = File::name($url);
             $fileExtension = File::extension($url);
@@ -207,12 +243,18 @@ class RvMedia
         return Storage::url($path);
     }
 
-    public function getDefaultImage(bool $relative = false): string
+    public function getDefaultImage(bool $relative = false, string|null $size = null): string
     {
         $default = $this->getConfig('default_image');
 
         if ($placeholder = setting('media_default_placeholder_image')) {
-            $default = $this->url($placeholder);
+            $filename = pathinfo($placeholder, PATHINFO_FILENAME);
+
+            if ($size && $size = $this->getSize($size)) {
+                $placeholder = str_replace($filename, $filename . '-' . $size, $placeholder);
+            }
+
+            return Storage::url($placeholder);
         }
 
         if ($relative) {
@@ -416,7 +458,7 @@ class RvMedia
         }
 
         try {
-            $fileExtension = $fileUpload->getClientOriginalExtension();
+            $fileExtension = $fileUpload->getClientOriginalExtension() ?: $fileUpload->guessExtension();
 
             if (! $skipValidation && ! in_array(strtolower($fileExtension), explode(',', $allowedMimeTypes))) {
                 return [
@@ -457,18 +499,15 @@ class RvMedia
                 $filePath = $folderPath . '/' . $filePath;
             }
 
-            $content = File::get($fileUpload->getRealPath());
+            if ($this->canGenerateThumbnails($fileUpload->getMimeType())) {
+                $content = $this->imageManager()->read($fileUpload->getRealPath())->encode(new AutoEncoder());
+            } else {
+                $content = File::get($fileUpload->getRealPath());
+            }
 
             $this->uploadManager->saveFile($filePath, $content, $fileUpload);
 
             $data = $this->uploadManager->fileDetails($filePath);
-
-            if (! $skipValidation && empty($data['mime_type'])) {
-                return [
-                    'error' => true,
-                    'message' => trans('core/media::media.can_not_detect_file_type'),
-                ];
-            }
 
             $file->url = $data['url'];
             $file->alt = $file->name;
@@ -478,6 +517,8 @@ class RvMedia
             $file->user_id = Auth::guard()->check() ? Auth::guard()->id() : 0;
             $file->options = $request->input('options', []);
             $file->save();
+
+            MediaFileUploaded::dispatch($file);
 
             $this->generateThumbnails($file, $fileUpload);
 
@@ -588,32 +629,29 @@ class RvMedia
             return false;
         }
 
-        $watermark = Image::make($watermarkPath);
+        $watermark = $this->imageManager()->read($watermarkPath);
 
-        $imageSource = Image::make($this->getRealPath($image));
+        $imageSource = $this->imageManager()->read($this->getRealPath($image));
 
         // 10% less than an actual image (play with this value)
         // Watermark will be 10 less than the actual width of the image
         $watermarkSize = (int)round(
             $imageSource->width() * ((int)setting(
-                'media_watermark_size',
-                $this->getConfig('watermark.size')
-            ) / 100),
+                    'media_watermark_size',
+                    $this->getConfig('watermark.size')
+                ) / 100),
             2
         );
 
         // Resize watermark width keep height auto
-        $watermark
-            ->resize($watermarkSize, null, function ($constraint) {
-                $constraint->aspectRatio();
-            })
-            ->opacity((int)setting('media_watermark_opacity', $this->getConfig('watermark.opacity')));
+        $watermark->resize($watermarkSize, $watermarkSize);
 
-        $imageSource->insert(
+        $imageSource->place(
             $watermark,
             setting('media_watermark_position', $this->getConfig('watermark.position')),
             (int)setting('watermark_position_x', $this->getConfig('watermark.x')),
-            (int)setting('watermark_position_y', $this->getConfig('watermark.y'))
+            (int)setting('watermark_position_y', $this->getConfig('watermark.y')),
+            (int)setting('media_watermark_opacity', $this->getConfig('watermark.opacity'))
         );
 
         $destinationPath = sprintf(
@@ -622,17 +660,16 @@ class RvMedia
             File::name($image) . '.' . File::extension($image)
         );
 
-        $this->uploadManager->saveFile($destinationPath, $imageSource->stream()->__toString());
+        $this->uploadManager->saveFile($destinationPath, $imageSource->encode(new AutoEncoder()));
 
         return true;
     }
 
     public function getRealPath(string|null $url): string
     {
-        $path = match (config('filesystems.default')) {
-            'local', 'public' => Storage::path($url),
-            default => Storage::url($url),
-        };
+        $path = $this->isUsingCloud()
+            ? Storage::url($url)
+            : Storage::path($url);
 
         return Arr::first(explode('?v=', $path));
     }
@@ -644,7 +681,9 @@ class RvMedia
 
     public function isUsingCloud(): bool
     {
-        return ! in_array(config('filesystems.default'), ['local', 'public']);
+        $defaultDisk = config('filesystems.default');
+
+        return config('filesystems.disks.' . $defaultDisk . '.driver', 'local') !== 'local';
     }
 
     public function uploadFromUrl(
@@ -663,22 +702,27 @@ class RvMedia
         $info = pathinfo($url);
 
         try {
-            $contents = Http::withoutVerifying()->get($url)->body();
-        } catch (Exception $exception) {
+            $response = Http::withoutVerifying()->get($url);
+
+            if ($response->failed() || ! $response->body()) {
+                return [
+                    'error' => true,
+                    'message' => trans('core/media::media.unable_download_image_from', ['url' => $url]),
+                ];
+            }
+
+            $contents = $response->body();
+        } catch (Throwable $exception) {
             return [
                 'error' => true,
                 'message' => $exception->getMessage(),
             ];
         }
 
-        if (empty($contents)) {
-            return null;
-        }
-
         $path = '/tmp';
         File::ensureDirectoryExists($path);
 
-        $path = $path . '/' . $info['basename'];
+        $path = $path . '/' . Str::limit($info['basename'], 50, '');
         file_put_contents($path, $contents);
 
         $fileUpload = $this->newUploadedFile($path, $defaultMimetype);
@@ -708,21 +752,32 @@ class RvMedia
         return $this->handleUpload($fileUpload, $folderId, $folderSlug);
     }
 
-    protected function newUploadedFile(string $path, string $defaultMimetype = null): UploadedFile
+    public function uploadFromBlob(
+        UploadedFile $path,
+        string|null $fileName = null,
+        int|string $folderId = 0,
+        string|null $folderSlug = null,
+    ): array {
+        $fileUpload = new UploadedFile($path, $fileName ?: Str::uuid());
+
+        return $this->handleUpload($fileUpload, $folderId, $folderSlug, true);
+    }
+
+    protected function newUploadedFile(string $path, string $defaultMimeType = null): UploadedFile
     {
         $mimeType = $this->getMimeType($path);
 
         if (empty($mimeType)) {
-            $mimeType = $defaultMimetype;
+            $mimeType = $defaultMimeType;
         }
 
         $fileName = File::name($path);
         $fileExtension = File::extension($path);
 
-        if (empty($fileExtension)) {
-            $mimeTypeDetection = new MimeTypes();
+        if (empty($fileExtension) && $mimeType) {
+            $mimeTypeDetection = (new MimeTypes())->getExtensions($mimeType);
 
-            $fileExtension = $mimeTypeDetection->getExtension($mimeType);
+            $fileExtension = Arr::first($mimeTypeDetection);
         }
 
         return new UploadedFile($path, $fileName . '.' . $fileExtension, $mimeType, null, true);
@@ -730,6 +785,10 @@ class RvMedia
 
     public function getUploadPath(): string
     {
+        if ($customFolder = $this->getConfig('default_upload_folder')) {
+            return public_path($customFolder);
+        }
+
         return is_link(public_path('storage')) ? storage_path('app/public') : public_path('storage');
     }
 
@@ -738,7 +797,7 @@ class RvMedia
         return str_replace('/index.php', '', $this->getConfig('default_upload_url'));
     }
 
-    public function setUploadPathAndURLToPublic(): void
+    public function setUploadPathAndURLToPublic(): static
     {
         add_action('init', function () {
             config([
@@ -746,6 +805,8 @@ class RvMedia
                 'filesystems.disks.public.url' => $this->getUploadURL(),
             ]);
         }, 124);
+
+        return $this;
     }
 
     public function getMimeType(string $url): string|null
@@ -754,9 +815,25 @@ class RvMedia
             return null;
         }
 
-        $mimeTypeDetection = new MimeTypes();
+        try {
+            $realPath = $this->getRealPath($url);
 
-        return $mimeTypeDetection->getMimeType(File::extension($url));
+            $fileExtension = File::extension($realPath);
+
+            if (! $fileExtension) {
+                return null;
+            }
+
+            if ($fileExtension == 'jfif') {
+                return 'image/jpeg';
+            }
+
+            $mimeTypeDetection = new MimeTypes();
+
+            return Arr::first($mimeTypeDetection->getMimeTypes($fileExtension));
+        } catch (UnableToRetrieveMetadata) {
+            return null;
+        }
     }
 
     public function canGenerateThumbnails(string|null $mimeType): bool
@@ -769,7 +846,7 @@ class RvMedia
             return false;
         }
 
-        return RvMedia::isImage($mimeType) && ! in_array($mimeType, ['image/svg+xml', 'image/x-icon']);
+        return $this->isImage($mimeType) && ! in_array($mimeType, ['image/svg+xml', 'image/x-icon']);
     }
 
     public function createFolder(string $folderSlug, int|string|null $parentId = 0, bool $force = false): int|string
@@ -793,8 +870,8 @@ class RvMedia
 
             $folder = MediaFolder::query()->create([
                 'user_id' => Auth::guard()->check() ? Auth::guard()->id() : 0,
-                'name' => MediaFolder::createName($folderSlug, 0),
-                'slug' => MediaFolder::createSlug($folderSlug, 0),
+                'name' => MediaFolder::createName($folderSlug, $parentId),
+                'slug' => MediaFolder::createSlug($folderSlug, $parentId),
                 'parent_id' => $parentId,
             ]);
         }
@@ -962,8 +1039,7 @@ class RvMedia
         if (
             ! $config['hostname'] ||
             ! $config['storage_zone'] ||
-            ! $config['api_key'] ||
-            ! $config['region']
+            ! $config['api_key']
         ) {
             return;
         }
@@ -993,7 +1069,7 @@ class RvMedia
             $attributes['loading'] = 'lazy';
         }
 
-        $defaultImageUrl = $this->getDefaultImage();
+        $defaultImageUrl = $this->getDefaultImage(false, $size);
 
         if (! $url) {
             $url = $defaultImageUrl;
@@ -1001,6 +1077,127 @@ class RvMedia
 
         $url = $this->getImageUrl($url, $size, false, $useDefaultImage ? $defaultImageUrl : null);
 
-        return Html::image($url, $alt, $attributes, $secure);
+        if (Str::startsWith($url, ['data:image/png;base64,', 'data:image/jpeg;base64,'])) {
+            return Html::tag('img', '', [...$attributes, 'src' => $url, 'alt' => $alt]);
+        }
+
+        return apply_filters('core_media_image', Html::image($url, $alt, $attributes, $secure), $url, $alt, $attributes, $secure);
+    }
+
+    public function getFileSize(string|null $path): string|null
+    {
+        if (! $path || ! Storage::exists($path)) {
+            return null;
+        }
+
+        $size = Storage::size($path);
+
+        if ($size == 0) {
+            return '0kB';
+        }
+
+        return BaseHelper::humanFilesize($size);
+    }
+
+    public function renameFile(MediaFile $file, string $newName, bool $renameOnDisk = true): void
+    {
+        MediaFileRenaming::dispatch($file, $newName, $renameOnDisk);
+
+        $file->name = MediaFile::createName($newName, $file->folder_id);
+
+        if ($renameOnDisk) {
+            $filePath = $this->getRealPath($file->url);
+
+            if (File::exists($filePath)) {
+                $newFilePath = str_replace(
+                    File::name($file->url),
+                    File::name($file->name),
+                    $file->url
+                );
+
+                File::move($filePath, $this->getRealPath($newFilePath));
+
+                $this->deleteFile($file);
+
+                $file->url = str_replace(
+                    File::name($file->url),
+                    File::name($file->name),
+                    $file->url
+                );
+
+                $this->generateThumbnails($file);
+            }
+        }
+
+        $file->save();
+
+        MediaFileRenamed::dispatch($file);
+    }
+
+    public function renameFolder(MediaFolder $folder, string $newName, bool $renameOnDisk = true): void
+    {
+        MediaFolderRenaming::dispatch($folder, $newName, $renameOnDisk);
+
+        $folder->name = MediaFolder::createName($newName, $folder->parent_id);
+
+        if ($renameOnDisk) {
+            $folderPath = MediaFolder::getFullPath($folder->id);
+
+            if (Storage::exists($folderPath)) {
+                $newFolderName = MediaFolder::createSlug($newName, $folder->parent_id);
+
+                $newFolderPath = str_replace(
+                    File::name($folderPath),
+                    $newFolderName,
+                    $folderPath
+                );
+
+                Storage::move($folderPath, $newFolderPath);
+
+                $folder->slug = $newFolderName;
+
+                $folderPath = "$folderPath/";
+
+                MediaFile::query()
+                    ->where('url', 'LIKE', "$folderPath%")
+                    ->update([
+                        'url' => DB::raw(
+                            sprintf(
+                                'CONCAT(%s, SUBSTRING(url, LOCATE(%s, url) + LENGTH(%s)))',
+                                DB::escape("$newFolderPath/"),
+                                DB::escape($folderPath),
+                                DB::escape($folderPath)
+                            )
+                        ),
+                    ]);
+            }
+        }
+
+        $folder->save();
+
+        MediaFolderRenamed::dispatch($folder);
+    }
+
+    public function refreshCache(): void
+    {
+        setting()->forceSet('media_random_hash', md5((string)time()))->save();
+    }
+
+    public function getFolderColors(): array
+    {
+        return $this->getConfig('folder_colors', []);
+    }
+
+    public function imageManager(string $driver = null): ImageManager
+    {
+        if (! $driver) {
+            $driver = GdDriver::class;
+
+            if ($this->getImageProcessingLibrary() === 'imagick' && extension_loaded('imagick')) {
+                $driver = ImagickDriver::class;
+            }
+        }
+
+        return new ImageManager($driver);
     }
 }

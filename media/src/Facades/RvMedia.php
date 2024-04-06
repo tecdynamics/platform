@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array getSizes()
  * @method static string|null getImageUrl(string|null $url, $size = null, bool $relativePath = false, $default = null)
  * @method static string url(string|null $path)
- * @method static string getDefaultImage(bool $relative = false)
+ * @method static string getDefaultImage(bool $relative = false, string|null $size = null)
  * @method static string|null getSize(string $name)
  * @method static bool deleteFile(\Tec\Media\Models\MediaFile $file)
  * @method static bool deleteThumbnails(\Tec\Media\Models\MediaFile $file)
@@ -39,9 +39,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static bool isUsingCloud()
  * @method static array|null uploadFromUrl(string $url, string|int $folderId = 0, string|null $folderSlug = null, string|null $defaultMimetype = null)
  * @method static array uploadFromPath(string $path, string|int $folderId = 0, string|null $folderSlug = null, string|null $defaultMimetype = null)
+ * @method static array uploadFromBlob(\Illuminate\Http\UploadedFile $path, string|null $fileName = null, string|int $folderId = 0, string|null $folderSlug = null)
  * @method static string getUploadPath()
  * @method static string getUploadURL()
- * @method static void setUploadPathAndURLToPublic()
+ * @method static static setUploadPathAndURLToPublic()
  * @method static string|null getMimeType(string $url)
  * @method static bool canGenerateThumbnails(string|null $mimeType)
  * @method static string|int createFolder(string $folderSlug, string|int|null $parentId = 0, bool $force = false)
@@ -58,6 +59,12 @@ use Illuminate\Support\Facades\Facade;
  * @method static void setWasabiDisk(array $config)
  * @method static void setBunnyCdnDisk(array $config)
  * @method static \Illuminate\Support\HtmlString image(string|null $url, string|null $alt = null, string|null $size = null, bool $useDefaultImage = true, array $attributes = [], bool|null $secure = null)
+ * @method static string|null getFileSize(string|null $path)
+ * @method static void renameFile(\Tec\Media\Models\MediaFile $file, string $newName, bool $renameOnDisk = true)
+ * @method static void renameFolder(\Tec\Media\Models\MediaFolder $folder, string $newName, bool $renameOnDisk = true)
+ * @method static void refreshCache()
+ * @method static array getFolderColors()
+ * @method static \Intervention\Image\ImageManager imageManager(string|null $driver = null)
  *
  * @see \Tec\Media\RvMedia
  */

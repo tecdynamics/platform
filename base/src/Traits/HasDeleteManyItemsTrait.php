@@ -8,13 +8,15 @@ use Tec\Base\Models\BaseModel;
 use Tec\Support\Repositories\Interfaces\RepositoryInterface;
 use Illuminate\Http\Request;
 
+/**
+ * @deprecated since v6.8.0
+ */
 trait HasDeleteManyItemsTrait
 {
     protected function executeDeleteItems(
         Request $request,
         BaseHttpResponse $response,
-        RepositoryInterface|BaseModel $repository,
-        string $screen
+        RepositoryInterface|BaseModel $repository
     ): BaseHttpResponse {
         $ids = $request->input('ids');
 
@@ -32,9 +34,9 @@ trait HasDeleteManyItemsTrait
 
             $item->delete();
 
-            event(new DeletedContentEvent($screen, $request, $item));
+            DeletedContentEvent::dispatch($item::class, $request, $item);
         }
 
-        return $response->setMessage(trans('core/base::notices.delete_success_message'));
+        return $response->withDeletedSuccessMessage();
     }
 }

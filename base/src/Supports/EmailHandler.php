@@ -4,6 +4,7 @@ namespace Tec\Base\Supports;
 
 use Tec\Base\Events\SendMailEvent;
 use Tec\Base\Facades\BaseHelper;
+use Tec\Base\Facades\Html;
 use Tec\Media\Facades\RvMedia;
 use Carbon\Carbon;
 use Illuminate\Contracts\Support\Arrayable;
@@ -138,7 +139,6 @@ class EmailHandler
 
         Arr::set($this->templates, $type . '.' . $module, $data);
 
-
         foreach ($data['templates'] as $key => &$template) {
             if (! isset($template['variables'])) {
                 $this->templates[$type][$module]['templates'][$key]['variables'] = Arr::get($data, 'variables', []);
@@ -198,11 +198,9 @@ class EmailHandler
         return true;
     }
 
-    public function templateEnabled(string $template, string $type = 'plugins', $template_lang=null): bool
+    public function templateEnabled(string $template, string $type = 'plugins'): bool
     {
-        if($template_lang==null) $template_lang= \Language::getCurrentLocale();
-        return (bool)get_setting_email_status($type, $this->module, $template, $template_lang);
-       // return (bool)get_setting_email_status($type, $this->module, $template);
+        return (bool)get_setting_email_status($type, $this->module, $template);
     }
 
     public function send(
@@ -235,17 +233,15 @@ class EmailHandler
         }
     }
 
-    public function prepareData(string $content, $variables = []): string
+    public function prepareData(string $content): string
     {
         $this->initVariableValues();
 
         if (! empty($content)) {
-            if(empty($variables)){
             $variables = $this->getCoreVariables();
 
             if ($this->module && $this->template) {
                 $variables = $this->getVariables($this->type ?: 'plugins', $this->module, $this->template);
-               }
             }
 
             $content = $this->replaceVariableValue(array_keys($variables), $this->module, $content);
@@ -269,8 +265,9 @@ class EmailHandler
             ),
             'site_title' => setting('admin_title') ?: config('app.name'),
             'site_url' => url(''),
-            'site_logo' => setting('admin_logo') ? RvMedia::getImageUrl(setting('admin_logo')) : url(
-                config('core.base.general.logo')
+            'site_logo' => apply_filters(
+                'core_email_template_site_logo',
+                ($adminLogo = setting('admin_logo')) ? RvMedia::getImageUrl($adminLogo) : url(config('core.base.general.logo'))
             ),
             'date_time' => BaseHelper::formatDateTime($now),
             'date_year' => $now->year,
@@ -285,21 +282,51 @@ class EmailHandler
 
         $data = [];
 
-        $twigCompiler = apply_filters('cms_twig_compiler', $this->twigCompiler);
-
         foreach ($variables as $variable) {
             $data[$variable] = $this->getVariableValue($variable, $module);
         }
 
+        $twigCompiler = apply_filters('cms_twig_compiler', $this->twigCompiler);
+
         foreach ($data as $key => $value) {
-            $data[$key] = $value && is_string($value) ? $twigCompiler->compile($value, $data) : $value;
+            try {
+                $data[$key] = $value && is_string($value) ? $twigCompiler->compile($value, $data) : $value;
+            } catch (Throwable) {
+                $data[$key] = $value;
+            }
         }
 
         if (empty($data) || empty($content)) {
             return $content;
         }
 
-        return $twigCompiler->compile($content, $data);
+        try {
+            return $twigCompiler->compile($content, $data);
+        } catch (Throwable $throwable) {
+            BaseHelper::logError($throwable);
+
+            foreach ($variables as $variable) {
+                $keys = [
+                    '{{ ' . $variable . ' }}',
+                    '{{' . $variable . '}}',
+                    '{{ ' . $variable . '}}',
+                    '{{' . $variable . ' }}',
+                    '<?php echo e(' . $variable . '); ?>',
+                ];
+
+                foreach ($keys as $key) {
+                    $value = $this->getVariableValue($variable, $module);
+
+                    if (is_string($value)) {
+                        $content = str_replace($key, $value, $content);
+                    }
+                }
+            }
+
+            $content .= Html::tag('p', 'Complied error: ' . $throwable->getMessage(), ['style' => 'color: red; font-weight: bold']);
+
+            return $content;
+        }
     }
 
     public function getVariableValue(string $variable, string $module, string $default = ''): string|array|null

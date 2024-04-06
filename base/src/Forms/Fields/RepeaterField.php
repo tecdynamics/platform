@@ -2,7 +2,9 @@
 
 namespace Tec\Base\Forms\Fields;
 
-class RepeaterField extends SelectType
+use Tec\Base\Forms\FormField;
+
+class RepeaterField extends FormField
 {
     protected function getTemplate(): string
     {

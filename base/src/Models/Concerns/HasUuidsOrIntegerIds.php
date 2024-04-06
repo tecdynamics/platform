@@ -66,4 +66,11 @@ trait HasUuidsOrIntegerIds
 
         return strtoupper(config('core.base.general.type_id', 'BIGINT'));
     }
+
+    public function ensureIdCanBeCreated(): void
+    {
+        if (self::getTypeOfId() !== 'BIGINT') {
+            $this->id = $this->newUniqueId();
+        }
+    }
 }

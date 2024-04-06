@@ -287,12 +287,12 @@ class Language
         'de_DE' => ['de', 'de_DE', 'Deutsch', 'ltr', 'de'],
         'de_DE_formal' => ['de', 'de_DE_formal', 'Deutsch', 'ltr', 'de'],
         'el' => ['el', 'el', 'Ελληνικά', 'ltr', 'gr'],
+        'en_US' => ['en', 'en_US', 'English', 'ltr', 'us'],
         'en_AU' => ['en', 'en_AU', 'English', 'ltr', 'au'],
         'en_CA' => ['en', 'en_CA', 'English', 'ltr', 'ca'],
         'en_GB' => ['en', 'en_GB', 'English', 'ltr', 'gb'],
         'en_NZ' => ['en', 'en_NZ', 'English', 'ltr', 'nz'],
         'en_ZA' => ['en', 'en_ZA', 'English', 'ltr', 'za'],
-        'en_US' => ['en', 'en_US', 'English', 'ltr', 'us'],
         'es_AR' => ['es', 'es_AR', 'Español', 'ltr', 'ar'],
         'es_CL' => ['es', 'es_CL', 'Español', 'ltr', 'cl'],
         'es_CO' => ['es', 'es_CO', 'Español', 'ltr', 'co'],
@@ -358,6 +358,7 @@ class Language
         'su_ID' => ['su', 'su_ID', 'Basa Sunda', 'ltr', 'id'],
         'sv_SE' => ['sv', 'sv_SE', 'Svenska', 'ltr', 'se'],
         'szl' => ['szl', 'szl', 'Ślōnskŏ gŏdka', 'ltr', 'pl'],
+        'sw' => ['sw', 'sw', 'Swahili', 'ltr', 'tz'],
         'ta_LK' => ['ta', 'ta_LK', 'தமிழ்', 'ltr', 'lk'],
         'th' => ['th', 'th', 'ไทย', 'ltr', 'th'],
         'tl' => ['tl', 'tl', 'Tagalog', 'ltr', 'ph'],
@@ -429,5 +430,29 @@ class Language
     public static function getListLanguages(): array
     {
         return self::$languages;
+    }
+
+    public static function getDefaultLanguage(): array
+    {
+        return [
+            'locale' => 'en',
+            'name' => 'English',
+            'flag' => 'us',
+        ];
+    }
+
+    public static function getLocales(): array
+    {
+        return collect(static::getListLanguages())->pluck('2', '0')->unique()->all();
+    }
+
+    public static function getLocaleKeys(): array
+    {
+        return array_unique(array_keys(static::getLocales()));
+    }
+
+    public static function getLanguageCodes(): array
+    {
+        return collect(static::getListLanguages())->pluck('1')->unique()->all();
     }
 }

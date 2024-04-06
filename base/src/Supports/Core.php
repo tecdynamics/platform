@@ -28,6 +28,7 @@ use Tec\Base\Events\SystemUpdateUnavailable;
 use Tec\Base\Exceptions\LicenseInvalidException;
 use Tec\Base\Exceptions\LicenseIsAlreadyActivatedException;
 use Tec\Base\Exceptions\MissingCURLExtensionException;
+use Tec\Base\Exceptions\MissingZipExtensionException;
 use Tec\Base\Exceptions\RequiresLicenseActivatedException;
 use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Services\ClearCacheService;
@@ -46,6 +47,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use League\Flysystem\UnableToWriteFile;
 use Throwable;
 use ZipArchive;
 
@@ -76,16 +78,19 @@ final class Core
 
     private string $cacheLicenseKeyName = '45d0da541764682476f822028d945a46270ba404';
 
+    private string $skipLicenseReminderFilePath;
+
     private int $verificationPeriod = 1;
 
     public function __construct(
-        private CacheRepository $cache,
-        private Filesystem $files,
-        private Session $session
+        private readonly CacheRepository $cache,
+        private readonly Filesystem $files,
+        private readonly Session $session
     ) {
         $this->basePath = base_path();
         $this->licenseFilePath = storage_path('.license');
         $this->coreDataFilePath = core_path('core.json');
+        $this->skipLicenseReminderFilePath = storage_path('framework/license-reminder-latest-time.txt');
 
         $this->parseDataFromCoreDataFile();
     }
@@ -95,21 +100,63 @@ final class Core
         return app(self::class);
     }
 
+    public function skipLicenseReminder(): bool
+    {
+        $ttl = Carbon::now()->addDays(3);
+
+        try {
+            $this->files->put(
+                $this->skipLicenseReminderFilePath,
+                encrypt($ttl->toIso8601String())
+            );
+        } catch (UnableToWriteFile|Throwable) {
+            throw UnableToWriteFile::atLocation($this->skipLicenseReminderFilePath);
+        }
+
+        return true;
+    }
+
+    public function isSkippedLicenseReminder(): bool
+    {
+        try {
+            $lastSkipDateTimeString = $this->files->exists($this->skipLicenseReminderFilePath)
+                ? $this->files->get($this->skipLicenseReminderFilePath)
+                : null;
+            $lastSkipDateTimeString = $lastSkipDateTimeString ? decrypt($lastSkipDateTimeString) : null;
+            $lastSkipDate = $lastSkipDateTimeString ? Carbon::parse($lastSkipDateTimeString) : null;
+
+            if ($lastSkipDate instanceof Carbon && Carbon::now()->lessThanOrEqualTo($lastSkipDate)) {
+                return true;
+            }
+
+            $this->clearLicenseReminder();
+        } catch (Throwable) {
+        }
+
+        return false;
+    }
+
+    public function clearLicenseReminder(): void
+    {
+        if (! $this->files->exists($this->skipLicenseReminderFilePath)) {
+            return;
+        }
+
+        $this->files->delete($this->skipLicenseReminderFilePath);
+    }
+
+    public function getLicenseCacheKey(): string
+    {
+        return $this->cacheLicenseKeyName;
+    }
+
     public function checkConnection(): bool
     {
-        $cachesKey = "license:{$this->cacheLicenseKeyName}:check_connection";
-
-        if ($this->cache->has($cachesKey)) {
-            return (bool) $this->cache->get($cachesKey);
-        }
-
-        $connected = rescue(fn () => $this->createRequest('check_connection_ext')->ok());
-
-        if ($connected) {
-            $this->cache->put($cachesKey, true, Carbon::now()->addDays($this->verificationPeriod)) ;
-        }
-
-        return $connected;
+        return $this->cache->remember(
+            "license:{$this->getLicenseCacheKey()}:check_connection",
+            Carbon::now()->addDays($this->verificationPeriod),
+            fn () => rescue(fn () => $this->createRequest('check_connection_ext')->ok()) ?: false
+        );
     }
 
     public function version(): string
@@ -155,9 +202,15 @@ final class Core
             throw new LicenseInvalidException($message);
         }
 
-        $this->files->put($this->licenseFilePath, Arr::get($data, 'lic_response'), true);
+        try {
+            $this->files->put($this->licenseFilePath, Arr::get($data, 'lic_response'), true);
+        } catch (UnableToWriteFile|Throwable) {
+            throw UnableToWriteFile::atLocation($this->licenseFilePath);
+        }
 
-        $this->session->forget("license:{$this->cacheLicenseKeyName}:last_checked_date");
+        $this->session->forget("license:{$this->getLicenseCacheKey()}:last_checked_date");
+
+        $this->clearLicenseReminder();
 
         LicenseActivated::dispatch($license, $client);
 
@@ -176,7 +229,7 @@ final class Core
 
         if ($timeBasedCheck) {
             $dateFormat = 'd-m-Y';
-            $cachesKey = "license:{$this->cacheLicenseKeyName}:last_checked_date";
+            $cachesKey = "license:{$this->getLicenseCacheKey()}:last_checked_date";
             $lastCheckedDate = Carbon::createFromFormat(
                 $dateFormat,
                 $this->session->get($cachesKey, '01-01-1970')
@@ -195,7 +248,7 @@ final class Core
 
     public function revokeLicense(string $license, string $client): bool
     {
-        $this->session->forget("license:{$this->cacheLicenseKeyName}:last_checked_date");
+        $this->session->forget("license:{$this->getLicenseCacheKey()}:last_checked_date");
 
         LicenseRevoking::dispatch($license, $client);
 
@@ -213,7 +266,7 @@ final class Core
 
     public function deactivateLicense(): bool
     {
-        $this->session->forget("license:{$this->cacheLicenseKeyName}:last_checked_date");
+        $this->session->forget("license:{$this->getLicenseCacheKey()}:last_checked_date");
 
         LicenseDeactivating::dispatch();
 
@@ -256,6 +309,11 @@ final class Core
         });
     }
 
+    public function getLicenseUrl(string $path = null): string
+    {
+        return $this->licenseUrl . ($path ? '/' . ltrim($path, '/') : '');
+    }
+
     public function getLatestVersion(): CoreProduct|false
     {
         $response = $this->createRequest('check_update', [
@@ -270,16 +328,12 @@ final class Core
     {
         $sizeUpdateResponse = $this->createRequest('get_update_size/' . $updateId, method: 'HEAD');
 
-        return (float) $sizeUpdateResponse->header('Content-Length') ?: 1;
+        return (float)$sizeUpdateResponse->header('Content-Length') ?: 1;
     }
 
-    public function downloadUpdate(string $updateId, string $version): bool
+    public function downloadUpdate(string $updateId, string $version): void
     {
         SystemUpdateDownloading::dispatch();
-
-        if (! $this->isLicenseFileExists()) {
-            throw new RequiresLicenseActivatedException();
-        }
 
         $data = [
             'product_id' => $this->productId,
@@ -288,24 +342,27 @@ final class Core
 
         $filePath = $this->getUpdatedFilePath($version);
 
-        $response = $this->createRequest('download_update/main/' . $updateId, $data);
+        if (! $this->files->exists($filePath) || Carbon::createFromTimestamp(filectime($filePath))->diffInHours() > 1) {
+            $response = $this->createRequest('download_update/main/' . $updateId, $data);
 
-        $this->files->put($filePath, $response->body());
+            throw_if($response->unauthorized(), RequiresLicenseActivatedException::class);
 
-        if ($this->validateUpdateFile($filePath)) {
-            SystemUpdateDownloaded::dispatch($filePath);
-
-            return true;
+            try {
+                $this->files->put($filePath, $response->body());
+            } catch (UnableToWriteFile|Throwable) {
+                throw UnableToWriteFile::atLocation($filePath);
+            }
         }
 
-        $this->files->delete($filePath);
+        $this->validateUpdateFile($filePath);
 
-        return false;
+        SystemUpdateDownloaded::dispatch($filePath);
     }
 
-    public function updateFilesAndDatabase(string $version): bool
+    public function updateFilesAndDatabase(string $version): void
     {
-        return $this->updateFiles($version) && $this->updateDatabase();
+        $this->updateFiles($version);
+        $this->updateDatabase();
     }
 
     public function updateFiles(string $version): bool
@@ -324,7 +381,22 @@ final class Core
             $this->files->copy($this->coreDataFilePath, $coreTempPath);
             $zip = new Zipper();
 
+            $oldLibrary = base_path('vendor/maennchen/zipstream-php');
+            if ($this->files->exists($oldLibrary)) {
+                $this->files->deleteDirectory($oldLibrary);
+            }
+
+            $bootstrapCachePath = base_path('bootstrap/cache');
+
+            @unlink($bootstrapCachePath . '/packages.php');
+            @unlink($bootstrapCachePath . '/services.php');
+
             if ($zip->extract($filePath, $this->basePath)) {
+                @unlink($bootstrapCachePath . '/packages.php');
+                @unlink($bootstrapCachePath . '/services.php');
+
+                $this->cleanCaches();
+
                 $this->files->delete($filePath);
 
                 SystemUpdateExtractedFiles::dispatch();
@@ -340,6 +412,11 @@ final class Core
 
             return false;
         } catch (Throwable $exception) {
+            $bootstrapCachePath = base_path('bootstrap/cache');
+
+            @unlink($bootstrapCachePath . '/packages.php');
+            @unlink($bootstrapCachePath . '/services.php');
+
             if ($this->files->exists($coreTempPath)) {
                 $this->files->move($coreTempPath, $this->coreDataFilePath);
             }
@@ -350,18 +427,20 @@ final class Core
         }
     }
 
-    public function updateDatabase(): bool
+    public function updateDatabase(): void
     {
         try {
+            $wrongFile = database_path('migrations/media_folders_table.php');
+
+            if ($this->files->exists($wrongFile)) {
+                $this->files->delete($wrongFile);
+            }
+
             $this->runMigrationFiles();
-
-            return true;
         } catch (Throwable $exception) {
-            rescue(fn () => $this->runMigrationFiles());
-
             $this->logError($exception);
 
-            return false;
+            throw $exception;
         }
     }
 
@@ -371,22 +450,18 @@ final class Core
         $this->publishPackagesAssets();
     }
 
-    public function publishCoreAssets(): bool
+    public function publishCoreAssets(): void
     {
         SystemUpdatePublishing::dispatch();
 
         $this->publishAssets(core_path());
-
-        return true;
     }
 
-    public function publishPackagesAssets(): bool
+    public function publishPackagesAssets(): void
     {
         $this->publishAssets(package_path());
 
         SystemUpdatePublished::dispatch();
-
-        return true;
     }
 
     public function cleanCaches(): void
@@ -402,11 +477,9 @@ final class Core
         }
     }
 
-    public function cleanUp(): bool
+    public function cleanUp(): void
     {
         $this->cleanCaches();
-
-        return true;
     }
 
     public function logError(Exception|Throwable $exception): void
@@ -416,10 +489,7 @@ final class Core
 
     private function publishPaths(): array
     {
-        return array_merge(
-            IlluminateServiceProvider::pathsToPublish(null, 'cms-lang'),
-            IlluminateServiceProvider::pathsToPublish(null, 'cms-public')
-        );
+        return IlluminateServiceProvider::pathsToPublish(null, 'cms-public');
     }
 
     public function publishAssets(string $path): void
@@ -429,8 +499,12 @@ final class Core
                 continue;
             }
 
-            $this->files->ensureDirectoryExists(dirname($to));
-            $this->files->copyDirectory($from, $to);
+            try {
+                $this->files->ensureDirectoryExists(dirname($to));
+                $this->files->copyDirectory($from, $to);
+            } catch (Throwable $exception) {
+                $this->logError($exception);
+            }
         }
     }
 
@@ -440,7 +514,7 @@ final class Core
 
         $migrator = app('migrator');
 
-        $migrator->run(database_path('migrations'));
+        rescue(fn () => $migrator->run(database_path('migrations')));
 
         $paths = [
             core_path(),
@@ -449,13 +523,15 @@ final class Core
 
         foreach ($paths as $path) {
             foreach (BaseHelper::scanFolder($path) as $module) {
-                $modulePath = $path . '/' . $module;
+                $modulePath = BaseHelper::joinPaths([$path, $module]);
 
                 if (! $this->files->isDirectory($modulePath)) {
                     continue;
                 }
 
-                if ($this->files->isDirectory($moduleMigrationPath = $modulePath . '/database/migrations')) {
+                $moduleMigrationPath = BaseHelper::joinPaths([$modulePath, 'database', 'migrations']);
+
+                if ($this->files->isDirectory($moduleMigrationPath)) {
                     $migrator->run($moduleMigrationPath);
                 }
             }
@@ -464,10 +540,10 @@ final class Core
         SystemUpdateDBMigrated::dispatch();
     }
 
-    private function validateUpdateFile(string $filePath): bool
+    private function validateUpdateFile(string $filePath): void
     {
         if (! class_exists('ZipArchive', false)) {
-            return true;
+            throw new MissingZipExtensionException();
         }
 
         $zip = new ZipArchive();
@@ -512,13 +588,17 @@ final class Core
                 if ($content['productId'] !== $this->productId) {
                     $zip->close();
 
-                    throw ValidationException::withMessages(['productId' => 'The product ID of the update does not match the product ID of your website.']);
+                    throw ValidationException::withMessages(
+                        ['productId' => 'The product ID of the update does not match the product ID of your website.']
+                    );
                 }
 
                 if (version_compare($content['version'], $this->version, '<')) {
                     $zip->close();
 
-                    throw ValidationException::withMessages(['version' => 'The version of the update is lower than the current version.']);
+                    throw ValidationException::withMessages(
+                        ['version' => 'The version of the update is lower than the current version.']
+                    );
                 }
 
                 if (
@@ -527,7 +607,14 @@ final class Core
                 ) {
                     $zip->close();
 
-                    throw ValidationException::withMessages(['minimumPhpVersion' => sprintf('The minimum PHP version required (v%s) for the update is higher than the current PHP version.', $content['minimumPhpVersion'])]);
+                    throw ValidationException::withMessages(
+                        [
+                            'minimumPhpVersion' => sprintf(
+                                'The minimum PHP version required (v%s) for the update is higher than the current PHP version.',
+                                $content['minimumPhpVersion']
+                            ),
+                        ]
+                    );
                 }
             } else {
                 $zip->close();
@@ -537,8 +624,6 @@ final class Core
         }
 
         $zip->close();
-
-        return true;
     }
 
     public function getLicenseFile(): string|null
@@ -662,9 +747,9 @@ final class Core
                 Arr::get($data, 'update_id'),
                 Arr::get($data, 'version'),
                 Carbon::createFromFormat('Y-m-d', Arr::get($data, 'release_date')),
-                trim((string) Arr::get($data, 'summary')),
-                trim((string) Arr::get($data, 'changelog')),
-                (bool) Arr::get($data, 'has_sql')
+                trim((string)Arr::get($data, 'summary')),
+                trim((string)Arr::get($data, 'changelog')),
+                (bool)Arr::get($data, 'has_sql')
             );
         }
 
@@ -673,9 +758,7 @@ final class Core
 
     private function getUpdatedFilePath(string $version): string
     {
-        $version = str_replace('.', '_', $version);
-
-        return base_path('update_main_' . $version . '.zip');
+        return $this->basePath . DIRECTORY_SEPARATOR . 'update_main_' . str_replace('.', '_', $version) . '.zip';
     }
 
     protected function isLicenseFileExists(): bool

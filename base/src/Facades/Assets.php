@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static void setConfig(array $config)
- * @method static array getThemes()
  * @method static string renderHeader($lastStyles = [])
  * @method static string renderFooter()
  * @method static \Tec\Base\Supports\Assets usingVueJS()
  * @method static \Tec\Base\Supports\Assets disableVueJS()
+ * @method static bool hasVueJs()
  * @method static \Tec\Assets\Assets addScripts(string|array $assets)
  * @method static \Tec\Assets\Assets addStyles(string|array $assets)
  * @method static \Tec\Assets\Assets addStylesDirectly(array|string $assets)

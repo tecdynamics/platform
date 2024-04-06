@@ -20,11 +20,12 @@
         "ext-gd": "*",
         "barryvdh/laravel-dompdf": "^2.0",
         "tecdynamics/assets": "*",
-        "intervention/image": "^2.6",
+        "intervention/image": "^3.4",
         "kris/laravel-form-builder": "dev-master",
         "laravelcollective/html": "^6.2",
         "xantios/mimey": "^2.2",
-        "tightenco/ziggy": "^1.4",
+        "maennchen/zipstream-php": "3.1.*",
+        "tightenco/ziggy": "^2.0",
         "yajra/laravel-datatables-buttons": "^10.0",
         "yajra/laravel-datatables-oracle": "^10.11",
         "mews/purifier": "^3.3",
@@ -49,7 +50,9 @@
             "Tec\\Setting\\": "setting/src",
             "Tec\\Table\\": "table/src",
             "Tec\\JsValidation\\": "js-validation/src",
-            "Tec\\Chart\\": "chart/src"
+            "Tec\\Chart\\": "chart/src",
+            "Tec\\Icon\\": "icon/src",
+            "Tightenco\\Ziggy\\": "base/src/Ziggy"
         }
     },
     "extra": {
@@ -68,7 +71,8 @@
                 "Tec\\Dashboard\\Providers\\DashboardServiceProvider",
                 "Tec\\Media\\Providers\\MediaServiceProvider",
                 "Tec\\JsValidation\\Providers\\JsValidationServiceProvider",
-                "Tec\\Chart\\Providers\\ChartServiceProvider"
+                "Tec\\Chart\\Providers\\ChartServiceProvider",
+                "Tec\\Icon\\Providers\\IconServiceProvider"
             ],
             "aliases": {
                 "Action": "Tec\\Base\\Facades\\Action",
@@ -85,7 +89,11 @@
                 "PageTitle": "Tec\\Base\\Facades\\PageTitle",
                 "JsValidator": "Tec\\JsValidation\\Facades\\JsValidator",
                 "Setting": "Tec\\Setting\\Facades\\Setting",
-                "RvMedia": "Tec\\Media\\Facades\\RvMedia"
+                "RvMedia": "Tec\\Media\\Facades\\RvMedia",
+                "AdminAppearance": "Tec\\Base\\Facades\\AdminAppearance",
+                "AdminHelper": "Tec\\Base\\Facades\\AdminHelper",
+                "CoreIcon": "Tec\\Icon\\Facades\\Icon" ,
+                "PanelSectionManager": "Tec\\Base\\Facades\\PanelSectionManager"
             }
         }
     },

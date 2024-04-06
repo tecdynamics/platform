@@ -5,6 +5,7 @@ namespace Tec\Base\Providers;
 use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Supports\ServiceProvider;
 use Tec\Setting\Supports\SettingStore;
+use Tec\Base\Hooks\EmailSettingHooks;
 
 class MailConfigServiceProvider extends ServiceProvider
 {
@@ -108,6 +109,11 @@ class MailConfigServiceProvider extends ServiceProvider
 
                     break;
             }
+            add_filter(
+                BASE_FILTER_AFTER_SETTING_EMAIL_CONTENT,
+                [EmailSettingHooks::class, 'addEmailTemplateSettings'],
+                99
+            );
         });
     }
 }

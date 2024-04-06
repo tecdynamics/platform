@@ -3,15 +3,24 @@
 namespace Tec\Base\Providers;
 
 use App\Http\Middleware\VerifyCsrfToken;
+use Tec\Base\GlobalSearch\GlobalSearchableManager;
+use Tec\Base\Contracts\PanelSections\Manager;
+use Tec\Base\PanelSections\System\SystemPanelSection;
+use Tec\Base\Facades\AdminAppearance;
+use Tec\Base\Facades\AdminHelper;
+use Tec\Base\Facades\Breadcrumb as BreadcrumbFacade;
+use Tec\Base\PanelSections\Manager as PanelSectionManager;
+use Illuminate\Config\Repository;
 use Tec\Base\Exceptions\Handler;
 use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Facades\DashboardMenu;
 use Tec\Base\Facades\MetaBox;
+use Tec\Base\Supports\Breadcrumb;
 use Tec\Base\Facades\PageTitle;
 use Tec\Base\Forms\Form;
 use Tec\Base\Forms\FormBuilder;
 use Tec\Base\Forms\FormHelper;
-
+use Tec\Base\Contracts\GlobalSearchableManager as GlobalSearchableManagerContract;
 use Tec\Base\Hooks\EmailSettingHooks;
 use Tec\Base\Http\Middleware\CoreMiddleware;
 use Tec\Base\Http\Middleware\DisableInDemoModeMiddleware;
@@ -70,109 +79,62 @@ class BaseServiceProvider extends ServiceProvider
             return new CustomResourceRegistrar($app['router']);
         });
 
-        $this->setNamespace('core/base')
-            ->loadHelpers()
-            ->loadAndPublishConfigurations(['general']);
+        $this
+            ->setNamespace('core/base')
+            ->loadAndPublishConfigurations('general')
+            ->loadHelpers();
 
+        $this->app->instance('core.middleware', []);
+
+        $this->app->bind(ResourceRegistrar::class, function (Application $app) {
+            return new CustomResourceRegistrar($app['router']);
+        });
+        $this->app->register(SettingServiceProvider::class);
+
+        $this->app->singleton(ExceptionHandler::class, Handler::class);
         $this->app->register(SettingServiceProvider::class);
 
         $this->app->singleton(ExceptionHandler::class, Handler::class);
 
+        $this->app->singleton(Breadcrumb::class);
         $this->app->singleton(BreadcrumbsManager::class, BreadcrumbsManager::class);
+        $this->app->singleton(Manager::class, PanelSectionManager::class);
+        $this->app->singleton(GlobalSearchableManagerContract::class, GlobalSearchableManager::class);
+//        $this->app->bind(MetaBoxInterface::class, function () {
+//            return new MetaBoxRepository(new MetaBoxModel());
+//        });
+        $this->app->bind(MetaBoxInterface::class, MetaBoxRepository::class);
+//        $this->app->singleton('core:action', function () {
+//            return new Action();
+//        });
+//
+//        $this->app->singleton('core:filter', function () {
+//            return new Filter();
+//        });
+        $this->app->singleton('core.action', Action::class);
 
-        $this->app->bind(MetaBoxInterface::class, function () {
-            return new MetaBoxRepository(new MetaBoxModel());
-        });
-
-        $this->app['config']->set([
-            'session.cookie' => 'Tec_session',
-            'ziggy.except' => ['debugbar.*'],
-            'app.debug_blacklist' => [
-                '_ENV' => [
-                    'APP_KEY',
-                    'ADMIN_DIR',
-                    'DB_DATABASE',
-                    'DB_USERNAME',
-                    'DB_PASSWORD',
-                    'REDIS_PASSWORD',
-                    'MAIL_PASSWORD',
-                    'PUSHER_APP_KEY',
-                    'PUSHER_APP_SECRET',
-                ],
-                '_SERVER' => [
-                    'APP_KEY',
-                    'ADMIN_DIR',
-                    'DB_DATABASE',
-                    'DB_USERNAME',
-                    'DB_PASSWORD',
-                    'REDIS_PASSWORD',
-                    'MAIL_PASSWORD',
-                    'PUSHER_APP_KEY',
-                    'PUSHER_APP_SECRET',
-                ],
-                '_POST' => [
-                    'password',
-                ],
-            ],
-            'datatables-buttons.pdf_generator' => 'excel',
-            'excel.exports.csv.use_bom' => true,
-            'dompdf.public_path' => public_path(),
-            'debugbar.enabled' => $this->app->hasDebugModeEnabled() &&
-                ! $this->app->runningInConsole() &&
-                ! $this->app->environment(['testing', 'production']),
-            'laravel-form-builder.plain_form_class' => Form::class,
-            'laravel-form-builder.form_builder_class' => FormBuilder::class,
-            'laravel-form-builder.form_helper_class' => FormHelper::class,
-            'laravel-form-builder.label_class' => 'control-label',
-            'laravel-form-builder.wrapper_class' => 'form-group',
-        ]);
-
-        $this->app->singleton('core:action', function () {
-            return new Action();
-        });
-
-        $this->app->singleton('core:filter', function () {
-            return new Filter();
-        });
-
+        $this->app->singleton('core.filter', Filter::class);
         $this->app->singleton(AdminWidgetContract::class, AdminWidget::class);
 
-        $this->app->singleton('core.google-fonts', function (Application $app) {
-            return new GoogleFonts(
-                filesystem: $app->make(FilesystemManager::class)->disk('public'),
-                path: 'fonts',
-                inline: true,
-                userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15',
-            );
-        });
 
-        Route::macro('wherePrimaryKey', function (array|string|null $name = 'id') {
-            if (! $name) {
-                $name = 'id';
-            }
+        $this->app->singleton('core.google-fonts', GoogleFonts::class);
 
-            /**
-             * @var Route $this
-             */
-            if (BaseModel::determineIfUsingUuidsForId()) {
-                return $this->whereUuid($name);
-            }
+//        $aliasLoader = AliasLoader::getInstance();
+//
+//        if (! class_exists('BaseHelper')) {
+//            $aliasLoader->alias('BaseHelper', BaseHelper::class);
+//            $aliasLoader->alias('DashboardMenu', DashboardMenu::class);
+//            $aliasLoader->alias('PageTitle', PageTitle::class);
+//            $aliasLoader->alias('Form', \Tec\Base\Facades\Form::class);
+//        }
+        $this->registerRouteMacros();
 
-            if (BaseModel::determineIfUsingUlidsForId()) {
-                return $this->whereUlid($name);
-            }
+        $this->prepareAliasesIfMissing();
 
-            return $this->whereNumber($name);
-        });
+        config()->set(['session.cookie' => 'tec_session']);
 
-        $aliasLoader = AliasLoader::getInstance();
-
-        if (! class_exists('BaseHelper')) {
-            $aliasLoader->alias('BaseHelper', BaseHelper::class);
-            $aliasLoader->alias('DashboardMenu', DashboardMenu::class);
-            $aliasLoader->alias('PageTitle', PageTitle::class);
-            $aliasLoader->alias('Form', \Tec\Base\Facades\Form::class);
-        }
+        $this->overrideDefaultConfigs();
+        Schema::defaultStringLength(191);
     }
 
     public function boot(): void
@@ -188,8 +150,6 @@ class BaseServiceProvider extends ServiceProvider
 
         $this->app['blade.compiler']->anonymousComponentPath($this->getViewsPath() . '/components', 'core');
 
-        Schema::defaultStringLength(191);
-
         $config = $this->app['config'];
 
         if (BaseHelper::hasDemoModeEnabled() || $config->get('core.base.general.disable_verify_csrf_token', false)) {
@@ -199,11 +159,21 @@ class BaseServiceProvider extends ServiceProvider
         $this->app->booted(function () use ($config) {
             do_action(BASE_ACTION_INIT);
             add_action(BASE_ACTION_META_BOXES, [MetaBox::class, 'doMetaBoxes'], 8, 2);
+
             add_filter(
                 BASE_FILTER_AFTER_SETTING_EMAIL_CONTENT,
                 [EmailSettingHooks::class, 'addEmailTemplateSettings'],
                 99
             );
+            $this->registerDashboardMenus();
+
+            $this->registerPanelSections();
+
+            Paginator::useBootstrap();
+
+            $this->forceSSL();
+
+            $this->configureIni();
 
             add_filter(BASE_FILTER_TOP_HEADER_LAYOUT, function ($options) {
                 try {
@@ -319,6 +289,27 @@ class BaseServiceProvider extends ServiceProvider
         }
     }
 
+    protected function registerDashboardMenus(): void
+    {
+        DashboardMenu::default()->beforeRetrieving(function () {
+            DashboardMenu::make()
+                ->registerItem([
+                    'id' => 'cms-core-system',
+                    'priority' => 10000,
+                    'name' => 'core/base::layouts.platform_admin',
+                    'icon' => 'ti ti-user-shield',
+                    'route' => 'system.index',
+                    'permissions' => ['core.system'],
+                ]);
+        });
+    }
+    protected function registerPanelSections(): void
+    {
+        \Tec\Base\Facades\PanelSectionManager::group('system')->beforeRendering(function () {
+            PanelSectionManager::setGroupName(trans('core/base::layouts.platform_admin'))
+                ->register(SystemPanelSection::class);
+        });
+    }
     /**
      * Add default dashboard menu for core
      */
@@ -404,6 +395,171 @@ class BaseServiceProvider extends ServiceProvider
 
     public function provides(): array
     {
-        return [BreadcrumbsManager::class];
+        return [Breadcrumb::class];
+    }
+
+    protected function forceSSL(): void
+    {
+        $baseConfig = $this->getBaseConfig();
+
+        $forceUrl = Arr::get($baseConfig, 'force_root_url');
+        if (! empty($forceUrl)) {
+            URL::forceRootUrl($forceUrl);
+        }
+
+        $forceSchema = Arr::get($baseConfig, 'force_schema');
+        if (! empty($forceSchema)) {
+            $this->app['request']->server->set('HTTPS', 'on');
+
+            URL::forceScheme($forceSchema);
+        }
+    }
+
+    protected function getBaseConfig(): array
+    {
+        return $this->getConfig()->get('core.base.general', []);
+    }
+
+    protected function getConfig(): Repository
+    {
+        return $this->app['config'];
+    }
+
+    protected function overrideDefaultConfigs(): void
+    {
+        $config = $this->getConfig();
+
+        $config->set([
+            'app.debug_blacklist' => [
+                '_ENV' => [
+                    'APP_KEY',
+                    'ADMIN_DIR',
+                    'DB_DATABASE',
+                    'DB_USERNAME',
+                    'DB_PASSWORD',
+                    'REDIS_PASSWORD',
+                    'MAIL_PASSWORD',
+                    'PUSHER_APP_KEY',
+                    'PUSHER_APP_SECRET',
+                ],
+                '_SERVER' => [
+                    'APP_KEY',
+                    'ADMIN_DIR',
+                    'DB_DATABASE',
+                    'DB_USERNAME',
+                    'DB_PASSWORD',
+                    'REDIS_PASSWORD',
+                    'MAIL_PASSWORD',
+                    'PUSHER_APP_KEY',
+                    'PUSHER_APP_SECRET',
+                ],
+                '_POST' => [
+                    'password',
+                ],
+            ],
+            'debugbar.enabled' => $this->app->hasDebugModeEnabled() &&
+                ! $this->app->runningInConsole() &&
+                ! $this->app->environment(['testing', 'production']),
+            'debugbar.capture_ajax' => false,
+            'debugbar.remote_sites_path' => '',
+        ]);
+
+        if (
+            ! $config->has('logging.channels.deprecations')
+            && $this->app->isLocal()
+            && $this->app->hasDebugModeEnabled()
+        ) {
+            $config->set([
+                'logging.channels.deprecations' => [
+                    'driver' => 'single',
+                    'path' => storage_path('logs/php-deprecation-warnings.log'),
+                ],
+            ]);
+        }
+    }
+
+    protected function overridePackagesConfigs(): void
+    {
+        $config = $this->getConfig();
+
+        $baseConfig = $this->getBaseConfig();
+
+        /**
+         * @var \Botble\Setting\Supports\SettingStore $setting
+         */
+        $setting = $this->app[SettingStore::class];
+        $timezone = $setting->get('time_zone', $config->get('app.timezone'));
+        $locale = $setting->get('locale', Arr::get($baseConfig, 'locale', $config->get('app.locale')));
+
+        $this->app->setLocale($locale);
+
+        if (in_array($timezone, DateTimeZone::listIdentifiers())) {
+            date_default_timezone_set($timezone);
+        }
+
+        $config->set([
+            'app.locale' => $locale,
+            'app.timezone' => $timezone,
+            'purifier.settings' => [
+                ...$config->get('purifier.settings', []),
+                ...Arr::get($baseConfig, 'purifier', []),
+            ],
+            'ziggy.except' => ['debugbar.*'],
+            'datatables-buttons.pdf_generator' => 'excel',
+            'excel.exports.csv.use_bom' => true,
+            'dompdf.public_path' => public_path(),
+            'database.connections.mysql.strict' => Arr::get($baseConfig, 'db_strict_mode'),
+            'excel.imports.ignore_empty' => true,
+            'excel.imports.csv.input_encoding' => Arr::get($baseConfig, 'csv_import_input_encoding', 'UTF-8'),
+        ]);
+    }
+
+    protected function registerRouteMacros(): void
+    {
+        Route::macro('wherePrimaryKey', function (array|string|null $name = 'id') {
+            if (! $name) {
+                $name = 'id';
+            }
+
+            /**
+             * @var Route $this
+             */
+            if (\Tec\Base\Models\BaseModel::determineIfUsingUuidsForId()) {
+                return $this->whereUuid($name);
+            }
+
+            if (BaseModel::determineIfUsingUlidsForId()) {
+                return $this->whereUlid($name);
+            }
+
+            return $this->whereNumber($name);
+        });
+    }
+
+    protected function prepareAliasesIfMissing(): void
+    {
+        $aliasLoader = AliasLoader::getInstance();
+
+        if (! class_exists('BaseHelper')) {
+            $aliasLoader->alias('BaseHelper', BaseHelper::class);
+            $aliasLoader->alias('DashboardMenu', \Botble\Base\Facades\DashboardMenu::class);
+            $aliasLoader->alias('PageTitle', \Botble\Base\Facades\PageTitle::class);
+        }
+
+        if (! class_exists('Breadcrumb')) {
+            $aliasLoader->alias('Breadcrumb', BreadcrumbFacade::class);
+        }
+
+        if (! class_exists('PanelSectionManager')) {
+            $aliasLoader->alias('PanelSectionManager', PanelSectionManagerFacade::class);
+        }
+
+        if (! class_exists('AdminAppearance')) {
+            $aliasLoader->alias('AdminAppearance', AdminAppearance::class);
+        }
+
+        if (! class_exists('AdminHelper')) {
+            $aliasLoader->alias('AdminHelper', AdminHelper::class);
+        }
     }
 }

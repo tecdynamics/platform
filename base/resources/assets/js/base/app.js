@@ -1,4 +1,4 @@
-
+let resizeHandlers = [];
 export class App {
     constructor() {
         // IE mode
