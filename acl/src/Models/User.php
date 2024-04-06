@@ -2,6 +2,9 @@
 
 namespace Tec\ACL\Models;
 
+use Tec\ACL\Concerns\HasPreferences;
+use Tec\ACL\Contracts\HasPermissions as HasPermissionsContract;
+use Tec\ACL\Contracts\HasPreferences as HasPreferencesContract;
 use Tec\ACL\Notifications\ResetPasswordNotification;
 use Tec\ACL\Traits\PermissionTrait;
 use Tec\Base\Casts\SafeContent;
@@ -25,17 +28,23 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends BaseModel implements
+    HasPermissionsContract,
     AuthenticatableContract,
     AuthorizableContract,
-    CanResetPasswordContract
+    CanResetPasswordContract,
+    HasPreferencesContract
 {
     use Authenticatable;
     use Authorizable;
     use CanResetPassword;
     use HasApiTokens;
     use HasFactory;
-    use PermissionTrait;
+    use PermissionTrait {
+        PermissionTrait::hasPermission as traitHasPermission;
+        PermissionTrait::hasAnyPermission as traitHasAnyPermission;
+    }
     use Notifiable;
+    use HasPreferences;
 
     protected $table = 'users';
 
@@ -91,7 +100,12 @@ class User extends BaseModel implements
             get: fn (): bool => $this->activations()->where('completed', true)->exists(),
         );
     }
-
+    protected function url(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->getKey() ? route('users.profile.view', $this->getKey()) : null,
+        );
+    }
     protected function avatarUrl(): Attribute
     {
         return Attribute::make(
@@ -141,7 +155,7 @@ class User extends BaseModel implements
         return $this->super_user || $this->hasAccess(ACL_ROLE_SUPER_USER);
     }
 
-    public function hasPermission(string $permission): bool
+    public function hasPermission(string|array  $permission): bool
     {
         if ($this->isSuperUser()) {
             return true;
@@ -150,7 +164,7 @@ class User extends BaseModel implements
         return $this->hasAccess($permission);
     }
 
-    public function hasAnyPermission(array $permissions): bool
+    public function hasAnyPermission(string|array  $permissions): bool
     {
         if ($this->isSuperUser()) {
             return true;

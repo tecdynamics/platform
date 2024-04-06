@@ -485,7 +485,7 @@ class BaseServiceProvider extends ServiceProvider
         $baseConfig = $this->getBaseConfig();
 
         /**
-         * @var \Botble\Setting\Supports\SettingStore $setting
+         * @var \Tec\Setting\Supports\SettingStore $setting
          */
         $setting = $this->app[SettingStore::class];
         $timezone = $setting->get('time_zone', $config->get('app.timezone'));
@@ -542,8 +542,8 @@ class BaseServiceProvider extends ServiceProvider
 
         if (! class_exists('BaseHelper')) {
             $aliasLoader->alias('BaseHelper', BaseHelper::class);
-            $aliasLoader->alias('DashboardMenu', \Botble\Base\Facades\DashboardMenu::class);
-            $aliasLoader->alias('PageTitle', \Botble\Base\Facades\PageTitle::class);
+            $aliasLoader->alias('DashboardMenu', \Tec\Base\Facades\DashboardMenu::class);
+            $aliasLoader->alias('PageTitle', \Tec\Base\Facades\PageTitle::class);
         }
 
         if (! class_exists('Breadcrumb')) {

@@ -10,20 +10,15 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\UnableToRetrieveMetadata;
-use Mimey\MimeTypes;
 
 class UploadsManager
 {
-    public function __construct(protected MimeTypes $mimeType)
-    {
-    }
-
     public function fileDetails(string $path): array
     {
         return [
             'filename' => File::basename($path),
             'url' => $path,
-            'mime_type' => $this->fileMimeType($path),
+            'mime_type' => $this->fileMimeType(RvMedia::getRealPath($path)),
             'size' => $this->fileSize($path),
             'modified' => $this->fileModified($path),
         ];
@@ -31,15 +26,7 @@ class UploadsManager
 
     public function fileMimeType(string $path): string|null
     {
-        if (File::extension($path) == 'jfif') {
-            return 'image/jpeg';
-        }
-
-        try {
-            return $this->mimeType->getMimeType(File::extension(RvMedia::getRealPath($path)));
-        } catch (UnableToRetrieveMetadata) {
-            return null;
-        }
+        return RvMedia::getMimeType($path);
     }
 
     public function fileSize(string $path): int

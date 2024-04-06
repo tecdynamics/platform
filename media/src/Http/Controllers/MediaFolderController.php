@@ -2,17 +2,17 @@
 
 namespace Tec\Media\Http\Controllers;
 
+use Tec\Base\Http\Controllers\BaseController;
 use Tec\Media\Facades\RvMedia;
 use Tec\Media\Http\Requests\MediaFolderRequest;
 use Tec\Media\Models\MediaFolder;
 use Exception;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 
 /**
  * @since 19/08/2015 07:55 AM
  */
-class MediaFolderController extends Controller
+class MediaFolderController extends BaseController
 {
     public function store(MediaFolderRequest $request)
     {

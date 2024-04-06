@@ -36,10 +36,10 @@ class AdminHelper
     {
         $default = 'light';
 
-        if (! Auth::check()) {
+        if (! \Auth::check()) {
             return $default;
         }
 
-        return Auth::user()->getMeta('theme_mode', $default);
+        return \Auth::user()->getMeta('theme_mode', $default);
     }
 }

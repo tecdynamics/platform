@@ -9,8 +9,8 @@ use Illuminate\Queue\SerializesModels;
 
 class DeletedContentEvent extends Event
 {
-    use Dispatchable;
     use SerializesModels;
+    use Dispatchable;
 
     public function __construct(public string $screen, public Request $request, public bool|Model|null $data)
     {

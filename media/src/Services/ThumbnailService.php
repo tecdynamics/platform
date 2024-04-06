@@ -4,8 +4,9 @@ namespace Tec\Media\Services;
 
 use Tec\Base\Facades\BaseHelper;
 use Tec\Media\Facades\RvMedia;
-use Exception;
-use Intervention\Image\ImageManager;
+use Illuminate\Support\Facades\File;
+use Intervention\Image\Encoders\AutoEncoder;
+use Throwable;
 
 class ThumbnailService
 {
@@ -27,7 +28,7 @@ class ThumbnailService
 
     protected string $fileName;
 
-    public function __construct(protected UploadsManager $uploadManager, protected ImageManager $imageManager)
+    public function __construct(protected UploadsManager $uploadManager)
     {
         $this->thumbRate = 0.75;
         $this->xCoordinate = null;
@@ -106,11 +107,7 @@ class ThumbnailService
 
     public function save(string $type = 'fit'): bool|string
     {
-        $this->imageManager = $this->imageManager->configure([
-            'driver' => RvMedia::getImageProcessingLibrary(),
-        ]);
-
-        $fileName = pathinfo($this->imagePath, PATHINFO_BASENAME);
+        $fileName = File::basename($this->imagePath);
 
         if ($this->fileName) {
             $fileName = $this->fileName;
@@ -118,7 +115,7 @@ class ThumbnailService
 
         $destinationPath = sprintf('%s/%s', trim($this->destinationPath, '/'), $fileName);
 
-        $thumbImage = $this->imageManager->make($this->imagePath);
+        $thumbImage = RvMedia::imageManager()->read($this->imagePath);
 
         if ($this->thumbWidth && ! $this->thumbHeight) {
             $type = 'width';
@@ -132,10 +129,7 @@ class ThumbnailService
                     return $destinationPath;
                 }
 
-                $thumbImage->resize($this->thumbWidth, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
+                $thumbImage->resize($this->thumbWidth);
 
                 break;
 
@@ -144,10 +138,7 @@ class ThumbnailService
                     return $destinationPath;
                 }
 
-                $thumbImage->resize(null, $this->thumbHeight, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
+                $thumbImage->resize(null, $this->thumbHeight);
 
                 break;
 
@@ -175,21 +166,17 @@ class ThumbnailService
                     return $destinationPath;
                 }
 
-                if (extension_loaded('exif')) {
-                    $thumbImage->orientate();
-                }
-
-                $thumbImage->fit($this->thumbWidth, $this->thumbHeight, null, $this->fitPosition);
+                $thumbImage->cover($this->thumbWidth, $this->thumbHeight, $this->fitPosition);
 
                 break;
         }
 
         try {
-            $this->uploadManager->saveFile($destinationPath, $thumbImage->stream()->__toString());
-        } catch (Exception $exception) {
+            $this->uploadManager->saveFile($destinationPath, $thumbImage->encode(new AutoEncoder()));
+        } catch (Throwable $exception) {
             BaseHelper::logError($exception);
 
-            return false;
+            throw $exception;
         }
 
         return $destinationPath;

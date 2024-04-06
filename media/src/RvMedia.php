@@ -4,12 +4,16 @@ namespace Tec\Media;
 
 use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Facades\Html;
+use Tec\Media\Events\MediaFileRenamed;
+use Tec\Media\Events\MediaFileRenaming;
+use Tec\Media\Events\MediaFileUploaded;
+use Tec\Media\Events\MediaFolderRenamed;
+use Tec\Media\Events\MediaFolderRenaming;
 use Tec\Media\Http\Resources\FileResource;
 use Tec\Media\Models\MediaFile;
 use Tec\Media\Models\MediaFolder;
 use Tec\Media\Services\ThumbnailService;
 use Tec\Media\Services\UploadsManager;
-use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -30,6 +34,7 @@ use League\Flysystem\UnableToRetrieveMetadata;
 use League\Flysystem\UnableToWriteFile;
 use Symfony\Component\Mime\MimeTypes;
 use Throwable;
+
 class RvMedia
 {
     protected array $permissions = [];
@@ -167,9 +172,9 @@ class RvMedia
 
     public function getImageUrl(
         string|null $url,
-                    $size = null,
+        $size = null,
         bool $relativePath = false,
-                    $default = null
+        $default = null
     ): string|null {
         if (empty($url)) {
             return $default;
@@ -637,9 +642,9 @@ class RvMedia
         // Watermark will be 10 less than the actual width of the image
         $watermarkSize = (int)round(
             $imageSource->width() * ((int)setting(
-                    'media_watermark_size',
-                    $this->getConfig('watermark.size')
-                ) / 100),
+                'media_watermark_size',
+                $this->getConfig('watermark.size')
+            ) / 100),
             2
         );
 

@@ -2,8 +2,8 @@
 
 namespace Tec\Base\Events;
 
-use Illuminate\Foundation\Events\Dispatchable;
 use Tec\Base\Contracts\BaseModel;
+use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Http\Request;
 use Illuminate\Queue\SerializesModels;
 
