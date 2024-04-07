@@ -63,7 +63,7 @@ return [
                 'src' => [
                     'local' => [
                         '/vendor/core/core/base/libraries/vue.js',
-//                        '/vendor/core/core/base/libraries/vue.global.min.js',
+                        '/vendor/core/core/base/libraries/vue.global.min.js',
                     ],
                 ],
             ],

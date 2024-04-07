@@ -44,9 +44,13 @@ mix
     .js(`${source}/resources/js/crop-image.js`, `${dist}/js`)
     .copy('node_modules/jquery/dist/jquery.min.js', `${dist}/libraries/jquery.min.js`)
     .copy(
-        mix.inProduction() ? './node_modules/vue/dist/vue.global.prod.js' : './node_modules/vue/dist/vue.global.js',
+        mix.inProduction() ? './node_modules/vue/dist/vue.common.prod.js' : './node_modules/vue/dist/vue.common.dev.js',
         `${dist}/libraries/vue.global.min.js`
     )
+    // .copy(
+    //     mix.inProduction() ? './node_modules/vue/dist/vue.global.prod.js' : './node_modules/vue/dist/vue.global.js',
+    //     `${dist}/libraries/vue.global.min.js`
+    // )
 
 if (mix.inProduction()) {
     mix
