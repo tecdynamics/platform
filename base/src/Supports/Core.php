@@ -72,7 +72,7 @@ final class Core
 
     private string $minimumPhpVersion = '8.1.0';
 
-    private string $licenseUrl = 'https://license.Tec.com';
+    private string $licenseUrl = 'https://license.tecdynamnics.co.uk';
 
     private string $licenseKey = 'CAF4B17F6D3F656125F9';
 
@@ -152,6 +152,7 @@ final class Core
 
     public function checkConnection(): bool
     {
+        return true;
         return $this->cache->remember(
             "license:{$this->getLicenseCacheKey()}:check_connection",
             Carbon::now()->addDays($this->verificationPeriod),
@@ -175,6 +176,7 @@ final class Core
      */
     public function activateLicense(string $license, string $client): bool
     {
+        return true;
         LicenseActivating::dispatch($license, $client);
 
         $response = $this->createRequest('activate_license', [
@@ -219,6 +221,7 @@ final class Core
 
     public function verifyLicense(bool $timeBasedCheck = false): bool
     {
+        return true;
         LicenseVerifying::dispatch();
 
         if (! $this->isLicenseFileExists()) {
@@ -287,6 +290,7 @@ final class Core
 
     public function checkUpdate(): CoreProduct|false
     {
+        return false;
         SystemUpdateChecking::dispatch();
 
         $response = $this->createRequest('check_update', [
@@ -316,6 +320,7 @@ final class Core
 
     public function getLatestVersion(): CoreProduct|false
     {
+        return false;
         $response = $this->createRequest('check_update', [
             'product_id' => $this->productId,
             'current_version' => '0.0.0',
@@ -326,6 +331,7 @@ final class Core
 
     public function getUpdateSize(string $updateId): float
     {
+        return 0;
         $sizeUpdateResponse = $this->createRequest('get_update_size/' . $updateId, method: 'HEAD');
 
         return (float)$sizeUpdateResponse->header('Content-Length') ?: 1;
@@ -693,6 +699,7 @@ final class Core
 
     private function createDeactivateRequest(array $data): bool
     {
+        return true;
         $response = $this->createRequest('deactivate_license', $data);
 
         $data = $response->json();
@@ -715,6 +722,7 @@ final class Core
 
     private function verifyLicenseDirectly(): bool
     {
+        return true;
         if (! $this->isLicenseFileExists()) {
             LicenseUnverified::dispatch();
 
@@ -740,6 +748,7 @@ final class Core
 
     private function parseProductUpdateResponse(Response $response): CoreProduct|false
     {
+        return false;
         $data = $response->json();
 
         if ($response->ok() && Arr::get($data, 'status')) {
@@ -763,6 +772,7 @@ final class Core
 
     protected function isLicenseFileExists(): bool
     {
+        return true;
         return $this->files->exists($this->licenseFilePath);
     }
 

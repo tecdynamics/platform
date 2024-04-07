@@ -30,7 +30,7 @@
         >
             {{ trans('core/media::media.add') }}
         </x-core::button>
-        
+
         {!! apply_filters(BASE_FILTER_FORM_EDITOR_BUTTONS, null, $attributes, $id) !!}
     </div>
 
