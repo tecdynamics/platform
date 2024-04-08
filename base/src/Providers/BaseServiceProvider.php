@@ -161,7 +161,7 @@ class BaseServiceProvider extends ServiceProvider
     protected function registerPanelSections(): void
     {
         \Tec\Base\Facades\PanelSectionManager::group('system')->beforeRendering(function () {
-            PanelSectionManager::setGroupName(trans('core/base::layouts.platform_admin'))
+            PanelSectionManagerFacade::setGroupName(trans('core/base::layouts.platform_admin'))
                 ->register(SystemPanelSection::class);
         });
     }

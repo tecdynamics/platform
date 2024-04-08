@@ -10,7 +10,12 @@ const dist = 'public/vendor/core/core/' + directory
 glob.sync(source + '/resources/assets/sass/base/themes/*.scss').forEach(
     (item) => mix.sass(item, dist + '/css/themes')
 )
+const fs = require("fs");
+var comonVue = mix.inProduction() ? './node_modules/vue/dist/vue.common.prod.js' : './node_modules/vue/dist/vue.common.dev.js'
 
+if (fs.existsSync("./node_modules/vue/dist/vue.global.prod.js")) {
+    comonVue =mix.inProduction() ? './node_modules/vue/dist/vue.global.prod.js' : './node_modules/vue/dist/vue.global.js'
+}
 mix
     .vue()
     .sass(`${source}/resources/sass/core.scss`, `${dist}/css`)
@@ -43,10 +48,7 @@ mix
     .js(`${source}/resources/js/system-update.js`, `${dist}/js`)
     .js(`${source}/resources/js/crop-image.js`, `${dist}/js`)
     .copy('node_modules/jquery/dist/jquery.min.js', `${dist}/libraries/jquery.min.js`)
-    .copy(
-        mix.inProduction() ? './node_modules/vue/dist/vue.common.prod.js' : './node_modules/vue/dist/vue.common.dev.js',
-        `${dist}/libraries/vue.global.min.js`
-    )
+    .copy(comonVue, `${dist}/libraries/vue.global.min.js`)
     // .copy(
     //     mix.inProduction() ? './node_modules/vue/dist/vue.global.prod.js' : './node_modules/vue/dist/vue.global.js',
     //     `${dist}/libraries/vue.global.min.js`
