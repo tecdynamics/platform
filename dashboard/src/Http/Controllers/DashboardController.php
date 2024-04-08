@@ -3,9 +3,8 @@
 namespace Tec\Dashboard\Http\Controllers;
 
 use Tec\Base\Facades\Assets;
-use Tec\Base\Facades\PageTitle;
 use Tec\Base\Http\Controllers\BaseController;
-use Tec\Base\Http\Responses\BaseHttpResponse;
+use Tec\Dashboard\Events\RenderingDashboardWidgets;
 use Tec\Dashboard\Models\DashboardWidget;
 use Tec\Dashboard\Models\DashboardWidgetSetting;
 use Exception;
@@ -16,20 +15,23 @@ class DashboardController extends BaseController
 {
     public function getDashboard(Request $request)
     {
-        PageTitle::setTitle(trans('core/dashboard::dashboard.title'));
+        $this->pageTitle(trans('core/dashboard::dashboard.title'));
 
-        Assets::addScripts(['blockui', 'sortable', 'equal-height', 'counterup'])
+        Assets::addScripts(['sortable', 'equal-height', 'counterup'])
             ->addScriptsDirectly('vendor/core/core/dashboard/js/dashboard.js')
-            ->addStylesDirectly('vendor/core/core/dashboard/css/dashboard.css');
+            ->addScriptsDirectly('vendor/core/core/dashboard/js/check-for-updates.js');
 
         Assets::usingVueJS();
+
+        RenderingDashboardWidgets::dispatch();
 
         do_action(DASHBOARD_ACTION_REGISTER_SCRIPTS);
 
         $widgets = DashboardWidget::query()
             ->with([
                 'settings' => function (HasMany $query) use ($request) {
-                    $query->where('user_id', $request->user()->getKey())
+                    $query
+                        ->where('user_id', $request->user()->getKey())
                         ->select(['status', 'order', 'settings', 'widget_id'])
                         ->orderBy('order');
                 },
@@ -52,7 +54,7 @@ class DashboardController extends BaseController
         return view('core/dashboard::list', compact('widgets', 'userWidgets', 'statWidgets'));
     }
 
-    public function postEditWidgetSettingItem(Request $request, BaseHttpResponse $response)
+    public function postEditWidgetSettingItem(Request $request)
     {
         try {
             $widget = DashboardWidget::query()->where([
@@ -60,7 +62,8 @@ class DashboardController extends BaseController
             ])->first();
 
             if (! $widget) {
-                return $response
+                return $this
+                    ->httpResponse()
                     ->setError()
                     ->setMessage(trans('core/dashboard::dashboard.widget_not_exists'));
             }
@@ -76,15 +79,16 @@ class DashboardController extends BaseController
 
             $widgetSetting->save();
         } catch (Exception $exception) {
-            return $response
+            return $this
+                ->httpResponse()
                 ->setError()
                 ->setMessage($exception->getMessage());
         }
 
-        return $response;
+        return $this->httpResponse();
     }
 
-    public function postUpdateWidgetOrder(Request $request, BaseHttpResponse $response)
+    public function postUpdateWidgetOrder(Request $request)
     {
         foreach ($request->input('items', []) as $key => $item) {
             $widget = DashboardWidget::query()->firstOrCreate([
@@ -100,10 +104,12 @@ class DashboardController extends BaseController
             $widgetSetting->save();
         }
 
-        return $response->setMessage(trans('core/dashboard::dashboard.update_position_success'));
+        return $this
+            ->httpResponse()
+            ->setMessage(trans('core/dashboard::dashboard.update_position_success'));
     }
 
-    public function getHideWidget(Request $request, BaseHttpResponse $response)
+    public function getHideWidget(Request $request)
     {
         $widget = DashboardWidget::query()->where([
             'name' => $request->input('name'),
@@ -120,10 +126,12 @@ class DashboardController extends BaseController
             $widgetSetting->save();
         }
 
-        return $response->setMessage(trans('core/dashboard::dashboard.hide_success'));
+        return $this
+            ->httpResponse()
+            ->setMessage(trans('core/dashboard::dashboard.hide_success'));
     }
 
-    public function postHideWidgets(Request $request, BaseHttpResponse $response)
+    public function postHideWidgets(Request $request)
     {
         $widgets = DashboardWidget::query()->get();
 
@@ -133,7 +141,8 @@ class DashboardController extends BaseController
                 'user_id' => $request->user()->getKey(),
             ]);
 
-            if ($request->has('widgets.' . $widget->name) &&
+            if (
+                $request->has('widgets.' . $widget->name) &&
                 $request->input('widgets.' . $widget->name) == 1
             ) {
                 $widgetSetting->status = 1;
@@ -145,8 +154,9 @@ class DashboardController extends BaseController
             $widgetSetting->save();
         }
 
-        return $response
-            ->setNextUrl(route('dashboard.index'))
+        return $this
+            ->httpResponse()
+            ->setNextRoute('dashboard.index')
             ->setMessage(trans('core/dashboard::dashboard.hide_success'));
     }
 }

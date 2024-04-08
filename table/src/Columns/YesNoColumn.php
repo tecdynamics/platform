@@ -2,10 +2,9 @@
 
 namespace Tec\Table\Columns;
 
-use Tec\Base\Facades\Html;
-use Tec\Table\Contracts\FormattedColumn;
+use Tec\Table\Contracts\FormattedColumn as FormattedColumnContract;
 
-class YesNoColumn extends Column implements FormattedColumn
+class YesNoColumn extends FormattedColumn implements FormattedColumnContract
 {
     public static function make(array|string $data = [], string $name = ''): static
     {
@@ -13,10 +12,8 @@ class YesNoColumn extends Column implements FormattedColumn
             ->width(100);
     }
 
-    public function editedFormat($value): string
+    public function formattedValue($value): string
     {
-        return Html::tag('span', $value ? trans('core/base::base.yes') : trans('core/base::base.no'), [
-            'class' => sprintf('badge badge-%s', $value ? 'success' : 'danger'),
-        ]);
+        return view('core/table::includes.columns.yes-no', compact('value'))->render();
     }
 }

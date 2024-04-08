@@ -4,9 +4,9 @@ namespace Tec\Table\Abstracts;
 
 use Tec\Base\Http\Responses\BaseHttpResponse;
 use Tec\Base\Models\BaseModel;
+use Tec\Base\Supports\Builders\HasLabel;
+use Tec\Base\Supports\Builders\HasPermissions;
 use Tec\Table\Abstracts\Concerns\HasConfirmation;
-use Tec\Table\Abstracts\Concerns\HasLabel;
-use Tec\Table\Abstracts\Concerns\HasPermissions;
 use Tec\Table\Abstracts\Concerns\HasPriority;
 use Tec\Table\Actions\Concerns\HasAction;
 use Closure;

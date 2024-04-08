@@ -1,10 +1,10 @@
 <?php
 
-use Tec\Base\Facades\BaseHelper;
+use Tec\Base\Facades\AdminHelper;
 use Illuminate\Support\Facades\Route;
 
-Route::group(['namespace' => 'Tec\Media\Http\Controllers', 'middleware' => ['web', 'core']], function () {
-    Route::group(['prefix' => BaseHelper::getAdminPrefix(), 'middleware' => 'auth'], function () {
+Route::group(['namespace' => 'Tec\Media\Http\Controllers'], function () {
+    AdminHelper::registerRoutes(function () {
         Route::group(['prefix' => 'media', 'as' => 'media.', 'permission' => 'media.index'], function () {
             Route::get('', [
                 'as' => 'index',

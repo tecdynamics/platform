@@ -67,7 +67,7 @@ export default {
                 })
                 .catch((data) => {
                     if (data.response.status === 400) {
-                        Botble.showError(data.response.data.message)
+                        Tec.showError(data.response.data.message)
                     }
                 })
                 .finally(() => {
@@ -111,7 +111,7 @@ export default {
                 .then(({ data }) => {
                     this.verified = true
                     this.license = data.data
-                    Botble.showSuccess(data.message)
+                    Tec.showSuccess(data.message)
                 })
                 .finally(() => {
                     this.loading = false
@@ -127,7 +127,7 @@ export default {
                 .then(({ data }) => {
                     this.verified = false
 
-                    Botble.showSuccess(data.message)
+                    Tec.showSuccess(data.message)
                 })
                 .finally(() => {
                     this.loading = false

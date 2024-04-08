@@ -9,7 +9,6 @@ use Tec\Base\Supports\Builders\HasLabel;
 use Tec\Base\Supports\Builders\HasPermissions;
 use Tec\Base\Supports\Builders\HasUrl;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Support\Facades\Blade;
 
 class HeaderAction implements Arrayable
 {
@@ -36,26 +35,9 @@ class HeaderAction implements Arrayable
 
     public function toArray(): array
     {
-        $content = '';
-
-        if ($this->getIcon()) {
-            $content .= sprintf('<x-core::icon name="%s" />', $this->getIcon());
-        }
-
-        if ($this->getLabel()) {
-            $content .= $this->getLabel();
-        }
-
-        $html = sprintf(
-            '<span data-action="%s" data-href="%s">%s</span>',
-            $this->getName(),
-            $this->getUrl(),
-            Blade::render($content)
-        );
-
         return [
-            'className' => sprintf('action-item %s %s', $this->getColor(), $this->getAttribute('class')),
-            'text' => $html,
+            'className' => $this->getClassName(),
+            'text' => view('core/table::includes.header-action', ['action' => $this])->render(),
         ];
     }
 
@@ -66,5 +48,20 @@ class HeaderAction implements Arrayable
             ->permission($route);
 
         return $this;
+    }
+
+    public function getClassName(): string
+    {
+        return sprintf(
+            '%s %s %s',
+            $this->getAttribute('data-default-action', true) ? 'action-item' : '',
+            $this->getColor(),
+            $this->getAttribute('class')
+        );
+    }
+
+    public function withDefaultAction(bool $isDefault = true): static
+    {
+        return $this->addAttribute('data-default-action', $isDefault);
     }
 }

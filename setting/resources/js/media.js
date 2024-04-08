@@ -21,16 +21,16 @@ $(document).ready(function () {
         event.preventDefault()
         let _self = $(event.currentTarget)
 
-        Botble.showButtonLoading(_self)
+        Tec.showButtonLoading(_self)
 
         const $form = _self.closest('form')
 
         $httpClient
             .make()
             .post($form.prop('action'))
-            .then(({ data }) => Botble.showSuccess(data.message))
+            .then(({ data }) => Tec.showSuccess(data.message))
             .finally(() => {
-                Botble.hideButtonLoading(_self)
+                Tec.hideButtonLoading(_self)
                 _self.closest('.modal').modal('hide')
             })
     })

@@ -3,9 +3,9 @@
 namespace Tec\Table\Columns;
 
 use Tec\Base\Models\BaseModel;
-use Tec\Table\Contracts\FormattedColumn;
+use Tec\Table\Contracts\FormattedColumn as FormattedColumnContract;
 
-class IdColumn extends Column implements FormattedColumn
+class IdColumn extends FormattedColumn implements FormattedColumnContract
 {
     public static function make(array|string $data = [], string $name = ''): static
     {
@@ -16,7 +16,7 @@ class IdColumn extends Column implements FormattedColumn
             ->columnVisibility();
     }
 
-    public function editedFormat($value): string|null
+    public function formattedValue($value): string|null
     {
         return $this
             ->when(BaseModel::getTypeOfId() !== 'BIGINT', function (IdColumn $column) {

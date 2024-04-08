@@ -2,11 +2,10 @@
 
 namespace Tec\Table\Abstracts;
 
-use Tec\Base\Contracts\BaseModel;
+use Tec\Base\Supports\Builders\HasLabel;
+use Tec\Base\Supports\Builders\HasPermissions;
 use Tec\Base\Supports\Renderable;
 use Tec\Table\Abstracts\Concerns\HasConfirmation;
-use Tec\Table\Abstracts\Concerns\HasLabel;
-use Tec\Table\Abstracts\Concerns\HasPermissions;
 use Tec\Table\Abstracts\Concerns\HasPriority;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Traits\Conditionable;
@@ -21,11 +20,15 @@ abstract class TableActionAbstract implements Htmlable, Stringable
     use HasPriority;
     use Renderable;
 
-    protected BaseModel $model;
+    protected object $item;
 
     protected string $view = 'core/table::actions.action';
 
+    protected string $dropdownItemView = 'core/table::actions.action-dropdown-item';
+
     protected array $mergeData = [];
+
+    protected bool $displayAsDropdown = false;
 
     public function __construct(protected string $name)
     {
@@ -41,16 +44,16 @@ abstract class TableActionAbstract implements Htmlable, Stringable
         return $this->name;
     }
 
-    public function model(BaseModel $model): static
+    public function setItem(object $item): static
     {
-        $this->model = $model;
+        $this->item = $item;
 
         return $this;
     }
 
-    public function getModel(): BaseModel
+    public function getItem(): object
     {
-        return $this->model;
+        return $this->item;
     }
 
     public function view(string $view): static
@@ -63,6 +66,27 @@ abstract class TableActionAbstract implements Htmlable, Stringable
     public function getView(): string
     {
         return $this->view;
+    }
+
+    public function displayAsDropdownItem(bool $enabled = true): static
+    {
+        $this->displayAsDropdown = $enabled;
+
+        return $this;
+    }
+
+    public function dropdownItemView(string $view): static
+    {
+        $this->displayAsDropdownItem();
+
+        $this->dropdownItemView = $view;
+
+        return $this;
+    }
+
+    public function getDropdownItemView(): string
+    {
+        return $this->dropdownItemView;
     }
 
     public function dataForView(array $mergeData): static
@@ -82,7 +106,10 @@ abstract class TableActionAbstract implements Htmlable, Stringable
     public function render(): string
     {
         return $this->rendering(
-            fn () => view($this->getView(), $this->getDataForView())->render()
+            fn () => view(
+                $this->displayAsDropdown ? $this->getDropdownItemView() : $this->getView(),
+                $this->getDataForView()
+            )->render()
         );
     }
 

@@ -4,9 +4,9 @@ namespace Tec\Table\Columns;
 
 use Tec\Base\Facades\Html;
 use Tec\Media\Facades\RvMedia;
-use Tec\Table\Contracts\FormattedColumn;
+use Tec\Table\Contracts\FormattedColumn as FormattedColumnContract;
 
-class ImageColumn extends Column implements FormattedColumn
+class ImageColumn extends FormattedColumn implements FormattedColumnContract
 {
     protected bool $relative = false;
 
@@ -49,7 +49,7 @@ class ImageColumn extends Column implements FormattedColumn
         return $this->mediaSize(null);
     }
 
-    public function editedFormat($value): string
+    public function formattedValue($value): string
     {
         $table = $this->getTable();
 

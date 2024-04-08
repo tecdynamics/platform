@@ -4,17 +4,17 @@ $(document).ready(function () {
         let _self = $(event.currentTarget)
         let form = new FormData(_self.closest('form')[0])
 
-        Botble.showButtonLoading(_self)
+        Tec.showButtonLoading(_self)
 
         $httpClient
             .make()
             .postForm(_self.data('url'), form)
             .then(({ data }) => {
-                Botble.showSuccess(data.message)
+                Tec.showSuccess(data.message)
                 $('#send-test-email-modal').modal('show')
             })
             .finally(() => {
-                Botble.hideButtonLoading(_self)
+                Tec.hideButtonLoading(_self)
             })
     })
 
@@ -22,7 +22,7 @@ $(document).ready(function () {
         event.preventDefault()
         let _self = $(event.currentTarget)
 
-        Botble.showButtonLoading(_self)
+        Tec.showButtonLoading(_self)
 
         $httpClient
             .make()
@@ -30,11 +30,11 @@ $(document).ready(function () {
                 email: _self.closest('.modal-content').find('input[name=email]').val(),
             })
             .then(({ data }) => {
-                Botble.showSuccess(data.message)
+                Tec.showSuccess(data.message)
                 _self.closest('.modal').modal('hide')
             })
             .finally(() => {
-                Botble.hideButtonLoading(_self)
+                Tec.hideButtonLoading(_self)
             })
     })
 })

@@ -3,11 +3,10 @@
 namespace Tec\Table\Columns;
 
 use BackedEnum;
-use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Supports\Enum;
-use Tec\Table\Contracts\FormattedColumn;
+use Tec\Table\Contracts\FormattedColumn as FormattedColumnContract;
 
-class EnumColumn extends Column implements FormattedColumn
+class EnumColumn extends FormattedColumn implements FormattedColumnContract
 {
     public static function make(array|string $data = [], string $name = ''): static
     {
@@ -15,11 +14,11 @@ class EnumColumn extends Column implements FormattedColumn
             ->alignCenter()
             ->width(100)
             ->renderUsing(function (EnumColumn $column, $value) {
-                return $column->editedFormat($value);
+                return $column->formattedValue($value);
             });
     }
 
-    public function editedFormat($value): string
+    public function formattedValue($value): string|null
     {
         if (! $value instanceof Enum && ! $value instanceof BackedEnum) {
             return '';
@@ -35,8 +34,6 @@ class EnumColumn extends Column implements FormattedColumn
             return $value->getValue();
         }
 
-        $value = $value->toHtml() ?: $value->getValue();
-
-        return BaseHelper::clean($value);
+        return $value->toHtml() ?: $value->getValue();
     }
 }

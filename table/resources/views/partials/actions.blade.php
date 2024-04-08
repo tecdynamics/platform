@@ -7,7 +7,9 @@
                 data-bs-toggle="tooltip"
                 data-bs-original-title="{{ trans('core/base::tables.edit') }}"
                 href="{{ route($edit, $item->id) }}"
-            > <x-core::icon name="ti ti-edit" /></a>
+            >
+                <x-core::icon name="ti ti-edit" />
+            </a>
         @endif
     @endif
 

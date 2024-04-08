@@ -2,9 +2,9 @@
 
 namespace Tec\Table\Columns;
 
-use Tec\Table\Contracts\FormattedColumn;
+use Tec\Table\Contracts\FormattedColumn as FormattedColumnContract;
 
-class RowActionsColumn extends Column implements FormattedColumn
+class RowActionsColumn extends FormattedColumn implements FormattedColumnContract
 {
     /**
      * @var \Tec\Table\Abstracts\TableActionAbstract[] $actions
@@ -36,11 +36,12 @@ class RowActionsColumn extends Column implements FormattedColumn
         return $this->rowActions;
     }
 
-    public function editedFormat($value): string
+    public function formattedValue($value): string
     {
         return view('core/table::row-actions', [
             'model' => $this->getItem(),
             'actions' => $this->getRowActions(),
+            'table' => $this->getTable(),
         ])->render();
     }
 }

@@ -18,6 +18,10 @@ trait HasActions
 
     protected array $rowActionsEditCallbacks = [];
 
+    protected bool $displayActionsAsDropdown = true;
+
+    protected int $displayActionsAsDropdownWhenActionsMoresThan = 3;
+
     /**
      * @deprecated since v6.8.0
      */
@@ -37,6 +41,8 @@ trait HasActions
 
     public function addAction(TableActionAbstract $action): static
     {
+        $this->hasOperations = false;
+
         $this->rowActions[$action->getName()] = $action;
 
         return $this;
@@ -47,15 +53,9 @@ trait HasActions
      */
     public function addActions(array $actions): static
     {
-        $newActions = [];
-
         foreach ($actions as $action) {
-            $newActions[$action->getName()] = $action;
+            $this->addAction($action);
         }
-
-        $this->rowActions = array_merge($this->rowActions, $newActions);
-
-        $this->hasOperations = false;
 
         return $this;
     }
@@ -127,19 +127,50 @@ trait HasActions
     protected function getRowActionsHeading(): array
     {
         return [
-            RowActionsColumn::make()->width(70 * count($this->getRowActions())),
+            RowActionsColumn::make()->nowrap(),
         ];
     }
 
+    public function displayActionsAsDropdown(bool $enabled = true): static
+    {
+        $this->displayActionsAsDropdown = $enabled;
+
+        return $this;
+    }
+
+    public function hasDisplayActionsAsDropdown(): bool
+    {
+        return $this->displayActionsAsDropdown
+            && count($this->getRowActions()) > $this->getDisplayActionsAsDropdownWhenActionsMoresThan();
+    }
+
+    public function displayActionsAsDropdownWhenActionsMoresThan(int $number): static
+    {
+        if ($number < 0) {
+            throw new LogicException('Number must be greater than 0.');
+        }
+
+        $this->displayActionsAsDropdown();
+
+        $this->displayActionsAsDropdownWhenActionsMoresThan = $number;
+
+        return $this;
+    }
+
+    public function getDisplayActionsAsDropdownWhenActionsMoresThan(): int
+    {
+        return $this->displayActionsAsDropdownWhenActionsMoresThan;
+    }
+
     /**
-     * @deprecated since v6.8.0
+     * @deprecated since v6.8.0, will be removed after operations removed.
      */
     public function getOperationsHeading()
     {
         return [
             Column::make('operations')
                 ->title(trans('core/base::tables.operations'))
-                ->width(134)
+                ->nowrap()
                 ->alignCenter()
                 ->orderable(false)
                 ->searchable(false)
@@ -150,7 +181,7 @@ trait HasActions
     }
 
     /**
-     * @deprecated since v6.8.0
+     * @deprecated since v6.8.0, will be removed after operations removed.
      */
     protected function getOperations(string|null $edit, string|null $delete, Model $item, string|null $extra = null): string
     {
@@ -162,5 +193,13 @@ trait HasActions
             $delete,
             $extra
         );
+    }
+
+    /**
+     * @deprecated since v6.8.0, will be removed after operations removed.
+     */
+    protected function hasOperations(): bool
+    {
+        return $this->hasOperations && ! $this->isSimpleTable() && empty($this->getRowActions());
     }
 }
