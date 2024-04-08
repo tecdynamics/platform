@@ -1,5 +1,4 @@
 <?php
-
 use Tec\Base\Facades\AdminHelper;
 use Tec\Setting\Http\Controllers\EmailRuleSettingController;
 use Illuminate\Support\Facades\Route;

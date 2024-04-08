@@ -45,14 +45,14 @@
             name="media_aws_bucket"
             :label="trans('core/setting::setting.media.aws_bucket')"
             :value="config('filesystems.disks.s3.bucket')"
-            placeholder="Ex: Tec"
+            placeholder="Ex: botble"
         />
 
         <x-core::form.text-input
             name="media_aws_url"
             :label="trans('core/setting::setting.media.aws_url')"
             :value="config('filesystems.disks.s3.url')"
-            placeholder="Ex: https://s3-ap-southeast-1.amazonaws.com/Tec"
+            placeholder="Ex: https://s3-ap-southeast-1.amazonaws.com/botble"
         />
 
         <x-core::form.text-input
@@ -86,7 +86,7 @@
             name="media_r2_bucket"
             :label="trans('core/setting::setting.media.r2_bucket')"
             :value="config('filesystems.disks.r2.bucket')"
-            placeholder="Ex: Tec"
+            placeholder="Ex: botble"
         />
 
         <x-core::form.text-input
@@ -134,14 +134,14 @@
             name="media_do_spaces_bucket"
             :label="trans('core/setting::setting.media.do_spaces_bucket')"
             :value="config('filesystems.disks.do_spaces.bucket')"
-            placeholder="Ex: Tec"
+            placeholder="Ex: botble"
         />
 
         <x-core::form.text-input
             name="media_do_spaces_endpoint"
             :label="trans('core/setting::setting.media.do_spaces_endpoint')"
             :value="config('filesystems.disks.do_spaces.endpoint')"
-            placeholder="Ex: https://Tec.sfo2.digitaloceanspaces.com"
+            placeholder="Ex: https://botble.sfo2.digitaloceanspaces.com"
         />
 
         <x-core::form.on-off.checkbox
@@ -188,7 +188,7 @@
             name="media_wasabi_bucket"
             :label="trans('core/setting::setting.media.wasabi_bucket')"
             :value="config('filesystems.disks.wasabi.bucket')"
-            placeholder="Ex: Tec"
+            placeholder="Ex: botble"
         />
 
         <x-core::form.text-input
@@ -208,14 +208,14 @@
             name="media_bunnycdn_hostname"
             :label="trans('core/setting::setting.media.bunnycdn_hostname')"
             :value="setting('media_bunnycdn_hostname')"
-            placeholder="Ex: Tec.b-cdn.net"
+            placeholder="Ex: botble.b-cdn.net"
         />
 
         <x-core::form.text-input
             name="media_bunnycdn_zone"
             :label="trans('core/setting::setting.media.bunnycdn_zone')"
             :value="setting('media_bunnycdn_zone')"
-            placeholder="Ex: Tec"
+            placeholder="Ex: botble"
         />
 
         <x-core::form.text-input

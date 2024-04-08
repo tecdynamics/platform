@@ -3,6 +3,11 @@
 return [
     [
         'name' => 'Settings',
+        'flag' => 'settings.index',
+        'parent_flag' => 'core.system',
+    ],
+    [
+        'name' => 'General Settings',
         'flag' => 'settings.options',
         'parent_flag' => 'core.system',
     ],
@@ -17,8 +22,23 @@ return [
         'parent_flag' => 'settings.options',
     ],
     [
-        'name' => 'Cronjob',
-        'flag' => 'settings.cronjob',
+        'name' => 'Admin Appearance Settings',
+        'flag' => 'settings.admin-appearance',
+        'parent_flag' => 'settings.options',
+    ],
+    [
+        'name' => 'Cache Settings',
+        'flag' => 'settings.cache',
+        'parent_flag' => 'settings.options',
+    ],
+    [
+        'name' => 'Datatable Settings',
+        'flag' => 'settings.datatables',
+        'parent_flag' => 'settings.options',
+    ],
+    [
+        'name' => 'Email Rules',
+        'flag' => 'settings.email.rules',
         'parent_flag' => 'settings.options',
     ],
 ];
