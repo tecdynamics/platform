@@ -16,6 +16,9 @@ use Tec\ACL\Repositories\Interfaces\UserInterface;
 use Tec\Base\Facades\BaseHelper;
 use Tec\Base\Facades\DashboardMenu;
 use Tec\Base\Facades\EmailHandler;
+use Tec\Base\Facades\PanelSectionManager;
+use Tec\Base\PanelSections\System\SystemPanelSection;
+use Tec\Base\PanelSections\PanelSectionItem;
 use Tec\Base\Supports\ServiceProvider;
 use Tec\Base\Traits\LoadAndPublishDataTrait;
 use Tec\Media\Facades\RvMedia;
@@ -86,7 +89,7 @@ class AclServiceProvider extends ServiceProvider
             $router->aliasMiddleware('auth', Authenticate::class);
             $router->aliasMiddleware('guest', RedirectIfAuthenticated::class);
         });
-
+        $this->registerPanelSections();
         $this->app->booted(function () {
             config()->set(['auth.providers.users.model' => User::class]);
 
@@ -99,7 +102,29 @@ class AclServiceProvider extends ServiceProvider
             });
         });
     }
-
+    protected function registerPanelSections(): void
+    {
+        PanelSectionManager::group('system')
+            ->beforeRendering(function () {
+                PanelSectionManager::registerItems(
+                    SystemPanelSection::class,
+                    fn () => [
+                        PanelSectionItem::make('users')
+                            ->setTitle(trans('core/acl::users.users'))
+                            ->withIcon('ti ti-users')
+                            ->withDescription(trans('core/acl::users.users_description'))
+                            ->withPriority(-9999)
+                            ->withRoute('users.index'),
+                        PanelSectionItem::make('roles')
+                            ->setTitle(trans('core/acl::permissions.role_permission'))
+                            ->withIcon('ti ti-users-group')
+                            ->withDescription(trans('core/acl::permissions.role_permission_description'))
+                            ->withPriority(-9980)
+                            ->withRoute('roles.index'),
+                    ]
+                );
+            });
+    }
     protected function getLoginPageBackgroundUrl(): string
     {
         $default = url(Arr::random(config('core.acl.general.backgrounds', [])));
