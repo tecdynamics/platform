@@ -1,5 +1,6 @@
 @php
     $values = Arr::wrap($values ?? []);
+    $attributes= Arr::wrap($attributes?? []);
 @endphp
 
 <div class="position-relative form-check-group mb-3">
