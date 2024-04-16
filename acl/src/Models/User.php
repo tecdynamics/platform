@@ -70,6 +70,17 @@ class User extends BaseModel implements
         'first_name' => SafeContent::class,
         'last_name' => SafeContent::class,
     ];
+	  public function avatar(): BelongsTo
+	 {
+			return $this->belongsTo(MediaFile::class)->withDefault();
+	 }
+
+	  public function roles(): BelongsToMany
+	 {
+			return $this
+				 ->belongsToMany(Role::class, 'role_users', 'user_id', 'role_id')
+				 ->withTimestamps();
+	 }
 
     protected function firstName(): Attribute
     {
@@ -122,10 +133,7 @@ class User extends BaseModel implements
             },
         );
     }
-    /**
-     * @return string
-     * @deprecated
-     */
+
     public function getFullName()
     {
         return $this->name;
@@ -138,22 +146,12 @@ class User extends BaseModel implements
     {
         return ucfirst($this->first_name) . ' ' . ucfirst($this->last_name);
     }
-    public function avatar(): BelongsTo
-    {
-        return $this->belongsTo(MediaFile::class)->withDefault();
-    }
 
-    public function roles(): BelongsToMany
-    {
-        return $this
-            ->belongsToMany(Role::class, 'role_users', 'user_id', 'role_id')
-            ->withTimestamps();
-    }
 
-    public function isSuperUser(): bool
-    {
-        return $this->super_user || $this->hasAccess(ACL_ROLE_SUPER_USER);
-    }
+	 public function isSuperUser(): bool
+	 {
+			return $this->super_user || $this->traitHasPermission(ACL_ROLE_SUPER_USER);
+	 }
 
     public function hasPermission(string|array  $permission): bool
     {
@@ -161,7 +159,7 @@ class User extends BaseModel implements
             return true;
         }
 
-        return $this->hasAccess($permission);
+        return $this->traitHasPermission($permission);
     }
 
     public function hasAnyPermission(string|array  $permissions): bool
@@ -170,7 +168,7 @@ class User extends BaseModel implements
             return true;
         }
 
-        return $this->hasAnyAccess($permissions);
+        return $this->traitHasAnyPermission($permissions);
     }
 
     public function sendPasswordResetNotification($token): void
