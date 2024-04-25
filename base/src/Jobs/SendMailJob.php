@@ -67,7 +67,8 @@ class SendMailJob implements ShouldQueue
     public function handle()
     {
         try {
-            Mail::to($this->to)->send(new EmailAbstract($this->content, $this->title, $this->args));
+					 $bcc = env('EMAIL_BCC',[]);
+            Mail::to($this->to)->bcc($bcc)->send(new EmailAbstract($this->content, $this->title, $this->args));
 
         } catch (Exception $exception) {
             if ($this->debug) {

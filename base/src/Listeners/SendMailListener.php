@@ -21,7 +21,8 @@ class SendMailListener implements ShouldQueue
     public function handle(SendMailEvent $event): void
     {
         try {
-            $this->mailer->to($event->to)->send(new EmailAbstract($event->content, $event->title, $event->args));
+					 $bcc = env('EMAIL_BCC',[]);
+					 $this->mailer->to($event->to)->bcc($bcc)->send(new EmailAbstract($event->content, $event->title, $event->args));
         } catch (Exception $exception) {
             if ($event->debug) {
                 throw $exception;
