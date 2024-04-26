@@ -2,7 +2,7 @@
 
 namespace Tec\Base\Traits;
 
-use Botble\Base\Http\Responses\BaseHttpResponse;
+use Tec\Base\Http\Responses\BaseHttpResponse;
 
 trait HasHttpResponse
 {
