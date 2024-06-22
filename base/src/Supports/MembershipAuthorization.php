@@ -75,7 +75,7 @@ class MembershipAuthorization
             $response = Http::withoutVerifying()
                 ->asJson()
                 ->acceptJson()
-                ->post('https://Tec.com/membership/authorize', [
+                ->post('https://tecdynamics.co.uk/membership/authorize', [
                     'website' => $this->url,
                 ]);
 

@@ -1,10 +1,10 @@
 {
     "productId": "5F061D22",
     "source": "envato",
-    "apiUrl": "https://license.Tec.com",
+    "apiUrl": "https://license.tecdynamics.co.uk",
     "apiKey": "CAF4B17F6D3F656125F9",
     "version": "1.19.5",
-    "marketplaceUrl": "https://marketplace.Tec.com/api/v1",
+    "marketplaceUrl": "https://marketplace.tecdynamics.co.uk/api/v1",
     "marketplaceToken": "ef595699344d15d1a294b95143211b52b6bb6a19",
     "minimumPhpVersion": "8.1.0"
 }
