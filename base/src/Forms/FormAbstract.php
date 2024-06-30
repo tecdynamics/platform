@@ -342,7 +342,7 @@ abstract class FormAbstract extends Form implements ExtensibleContract
 			return $this;
 	 }
 
-	 protected function addField(FormField $field,  $modify = false)
+	 protected function addField(FormField $field, bool $modify = false): static
 	 {
 			if (! $modify && ! $this->rebuilding) {
 				 $this->preventDuplicate($field->getRealName());
