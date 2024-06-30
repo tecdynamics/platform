@@ -55,7 +55,7 @@ class FormBuilder
         $this->url = $url;
         $this->html = $html;
         $this->view = $view;
-        $this->csrfToken = $csrfToken;
+        $this->csrfToken =(string) $csrfToken;
         $this->request = $request;
     }
 
