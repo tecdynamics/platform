@@ -1,2 +1,0 @@
-[class*=col-] {border:1px dashed rgba(86, 61, 124, .2) !important; min-height:30px; transition:all .2s ease-in;}
-[class*=col-]:after {content:' '; position:absolute; display:block; width:16px; height:7px; left:0; bottom:0; z-index:999;}
