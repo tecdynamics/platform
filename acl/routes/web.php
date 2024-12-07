@@ -53,7 +53,6 @@ Route::group(['namespace' => 'Tec\ACL\Http\Controllers'], function () {
                         'as' => 'change-password',
                         'uses' => 'UserController@postChangePassword',
                         'permission' => false,
-                        'middleware' => 'preventDemo',
                     ])->wherePrimaryKey('user');
 
                     Route::get('profile/{user}', [
@@ -66,15 +65,13 @@ Route::group(['namespace' => 'Tec\ACL\Http\Controllers'], function () {
                         'as' => 'update-profile',
                         'uses' => 'UserController@postUpdateProfile',
                         'permission' => false,
-                        'middleware' => 'preventDemo',
                     ])->wherePrimaryKey('user');
 
                     Route::put('profile/{user}/preferences', [
                         'as' => 'update-preferences',
                         'uses' => 'UserController@updatePreferences',
                         'permission' => false,
-                        'middleware' => 'preventDemo',
-                    ])->wherePrimaryKey('user');
+                         ])->wherePrimaryKey('user');
 
                     Route::patch('profile/{user}/preferences', [
                         'uses' => 'UserController@patchUpdatePreferences',
@@ -92,7 +89,6 @@ Route::group(['namespace' => 'Tec\ACL\Http\Controllers'], function () {
                     'as' => 'remove-super',
                     'uses' => 'UserController@removeSuper',
                     'permission' => ACL_ROLE_SUPER_USER,
-                    'middleware' => 'preventDemo',
                 ])->wherePrimaryKey('user');
             });
 

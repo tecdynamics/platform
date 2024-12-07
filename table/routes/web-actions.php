@@ -20,7 +20,8 @@ Route::group(['prefix' => 'tables', 'permission' => false, 'as' => 'table.'], fu
         Route::get('/', [TableFilterController::class, '__invoke'])->name('input');
     });
 
-    Route::group(['middleware' => 'preventDemo', 'prefix' => 'columns-visibility'], function () {
+    Route::group([
+	 'prefix' => 'columns-visibility'], function () {
         Route::put('/', [TableColumnVisibilityController::class, 'update'])->name('update-columns-visibility');
     });
 });

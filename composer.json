@@ -3,13 +3,9 @@
     "description": "The Tec Platform based on Laravel Framework.",
     "keywords": ["Tec", "Tec cms", "Tec platform"],
     "homepage": "https://tecdynamics.co.uk",
-    "support": {
-        "issues": "https://Tec.ticksy.com",
-        "document": "https://docs.tecdynamics.co.uk"
-    },
     "authors": [
         {
-            "name": "Tec Technologies",
+            "name": "Tec-Dynamics LTD",
             "email": "contact@tecdynamics.co.uk"
         }
     ],

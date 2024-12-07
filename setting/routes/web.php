@@ -81,15 +81,13 @@ Route::group(['namespace' => 'Tec\Setting\Http\Controllers'], function () {
                     'as' => 'media.update',
                     'uses' => 'MediaSettingController@update',
                     'permission' => 'settings.media',
-                    'middleware' => 'preventDemo',
                 ]);
 
                 Route::post('generate-thumbnails', [
                     'as' => 'media.generate-thumbnails',
                     'uses' => 'MediaSettingController@generateThumbnails',
                     'permission' => 'settings.media',
-                    'middleware' => 'preventDemo',
-                ]);
+               ]);
             });
 
             Route::prefix('license')->name('license.')->group(function () {
