@@ -1,5 +1,4 @@
 {
-    "name": "tecdynamics/core",
     "version": "1.0.0",
     "devDependencies": {
         "@tabler/core": "github:tabler/tabler#dev",

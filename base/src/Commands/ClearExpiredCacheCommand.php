@@ -7,8 +7,8 @@ use Illuminate\Console\Command;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
-
 use function Laravel\Prompts\{info, progress};
+use Illuminate\Support\Facades\Log;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 
@@ -39,10 +39,14 @@ class ClearExpiredCacheCommand extends Command
 
     public function handle(): int
     {
-        $this->deleteExpiredFiles();
-        $this->deleteEmptyFolders();
-        $this->showResults();
-
+			 try {
+					$this->deleteExpiredFiles();
+					$this->deleteEmptyFolders();
+					$this->showResults();
+			 }catch (\Exception $exception){
+			Log::info('Error clear cache!',[$exception->getMessage()]);
+					return self::FAILURE;
+			 }
         return self::SUCCESS;
     }
 
@@ -60,7 +64,7 @@ class ClearExpiredCacheCommand extends Command
         );
 
         $progress->start();
-
+			 try {
         // Loop the files and get rid of any that have expired
         foreach ($files as $cacheFile) {
             // Ignore files that named with dot(.) at the beginning e.g: .gitignore
@@ -89,12 +93,15 @@ class ClearExpiredCacheCommand extends Command
 
             $progress->advance();
         }
-
+			 }catch (\Exception $exception){
+					Log::info('Error clear cache!',[$exception->getMessage()]);
+			 }
         $progress->finish();
     }
 
     protected function deleteEmptyFolders(): void
     {
+			 try{
         $directories = $this->disk->allDirectories();
         $dirCount = count($directories);
         // looping backward to make sure subdirectories are deleted first
@@ -103,6 +110,9 @@ class ClearExpiredCacheCommand extends Command
                 $this->disk->deleteDirectory($directories[$dirCount]);
             }
         }
+		}catch (\Exception $exception){
+Log::info('Error clear cache!',[$exception->getMessage()]);
+}
     }
 
     public function showResults(): void
